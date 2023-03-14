@@ -13,6 +13,7 @@ output:
     toc_depth: '4'
 ---
 
+# Project Overview
 
 ```{r setup chunk, setup, include = FALSE, cache=FALSE, message=FALSE, warning=FALSE}
 if (!require('knitr')) install.packages('knitr'); library('knitr')
@@ -27,8 +28,12 @@ pacman::p_load('knitr', 'lme4', 'lmerTest', 'tidyverse', 'effects', 'plyr', 'dpl
 ```
 
 
-#Load Data
-```{r}
+## Data  
+Load in the data and pull out the essential amino acids, then subset by sample type.  
+```{r load, eval =FALSE}
+
+###### this comes from another script to correct data #####
+###### the file and script to read in are currently NOT in repo ### 
 SNL.d13C.aa <- tbl13CSamp[substr(tbl13CSamp$SampleID,1,4)=="SNL-",]
 
 #Round AA d13C values to one digit
@@ -37,13 +42,15 @@ SNL.d13C.aa <- SNL.d13C.aa %>%
   mutate_if(is.numeric, round, digits = 1)
 
 #Write csv file - d13C for all AA - UNM standard
-write.csv(SNL.d13C.aa, "output/Sierra Nevada Lakes AA d13C Data UNM standard.csv")
+write.csv(SNL.d13C.aa, "data/Sierra Nevada Lakes AA d13C Data UNM standard.csv")
 
 ```
 
+```{r essAA}
+# pull in the standardized CSIA data
+SNL.d13C.aa<- read.csv("data/Sierra Nevada Lakes AA d13C Data UNM standard.csv")
 
-#Pull out ess AA and subset by sample type
-```{r}
+
 #Pull out just the essential AA values (excluding Lys)
 SNL.ess <- data.frame(SNL.d13C.aa$SampleID, SNL.d13C.aa$Ile13C, SNL.d13C.aa$Leu13C, SNL.d13C.aa$Phe13C, SNL.d13C.aa$Thr13C, SNL.d13C.aa$Val13C)
 
@@ -78,16 +85,16 @@ write.csv(zoops, "output/SNL_zooplankton_ess_AA_data.csv")
 ```
 
 
-#Ess AA boxplot
+## Ess AA boxplot
 ```{r}
-pdf("Sierra Nevada Lakes Ess AA Boxplot.pdf", width = 12, height = 8)
+pdf("figures/Sierra Nevada Lakes Ess AA Boxplot.pdf", width = 12, height = 8)
 boxplot(plants$Ile, pom$Ile, zoops$Ile, plants$Leu, pom$Leu, zoops$Leu, plants$Phe, pom$Phe, zoops$Phe, plants$Thr, pom$Thr, zoops$Thr, plants$Val, pom$Val, zoops$Val)
 dev.off()
 
 ```
 
 
-#LDA - Primary Producers
+## LDA - Primary Producers
 ```{r}
 #Run an LDA with a jackknifing model fit to look at error rate
 #'CV = TRUE' makes the LDA run a jackknifed - leave one out - model fit
@@ -120,7 +127,7 @@ write.csv(AlldataPredict, "output/SNL_Producers_LDA_coords_UNM.csv")
 ```
 
 
-#LDA - Classify Zooplankton
+## LDA - Classify Zooplankton
 ```{r}
 #Classify zooplankton
 zoop.predict <- predict(object = All.train, newdata = zoops)

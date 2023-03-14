@@ -1,0 +1,133 @@
+---
+title: "Sierra Nevada Alpine Lakes Zooplankton"
+author: "Alexi and Chris"
+date: "10/27/2022"
+output:
+  html_document:
+    code_folding: hide
+    toc: yes
+    toc_depth: 4
+    toc_float: yes
+  pdf_document:
+    toc: yes
+    toc_depth: '4'
+---
+
+
+```{r setup chunk, setup, include = FALSE, cache=FALSE, message=FALSE, warning=FALSE}
+if (!require('knitr')) install.packages('knitr'); library('knitr')
+knitr::opts_chunk$set(warning=FALSE, message=FALSE, fig.align='center')
+
+# load packages
+if (!require("pacman")) install.packages("pacman") # for rapid install if not in library
+
+# use pacman to load all the packages you are missing!
+pacman::p_load('knitr', 'lme4', 'lmerTest', 'tidyverse', 'effects', 'plyr', 'dplyr', 'plotrix', 'car',"gridExtra", "cowplot", "tools", "mgcv", "gratia", "MASS", "stats", "tidymv", "sjstats", "coin", "emmeans", "ggplot2", "mda", "nortest", "reshape2", "gmm", "propagate")
+
+```
+
+
+#Load Data
+```{r}
+SNL.d13C.aa <- tbl13CSamp[substr(tbl13CSamp$SampleID,1,4)=="SNL-",]
+
+#Round AA d13C values to one digit
+library(dplyr)
+SNL.d13C.aa <- SNL.d13C.aa %>%
+  mutate_if(is.numeric, round, digits = 1)
+
+#Write csv file - d13C for all AA - UNM standard
+write.csv(SNL.d13C.aa, "output/Sierra Nevada Lakes AA d13C Data UNM standard.csv")
+
+```
+
+
+#Pull out ess AA and subset by sample type
+```{r}
+#Pull out just the essential AA values (excluding Lys)
+SNL.ess <- data.frame(SNL.d13C.aa$SampleID, SNL.d13C.aa$Ile13C, SNL.d13C.aa$Leu13C, SNL.d13C.aa$Phe13C, SNL.d13C.aa$Thr13C, SNL.d13C.aa$Val13C)
+
+#Rename columns
+colnames(SNL.ess) <- c("ID", "Ile", "Leu", "Phe", "Thr", "Val")
+SNL.ess$ID <- as.character(SNL.ess$ID)
+
+#Subset terrestrial plants
+plants <- SNL.ess[substr(SNL.ess$ID,1,11)=="SNL-TERPLA-",]
+#Add a column for group
+plants$Group <- "Terrestrial Plants"
+
+#Subset POM
+pom <- SNL.ess[substr(SNL.ess$ID,1,8)=="SNL-POM-",]
+#Add a column for group
+pom$Group <- "POM"
+
+#Write csv file - primary producer d13C for just ess AA - UNM standard
+prod <- rbind(plants, pom)
+write.csv(prod, "output/SNL_producers_ess_AA_data.csv")
+
+#Subset zooplankton
+zoops <- SNL.ess[substr(SNL.ess$ID,1,9)=="SNL-ZOOP-",]
+
+#Pull in zooplankton metadata
+zoops_meta <- read.csv("data/Zoops_Meta.csv")
+zoops <- merge.data.frame(zoops_meta, zoops, by.x = "ID", by.y = "ID")
+
+#Write csv file - zooplankton d13C for just ess AA - UNM standard
+write.csv(zoops, "output/SNL_zooplankton_ess_AA_data.csv")
+
+```
+
+
+#Ess AA boxplot
+```{r}
+pdf("Sierra Nevada Lakes Ess AA Boxplot.pdf", width = 12, height = 8)
+boxplot(plants$Ile, pom$Ile, zoops$Ile, plants$Leu, pom$Leu, zoops$Leu, plants$Phe, pom$Phe, zoops$Phe, plants$Thr, pom$Thr, zoops$Thr, plants$Val, pom$Val, zoops$Val)
+dev.off()
+
+```
+
+
+#LDA - Primary Producers
+```{r}
+#Run an LDA with a jackknifing model fit to look at error rate
+#'CV = TRUE' makes the LDA run a jackknifed - leave one out - model fit
+All.lda <- lda(Group ~ Ile + Leu + Phe + Thr + Val, data = prod, CV = TRUE)
+
+#Create a table which compares the classification from the LDA model to the actual classification
+All.reclass <- table(prod$Group, All.lda$class)
+
+#Total percent of samples correctly classified is the sum of the diagonal of this table
+sum(diag(prop.table(All.reclass)))
+
+#Percent of each producer group correctly reclassified
+diag(prop.table(All.reclass, 1))
+
+#Create a training LDA function from the library data
+#Note - you can't use the 'All.lda' object above because the 'CV = TRUE' command was used to create it, and for some reason this won't work with the predict() function
+All.train <- lda(Group~ Ile + Leu + Phe + Thr + Val, data = prod)
+All.train
+
+#Write a csv file for the coefficients of LD1
+lda.info <- as.data.frame(All.train$scaling)
+write.csv(lda.info, "output/SNL_Producers_LDA_loadings_UNM.csv")
+
+#Create a data frame with these LDA coordinates
+AlldataPredict <- data.frame(Group = prod$Group, ID = prod$ID, predict(All.train)$x)
+
+#Write a csv file for the LDA coordinatinates
+write.csv(AlldataPredict, "output/SNL_Producers_LDA_coords_UNM.csv")
+
+```
+
+
+#LDA - Classify Zooplankton
+```{r}
+#Classify zooplankton
+zoop.predict <- predict(object = All.train, newdata = zoops)
+zoop.predict.data <- data.frame(SampleID = zoops$ID, Type = zoops$Type, Lake = zoops$Lake, zoop.predict)
+
+#Write a csv file for the zooplankton LDA info
+write.csv(zoop.predict.data, "output/SNL_Zooplankton_LDA_info_UNM.csv")
+
+```
+

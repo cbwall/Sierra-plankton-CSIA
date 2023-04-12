@@ -61,8 +61,8 @@ write.csv(SNL.d13C.aa, "data/Sierra Nevada Lakes AA d13C Data UNM standard.csv")
 
 ```
 
+Pull in the standardized CSIA data and the ESS-AA, excluding Lysine
 ```{r essAA}
-# pull in the standardized CSIA data
 SNL.d13C.aa<- read.csv("data/Sierra Nevada Lakes AA d13C Data UNM standard.csv")
 
 

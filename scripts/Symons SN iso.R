@@ -23,6 +23,7 @@ d13C.d15N<-ggplot(iso, aes(x=d13C, y=d15N, color=type)) +
   xlab(expression(paste(delta^{13}, C, " (\u2030, V-PDB)")))+
   ylab(expression(paste(delta^{15}, N, " (\u2030, Air)")))+
   coord_cartesian(xlim=c(-45, -5), ylim=c(-6, 10)) +
+  labs(color = "")+
   geom_point() +
   stat_ellipse()+
   theme_classic()

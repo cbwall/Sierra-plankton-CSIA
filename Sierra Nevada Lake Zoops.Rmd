@@ -40,6 +40,25 @@ if (!require("pacman")) install.packages("pacman") # for rapid install if not in
 # use pacman to load all the packages you are missing!
 pacman::p_load('knitr', 'lme4', 'lmerTest', 'tidyverse', 'effects', 'plyr', 'dplyr', 'plotrix', 'car',"gridExtra", "cowplot", "tools", "mgcv", "gratia", "MASS", "stats", "tidymv", "sjstats", "coin", "emmeans", "ggplot2", "mda", "nortest", "reshape2", "gmm", "propagate")
 
+
+### general formatting for figures
+Fig.formatting<-(theme_classic()) +
+  theme(text=element_text(size=10),
+        axis.line=element_blank(),
+        legend.text.align = 0,
+        legend.text=element_text(size=10),
+        #legend.title = element_blank(),
+        panel.border = element_rect(fill=NA, colour = "black", linewidth =1),
+        aspect.ratio=1, 
+        axis.ticks.length=unit(0.25, "cm"),
+        axis.text.y=element_text(
+          margin=unit(c(0.5, 0.5, 0.5, 0.5), "cm"), colour="black", size=10), 
+        axis.text.x=element_text(
+          margin=unit(c(0.5, 0.5, 0.5, 0.5), "cm"), colour="black", size=8)) +
+  theme(legend.key.size = unit(0.4, "cm")) +
+  theme(aspect.ratio=1.3) +
+  theme(panel.spacing=unit(c(0, 0, 0, 0), "cm"))
+
 ```
 
 
@@ -102,8 +121,47 @@ write.csv(zoops, "output/SNL_zooplankton_ess_AA_data.csv")
 
 ## Ess AA boxplot
 ```{r}
-pdf("figures/Sierra Nevada Lakes Ess AA Boxplot.pdf", width = 12, height = 8)
-boxplot(plants$Ile, pom$Ile, zoops$Ile, plants$Leu, pom$Leu, zoops$Leu, plants$Phe, pom$Phe, zoops$Phe, plants$Thr, pom$Thr, zoops$Thr, plants$Val, pom$Val, zoops$Val)
+
+# function to bind the data frames together
+bind_cols_fill <- function(df_list) {
+  max_rows <- map_int(df_list, nrow) %>% max()
+  map(df_list, function(df) {
+    if(nrow(df) == max_rows) return(df)
+    first <- names(df)[1] %>% sym()
+    df %>% add_row(!!first := rep(NA, max_rows - nrow(df)))
+  }) %>% bind_cols()
+}
+
+
+ESS_df.wide<-as.data.frame(bind_cols_fill(list(tibble(plants$Ile), tibble(pom$Ile), tibble(zoops$Ile),
+                                          tibble(plants$Leu), tibble(pom$Leu), tibble(zoops$Leu),
+                                          tibble(plants$Phe), tibble(pom$Phe), tibble(zoops$Phe),
+                                          tibble(plants$Thr), tibble(pom$Thr), tibble(zoops$Thr),
+                                          tibble(plants$Val), tibble(pom$Val), tibble(zoops$Val))))
+
+# select columns that match the producers
+zoop.sub<- zoops %>% 
+  select(ID, Ile, Leu, Phe, Thr, Val, Group, Type, Lake)
+
+## with bindrows bring zoops and producers together
+ESS.df.long<- bind_rows(prod, zoop.sub)
+
+
+#simple boxplot
+colors<-c("seagreen3", "lightblue2", "salmon1")
+
+par(mar = c(4.1, 4.5, 2, 2))
+
+{boxplot(plants$Ile, pom$Ile, zoops$Ile, plants$Leu, pom$Leu, zoops$Leu, plants$Phe, pom$Phe, zoops$Phe, plants$Thr, pom$Thr, zoops$Thr, plants$Val, pom$Val, zoops$Val, 
+        xaxt="n", xlab="Essential Amino Acids", ylim=c(-45, -10),
+        ylab=(expression(paste(delta^{13}, C[ESS-AA]))),
+        col=c(colors, colors, colors, colors, colors))
+legend("bottomright", c("Plants", "POM", "Zooplankton"), inset=c(-0.15, 0),
+        fill=colors, cex=0.8, bty="n", x.intersp = 0.3)
+axis(1, at = seq(2, 15, by = 3), las=1,
+                                        labels =c("Ile","Leu","Phe","Thr","Val"))
+}
+dev.copy(pdf, "figures/Sierra Nevada Lakes Ess AA Boxplot.pdf", width = 6, height = 6)
 dev.off()
 
 ```

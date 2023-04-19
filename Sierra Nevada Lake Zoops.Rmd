@@ -120,7 +120,7 @@ write.csv(zoops, "output/SNL_zooplankton_ess_AA_data.csv")
 
 
 ## Ess AA boxplot
-```{r}
+```{r AAess box}
 
 # function to bind the data frames together
 bind_cols_fill <- function(df_list) {
@@ -168,7 +168,7 @@ dev.off()
 
 
 ## LDA - Primary Producers
-```{r}
+```{r LDA PP}
 #Run an LDA with a jackknifing model fit to look at error rate
 #'CV = TRUE' makes the LDA run a jackknifed - leave one out - model fit
 All.lda <- lda(Group ~ Ile + Leu + Phe + Thr + Val, data = prod, CV = TRUE)
@@ -201,13 +201,59 @@ write.csv(AlldataPredict, "output/SNL_Producers_LDA_coords_UNM.csv")
 
 
 ## LDA - Classify Zooplankton
-```{r}
+```{r LDA Zoop}
 #Classify zooplankton
 zoop.predict <- predict(object = All.train, newdata = zoops)
 zoop.predict.data <- data.frame(SampleID = zoops$ID, Type = zoops$Type, Lake = zoops$Lake, zoop.predict)
 
 #Write a csv file for the zooplankton LDA info
 write.csv(zoop.predict.data, "output/SNL_Zooplankton_LDA_info_UNM.csv")
+
+```
+
+### LDA by sample
+```{r LDA plot}
+LDA.df<-read.csv("data/Producer_zoop_LDA_score.csv")
+
+# the orginal metadata is "Type"
+# >>> reduced to clarify to fewer terms in "orig.class", 
+# >>>>>> and to higher taxonomy in "phy.group"
+# The LDA classification is "LD.class" (i.e., how do they align with sources of "plants or POM")
+
+make.fac<-c("Type", "Lake", "orig.class", "phy.group", "LD.class")
+LDA.df[make.fac]<-lapply(LDA.df[make.fac], factor) # make all these factors
+
+## by site and phy-group
+LDA.plot.phy<-ggplot(LDA.df, aes(x=LD1, y=y.axis, color=Lake, shape=phy.group))+
+  geom_point(size=3)+
+  geom_vline(xintercept=-0.75, linetype="dashed", color = "gray60")+
+  annotate(geom="text", label="POM-source", x=-3.5, y=1.1, color="gray30", size=3) +
+  annotate(geom="text", label="Plant-source", x=2.5, y=1.1, color="gray30", size=3) +
+  xlab("LD1") +
+  theme_classic()+
+  theme(axis.title.y=element_blank(),
+        axis.text.y=element_blank())
+
+LDA.plot.phy
+dev.copy(pdf, "figures/LDA.plot.phy.pdf", width = 6, height = 6)
+dev.off()
+
+
+## just by taxonomy and groups
+LDA.plot.orig<-ggplot(LDA.df, aes(x=LD1, y=y.axis, color=orig.class))+
+  geom_point(size=3)+
+  geom_vline(xintercept=-0.75, linetype="dashed", color = "gray60")+
+  annotate(geom="text", label="POM-source", x=-3.5, y=1.1, color="gray30", size=3) +
+  annotate(geom="text", label="Plant-source", x=2.5, y=1.1, color="gray30", size=3) +
+  xlab("LD1") +
+  theme_classic()+
+  theme(axis.title.y=element_blank(),
+        axis.text.y=element_blank())
+
+LDA.plot.orig
+dev.copy(pdf, "figures/LDA.plot.orig.pdf", width = 6, height = 6)
+dev.off()
+
 
 ```
 

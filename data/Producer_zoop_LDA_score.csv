@@ -1,50 +1,50 @@
-﻿SampleID,Type,Lake,Elevation,orig.class,phy.group,LD.class,LD1,y.axis
-SNL-ZOOP-GFF65,>350 um,Lukens Lake,2513,>350um,>350um,POM,-2.430036981,1.01
-SNL-ZOOP-03A,copepods calanoid,Lukens Lake,2513,calanoid,copepoda,POM,-1.767290933,1.01
-SNL-ZOOP-04A,copepods calanoid,Lukens Lake,2513,calanoid,copepoda,POM,-2.026882996,1.01
-SNL-ZOOP-01A,Daphnia sp.,Lukens Lake,2513,Daphnia,cladocera,POM,-5.338531302,1.01
-SNL-ZOOP-02A,Daphnia sp.,Lukens Lake,2513,Daphnia,cladocera,POM,-3.27805835,1.01
-SNL-ZOOP-GFF69,>350 um,May Pond,2714,>350um,>350um,POM,-4.175466781,1.02
-SNL-ZOOP-05A,copepods calanoid,May Pond,2714,calanoid,copepoda,POM,-1.20238264,1.02
-SNL-ZOOP-06A,copepods calanoid,May Pond,2714,calanoid,copepoda,Terrestrial Plants,1.87625793,1.02
-SNL-ZOOP-07A,copepods calanoid,May Pond,2714,calanoid,copepoda,Terrestrial Plants,0.607885587,1.02
-SNL-ZOOP-GFF47,>350 um,Sunrise 2 Lake,2830,>350um,>350um,POM,-4.534684593,1.03
-SNL-ZOOP-GFF49,>350 um,Blue Lake,3054,>350um,>350um,POM,-2.453734536,1.04
-SNL-ZOOP-08A,copepods calanoid + cyclopoid,Blue Lake,3054,copepods,copepoda,Terrestrial Plants,0.090782251,1.04
-SNL-ZOOP-09A,copepods calanoid + cyclopoid,Blue Lake,3054,copepods,copepoda,Terrestrial Plants,-0.421683674,1.04
-SNL-ZOOP-10A,Daphnia sp.,Blue Lake,3054,Daphnia,cladocera,POM,-4.402116049,1.04
-SNL-ZOOP-11A,Daphnia sp.,Blue Lake,3054,Daphnia,cladocera,POM,-2.7349715,1.04
-SNL-ZOOP-GFF70,>350 um,Cascade Lake ,3140,>350um,>350um,POM,-2.333166758,1.05
-SNL-ZOOP-13A,Daphnia sp.,Cascade Lake ,3140,Daphnia,cladocera,Terrestrial Plants,0.307240331,1.05
-SNL-ZOOP-14A,Daphnia sp.,Cascade Lake ,3140,Daphnia,cladocera,POM,-1.511882365,1.05
-SNL-ZOOP-GFF48,Holopedium,Cascade Lake ,3140,Holopedium,cladocera,POM,-4.318491322,1.05
-SNL-ZOOP-GFF53,>350 um,Eastern Brook,3155,>350um,>350um,POM,-5.166394456,1.06
-SNL-ZOOP-16A,copepods calanoid + cyclopoid,Eastern Brook,3155,copepods,copepoda,POM,-3.027185784,1.06
-SNL-ZOOP-17A,copepods calanoid + cyclopoid,Eastern Brook,3155,copepods,copepoda,POM,-1.938687747,1.06
-SNL-ZOOP-15A,Daphnia sp.,Eastern Brook,3155,Daphnia,cladocera,Terrestrial Plants,-0.069702719,1.06
-SNL-ZOOP-GFF67,>350um,Granite 2,3178,>350um,>350um,POM,-5.769161379,1.07
-SNL-ZOOP-18A,Calanoids,Granite 2,3178,calanoid,copepoda,POM,-1.59770911,1.07
-SNL-ZOOP-20A,Ceriodaphnia,Granite 2,3178,Ceriodaphnia,cladocera,POM,-2.951602782,1.07
-SNL-ZOOP-19A,Daphnia sp.,Granite 2,3178,Daphnia,cladocera,POM,-2.815375824,1.07
-SNL-ZOOP-GFF66,>350 um,Greenstone Lake,3091,>350um,>350um,POM,-2.579932068,1.08
-SNL-ZOOP-TA11,>350 <1000um,TB-tanks,NA,>350um,>350um,POM,-5.239034022,1.09
-SNL-ZOOP-TA13,>350 <1000um,TB-tanks,NA,>350um,>350um,POM,-3.476190003,1.09
-SNL-ZOOP-TA18,>350 <1000um,TB-tanks,NA,>350um,>350um,POM,-3.985096854,1.09
-SNL-ZOOP-TA2,>350 <1000um,TB-tanks,NA,>350um,>350um,POM,-5.896754717,1.09
-SNL-TERPLA-SA,Terrestrial Plants,NA,NA,Plants,Plants,Terrestrial Plants,2.663708417,1
-SNL-TERPLA-07,Terrestrial Plants,NA,NA,Plants,Plants,Terrestrial Plants,5.046880718,1
-SNL-TERPLA-27,Terrestrial Plants,NA,NA,Plants,Plants,Terrestrial Plants,2.143168229,1
-SNL-TERPLA-10,Terrestrial Plants,NA,NA,Plants,Plants,Terrestrial Plants,3.705459817,1
-SNL-TERPLA-13,Terrestrial Plants,NA,NA,Plants,Plants,Terrestrial Plants,4.015453789,1
-SNL-TERPLA-15,Terrestrial Plants,NA,NA,Plants,Plants,Terrestrial Plants,2.985297681,1
-SNL-TERPLA-18,Terrestrial Plants,NA,NA,Plants,Plants,Terrestrial Plants,4.265068413,1
-SNL-TERPLA-14,Terrestrial Plants,NA,NA,Plants,Plants,Terrestrial Plants,2.80192143,1
-SNL-TERPLA-08,Terrestrial Plants,NA,NA,Plants,Plants,Terrestrial Plants,2.483947866,1
-SNL-TERPLA-01,Terrestrial Plants,NA,NA,Plants,Plants,Terrestrial Plants,4.111661962,1
-SNL-POM-GFF75,POM,NA,NA,POM,POM,POM,-5.196252637,1
-SNL-POM-05,POM,NA,NA,POM,POM,POM,-4.741745767,1
-SNL-POM-02,POM,NA,NA,POM,POM,POM,-3.249294187,1
-SNL-POM-GFF62,POM,NA,NA,POM,POM,POM,-5.693423502,1
-SNL-POM-04,POM,NA,NA,POM,POM,POM,-3.594549014,1
-SNL-POM-03,POM,NA,NA,POM,POM,POM,-5.939841783,1
-SNL-POM-GFF55,POM,NA,NA,POM,POM,POM,-5.807461431,1
+﻿SampleID,Type,Lake,Elevation,orig.class,phy.group,LD.class,LD1,y.axis.elev.order
+SNL-ZOOP-GFF65,>350 um,Lukens Lake,2513,>350um,>350um,POM,-2.430036981,1.02
+SNL-ZOOP-03A,copepods calanoid,Lukens Lake,2513,calanoid,copepoda,POM,-1.767290933,1.02
+SNL-ZOOP-04A,copepods calanoid,Lukens Lake,2513,calanoid,copepoda,POM,-2.026882996,1.02
+SNL-ZOOP-01A,Daphnia sp.,Lukens Lake,2513,Daphnia,cladocera,POM,-5.338531302,1.02
+SNL-ZOOP-02A,Daphnia sp.,Lukens Lake,2513,Daphnia,cladocera,POM,-3.27805835,1.02
+SNL-ZOOP-GFF69,>350 um,May Pond,2714,>350um,>350um,POM,-4.175466781,1.03
+SNL-ZOOP-05A,copepods calanoid,May Pond,2714,calanoid,copepoda,POM,-1.20238264,1.03
+SNL-ZOOP-06A,copepods calanoid,May Pond,2714,calanoid,copepoda,Terrestrial Plants,1.87625793,1.03
+SNL-ZOOP-07A,copepods calanoid,May Pond,2714,calanoid,copepoda,Terrestrial Plants,0.607885587,1.03
+SNL-ZOOP-GFF47,>350 um,Sunrise 2 Lake,2830,>350um,>350um,POM,-4.534684593,1.04
+SNL-ZOOP-GFF49,>350 um,Blue Lake,3054,>350um,>350um,POM,-2.453734536,1.05
+SNL-ZOOP-08A,copepods calanoid + cyclopoid,Blue Lake,3054,copepods,copepoda,Terrestrial Plants,0.090782251,1.05
+SNL-ZOOP-09A,copepods calanoid + cyclopoid,Blue Lake,3054,copepods,copepoda,Terrestrial Plants,-0.421683674,1.05
+SNL-ZOOP-10A,Daphnia sp.,Blue Lake,3054,Daphnia,cladocera,POM,-4.402116049,1.05
+SNL-ZOOP-11A,Daphnia sp.,Blue Lake,3054,Daphnia,cladocera,POM,-2.7349715,1.05
+SNL-ZOOP-GFF66,>350 um,Greenstone Lake,3091,>350um,>350um,POM,-2.579932068,1.06
+SNL-ZOOP-GFF70,>350 um,Cascade Lake ,3140,>350um,>350um,POM,-2.333166758,1.07
+SNL-ZOOP-13A,Daphnia sp.,Cascade Lake ,3140,Daphnia,cladocera,Terrestrial Plants,0.307240331,1.07
+SNL-ZOOP-14A,Daphnia sp.,Cascade Lake ,3140,Daphnia,cladocera,POM,-1.511882365,1.07
+SNL-ZOOP-GFF48,Holopedium,Cascade Lake ,3140,Holopedium,cladocera,POM,-4.318491322,1.07
+SNL-ZOOP-GFF53,>350 um,Eastern Brook,3155,>350um,>350um,POM,-5.166394456,1.08
+SNL-ZOOP-16A,copepods calanoid + cyclopoid,Eastern Brook,3155,copepods,copepoda,POM,-3.027185784,1.08
+SNL-ZOOP-17A,copepods calanoid + cyclopoid,Eastern Brook,3155,copepods,copepoda,POM,-1.938687747,1.08
+SNL-ZOOP-15A,Daphnia sp.,Eastern Brook,3155,Daphnia,cladocera,Terrestrial Plants,-0.069702719,1.08
+SNL-ZOOP-GFF67,>350um,Granite 2,3178,>350um,>350um,POM,-5.769161379,1.09
+SNL-ZOOP-18A,Calanoids,Granite 2,3178,calanoid,copepoda,POM,-1.59770911,1.09
+SNL-ZOOP-20A,Ceriodaphnia,Granite 2,3178,Ceriodaphnia,cladocera,POM,-2.951602782,1.09
+SNL-ZOOP-19A,Daphnia sp.,Granite 2,3178,Daphnia,cladocera,POM,-2.815375824,1.09
+SNL-ZOOP-TA11,>350 <1000um,TB-tanks,NA,>350um,>350um,POM,-5.239034022,1.01
+SNL-ZOOP-TA13,>350 <1000um,TB-tanks,NA,>350um,>350um,POM,-3.476190003,1.01
+SNL-ZOOP-TA18,>350 <1000um,TB-tanks,NA,>350um,>350um,POM,-3.985096854,1.01
+SNL-ZOOP-TA2,>350 <1000um,TB-tanks,NA,>350um,>350um,POM,-5.896754717,1.01
+SNL-TERPLA-SA,Terrestrial Plants,Source,NA,Plants,Plants,Terrestrial Plants,2.663708417,1
+SNL-TERPLA-07,Terrestrial Plants,Source,NA,Plants,Plants,Terrestrial Plants,5.046880718,1
+SNL-TERPLA-27,Terrestrial Plants,Source,NA,Plants,Plants,Terrestrial Plants,2.143168229,1
+SNL-TERPLA-10,Terrestrial Plants,Source,NA,Plants,Plants,Terrestrial Plants,3.705459817,1
+SNL-TERPLA-13,Terrestrial Plants,Source,NA,Plants,Plants,Terrestrial Plants,4.015453789,1
+SNL-TERPLA-15,Terrestrial Plants,Source,NA,Plants,Plants,Terrestrial Plants,2.985297681,1
+SNL-TERPLA-18,Terrestrial Plants,Source,NA,Plants,Plants,Terrestrial Plants,4.265068413,1
+SNL-TERPLA-14,Terrestrial Plants,Source,NA,Plants,Plants,Terrestrial Plants,2.80192143,1
+SNL-TERPLA-08,Terrestrial Plants,Source,NA,Plants,Plants,Terrestrial Plants,2.483947866,1
+SNL-TERPLA-01,Terrestrial Plants,Source,NA,Plants,Plants,Terrestrial Plants,4.111661962,1
+SNL-POM-GFF75,POM,Source,NA,POM,POM,POM,-5.196252637,1
+SNL-POM-05,POM,Source,NA,POM,POM,POM,-4.741745767,1
+SNL-POM-02,POM,Source,NA,POM,POM,POM,-3.249294187,1
+SNL-POM-GFF62,POM,Source,NA,POM,POM,POM,-5.693423502,1
+SNL-POM-04,POM,Source,NA,POM,POM,POM,-3.594549014,1
+SNL-POM-03,POM,Source,NA,POM,POM,POM,-5.939841783,1
+SNL-POM-GFF55,POM,Source,NA,POM,POM,POM,-5.807461431,1

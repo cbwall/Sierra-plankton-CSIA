@@ -38,7 +38,7 @@ knitr::opts_chunk$set(warning=FALSE, message=FALSE, fig.align='center')
 if (!require("pacman")) install.packages("pacman") # for rapid install if not in library
 
 # use pacman to load all the packages you are missing!
-pacman::p_load('knitr', 'lme4', 'lmerTest', 'tidyverse', 'effects', 'plyr', 'dplyr', 'plotrix', 'car',"gridExtra", "cowplot", "tools", "mgcv", "gratia", "MASS", "stats", "tidymv", "sjstats", "coin", "emmeans", "ggplot2", "mda", "nortest", "reshape2", "gmm", "propagate")
+pacman::p_load('knitr', 'lme4', 'lmerTest', 'tidyverse', 'effects', 'plyr', 'dplyr', 'plotrix', 'car',"gridExtra", "cowplot", "tools", "mgcv", "gratia", "MASS", "stats", "tidymv", "sjstats", "coin", "emmeans", "ggplot2", "mda", "nortest", "reshape2", "gmm", "propagate","ggmap", "RgoogleMaps")
 
 
 ### general formatting for figures
@@ -62,7 +62,82 @@ Fig.formatting<-(theme_classic()) +
 ```
 
 
-## Data  
+### Site Maps
+```{r, site maps, fig.cap="**Figure 1**. Site map of the Eastern Sierra Nevada Mountains and sampling sites", fig.align='center', results='hide'}
+
+# load data
+SNL.env<-read.csv("data/SNL.envdata.csv")
+API<-read.csv("data/API_key.csv")
+API.key<-API[1,1]
+
+#quick map
+# ggplot(SNL.env, aes(x = longitude, y = latitude)) + coord_quickmap() + geom_point()
+
+######## using ggmap
+register_google(key=API.key)
+
+########
+#California Map
+########
+
+CA.map<-get_googlemap(center=c(-121, y = 37), zoom = 6, source="google", maptype="hybrid",
+                      style=c(feature="poi",element="labels",visibility="off")) 
+
+# "poi" is to remove places of interest from map, other options avaialble too...
+# no cities, roads, just "CA"...
+# style = 'feature:road|element:all|visibility:simplified&style=feature:administrative.locality|element:labels|visibility:off')
+# https://developers.google.com/maps/documentation/maps-static/styling#features
+
+CA.map_for_man <- ggmap(CA.map) +
+  geom_point(aes(x = -119, y = 38), pch=23,colour="black",fill="mediumseagreen", size = 3, stroke=0.5) +
+  xlab("longitude") + ylab("latitude") +
+ theme(text = element_text(size=6),
+       plot.margin = unit(c(0.2, 0.5, 0.2, 0.2), "cm")) 
+  #ggsn::scalebar(x.min=-124, x.max=-123, y.min=32.5, y.max=33, dist=2000, dist_unit="km",transform=TRUE,st.bottom=FALSE, st.size=2, box.fill=c("gray50", "white"), model="WGS84",st.color="white", border.size=0.5)
+
+
+##########
+# site map
+##########
+SNL.rev=c(x=-119.25, y = 37.75)
+
+map.SNL<-get_map(SNL.rev, 
+                      zoom=9, 
+                      scale = 2, 
+                      maptype= "satellite",
+                      source="google", extent= "device", legend="topright")
+
+## sites lat long
+lat.long<-SNL.env[,c(3,5,6)]
+
+SNL.sites<-
+  ggmap(map.SNL)+
+  geom_point(aes(x=longitude, y=latitude), data=lat.long, alpha=0.8, color="dodgerblue", size=4)+
+  geom_point(aes(x=longitude, y=latitude), data=lat.long, alpha=1, color="black", size=4, pch=21)+
+  labs(x="longitude", y="latitude") +
+  theme(text = element_text(size=6),
+       plot.margin = unit(c(0.2, 0.5, 0.2, 0.2), "cm")) 
+  #scale_y_continuous(limits=c(19.81785, 19.8242))+
+  #scale_x_continuous(limits=c(-155.3223, -155.311)) +
+  #annotate("text", x=-155.3187, y=19.8225, label= "KP", size=3, col="white") +
+  #annotate("text", x=-155.31478, y=19.8224, label= "RK", size=3, col="white") +
+#ggsn::scalebar(x.min=-155.314, x.max=-155.311, y.min=19.818, y.max=19.824, dist=100, 
+               #dist_unit="m", transform=TRUE,
+              #st.bottom=FALSE, st.size=2, box.fill=c("gray50", "white"), model="WGS84",st.color="white", border.size=0.5)
+
+###
+
+site.plots<-plot_grid(CA.map_for_man, SNL.sites, 
+          labels=c('A', 'B'), label_size=8, hjust=-1, vjust= 6, ncol=2, nrow=1)
+
+
+### export it
+pdf(file= "figures/Fig 1.sites.pdf", height=4, width=8)
+site.plots
+dev.off()
+```
+
+### Data 
 Load in the data and pull out the essential amino acids, then subset by sample type.  
 ```{r load, eval =FALSE}
 
@@ -234,22 +309,22 @@ LDA.df[make.fac]<-lapply(LDA.df[make.fac], factor) # make all these factors
 
 ################
 ## by site and phy-group
-LDA.plot.phy<-ggplot(LDA.df, aes(x=LD1, y=y.axis.elev.order, 
+#LDA.plot.phy<-ggplot(LDA.df, aes(x=LD1, y=y.axis.elev.order, 
                                  color = fct_reorder2(Lake, LD1, y.axis.elev.order),
                                  shape=phy.group))+
-  geom_point(size=3)+
-  geom_vline(xintercept=-0.75, linetype="dashed", color = "gray60")+
-  annotate(geom="text", label="POM-source", x=-3.5, y=1.1, color="gray30", size=3) +
-  annotate(geom="text", label="Plant-source", x=2.5, y=1.1, color="gray30", size=3) +
-  xlab("LD1") +
-  theme_classic()+
-  theme(legend.title=element_blank(),
-        axis.title.y=element_blank(),
-        axis.text.y=element_blank())
+  #geom_point(size=3)+
+  #geom_vline(xintercept=-0.75, linetype="dashed", color = "gray60")+
+  #annotate(geom="text", label="POM-source", x=-3.5, y=1.1, color="gray30", size=3) +
+  #annotate(geom="text", label="Plant-source", x=2.5, y=1.1, color="gray30", size=3) +
+  #xlab("LD1") +
+  #theme_classic()+
+  #theme(legend.title=element_blank(),
+  #      axis.title.y=element_blank(),
+  #      axis.text.y=element_blank())
 
-LDA.plot.phy
-dev.copy(pdf, "figures/LDA.plot.phy.pdf", width = 6, height = 6)
-dev.off()
+#LDA.plot.phy
+#dev.copy(pdf, "figures/LDA.plot.phy.pdf", width = 6, height = 6)
+#dev.off()
 
 ############# order the lakes by their relative elevation
 LDA.df.el<-LDA.df
@@ -308,4 +383,3 @@ density.ridge
 dev.copy(pdf, "figures/LDA_ridge.pdf", width = 6, height = 4)
 dev.off()
 ```
-

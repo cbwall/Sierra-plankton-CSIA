@@ -76,13 +76,13 @@ SNL.d13C.aa <- SNL.d13C.aa %>%
   mutate_if(is.numeric, round, digits = 1)
 
 #Write csv file - d13C for all AA - UNM standard
-write.csv(SNL.d13C.aa, "data/Sierra Nevada Lakes AA d13C Data UNM standard.csv")
+write.csv(SNL.d13C.aa, "data/Sierra Nevada Lakes AA d13C Data NMX standard.csv")
 
 ```
 
 Pull in the standardized CSIA data and the ESS-AA, excluding Lysine
 ```{r essAA}
-SNL.d13C.aa<- read.csv("data/Sierra Nevada Lakes AA d13C Data UNM standard.csv")
+SNL.d13C.aa<- read.csv("data/Sierra Nevada Lakes AA d13C Data NMX standard.csv")
 
 
 #Pull out just the essential AA values (excluding Lys)
@@ -113,13 +113,17 @@ zoops <- SNL.ess[substr(SNL.ess$ID,1,9)=="SNL-ZOOP-",]
 zoops_meta <- read.csv("data/Zoops_Meta.csv")
 zoops <- merge.data.frame(zoops_meta, zoops, by.x = "ID", by.y = "ID")
 
+#remove TB tanks
+zoop.sub<-zoop.sub[!(zoop.sub$Lake=="TB-tanks"),]
+
+
 #Write csv file - zooplankton d13C for just ess AA - UNM standard
 write.csv(zoops, "output/SNL_zooplankton_ess_AA_data.csv")
 
 ```
 
 
-## Ess AA boxplot
+### Ess AA boxplot
 ```{r AAess box}
 
 # function to bind the data frames together
@@ -140,12 +144,14 @@ ESS_df.wide<-as.data.frame(bind_cols_fill(list(tibble(plants$Ile), tibble(pom$Il
                                           tibble(plants$Val), tibble(pom$Val), tibble(zoops$Val))))
 
 # select columns that match the producers
+library(dplyr)
+
 zoop.sub<- zoops %>% 
-  select(ID, Ile, Leu, Phe, Thr, Val, Group, Type, Lake)
+  dplyr::select(ID, Ile, Leu, Phe, Thr, Val, Group, Type, Lake)
+
 
 ## with bindrows bring zoops and producers together
 ESS.df.long<- bind_rows(prod, zoop.sub)
-
 
 #simple boxplot
 colors<-c("seagreen3", "lightblue2", "salmon1")
@@ -167,7 +173,7 @@ dev.off()
 ```
 
 
-## LDA - Primary Producers
+### LDA - Primary Producers
 ```{r LDA PP}
 #Run an LDA with a jackknifing model fit to look at error rate
 #'CV = TRUE' makes the LDA run a jackknifed - leave one out - model fit
@@ -200,7 +206,7 @@ write.csv(AlldataPredict, "output/SNL_Producers_LDA_coords_UNM.csv")
 ```
 
 
-## LDA - Classify Zooplankton
+### LDA - Classify Zooplankton
 ```{r LDA Zoop}
 #Classify zooplankton
 zoop.predict <- predict(object = All.train, newdata = zoops)
@@ -211,9 +217,12 @@ write.csv(zoop.predict.data, "output/SNL_Zooplankton_LDA_info_UNM.csv")
 
 ```
 
-### LDA by sample
+#### LDA by sample
 ```{r LDA plot}
 LDA.df<-read.csv("data/Producer_zoop_LDA_score.csv")
+
+# remove TB tanks
+LDA.df<-LDA.df[!(LDA.df$Lake=="TB-tanks"),]
 
 # the orginal metadata is "Type"
 # >>> reduced to clarify to fewer terms in "orig.class", 
@@ -248,9 +257,9 @@ LDA.df.el<-LDA.df
 # reorder lake by relative elevation
 LDA.df.el$Lake<-reorder(LDA.df.el$Lake, LDA.df.el$y.axis.elev.order)
 
+##
 LDA.plot.phy2<-ggplot(LDA.df.el, aes(x=LD1, y=Lake, 
                                  color = orig.class))+
-                                 
   geom_point(size=3)+
   geom_vline(xintercept=-0.75, linetype="dashed", color = "gray60")+
   annotate(geom="text", label="POM-source", x=-3.5, y=10.5, color="gray30", size=3) +
@@ -262,22 +271,41 @@ LDA.plot.phy2
 dev.copy(pdf, "figures/LDA.plot.class.site.pdf", width = 8, height = 6)
 dev.off()
 
+```
 
-##### just by taxonomy and groups
-LDA.plot.orig<-ggplot(LDA.df, aes(x=LD1, y=y.axis, color=orig.class))+
-  geom_point(size=3)+
-  geom_vline(xintercept=-0.75, linetype="dashed", color = "gray60")+
-  annotate(geom="text", label="POM-source", x=-3.5, y=1.1, color="gray30", size=3) +
-  annotate(geom="text", label="Plant-source", x=2.5, y=1.1, color="gray30", size=3) +
-  xlab("LD1") +
-  theme_classic()+
-  theme(axis.title.y=element_blank(),
-        axis.text.y=element_blank())
+### histograms
+```{r}
+library(viridis)
+library(ggridges)
+library(hrbrthemes)
+# reorder factors 
+LDA.df.el$orig.class<-factor(LDA.df.el$orig.class, levels=c("POM", "Plants", ">350um", "calanoid", 
+                                                            "copepods", "Ceriodaphnia", "Daphnia",
+                                                            "Holopedium"))
 
-LDA.plot.orig
-dev.copy(pdf, "figures/LDA.plot.orig.pdf", width = 6, height = 6)
+density_LDA<-ggplot(data=LDA.df.el, aes(x=LD1, group=phy.group, fill=phy.group)) +
+    geom_density(adjust=1.5, alpha=.5) +
+    scale_fill_manual(values=c("plum4", "orange","coral", "springgreen4", "dodgerblue"))+ 
+  theme_classic()
+
+density_LDA
+dev.copy(pdf, "figures/LDA_density.pdf", width = 6, height = 4)
 dev.off()
 
 
+####### Ridgeline plot
+
+density.ridge<-ggplot(LDA.df.el, aes(x = LD1, y = orig.class, fill = after_stat(x))) +
+  geom_density_ridges_gradient(scale = 1, rel_min_height = 0.04) +
+  scale_fill_viridis_c(option = "mako")+
+    theme(
+      legend.position="none",
+      panel.spacing = unit(0.1, "lines"),
+      strip.text.x = element_text(size = 8)
+    )
+
+density.ridge
+dev.copy(pdf, "figures/LDA_ridge.pdf", width = 6, height = 4)
+dev.off()
 ```
 

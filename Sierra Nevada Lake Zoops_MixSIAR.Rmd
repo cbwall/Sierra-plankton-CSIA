@@ -1,0 +1,638 @@
+---
+title: "CSIA-Sierra Nevada Alpine Lakes Zooplankton"
+author: "Alexi and Chris"
+date: "04/12/2023"
+output:
+  html_document:
+    code_folding: hide
+    toc: yes
+    toc_depth: 4
+    toc_float: yes
+  pdf_document:
+    toc: yes
+    toc_depth: '4'
+---
+
+# Project Overview
+Compound specific isotope analysis of individual amino acids (CSIA-AA) is a new and exciting tool in the study of trophic ecology and animal nutrition. CSIA-AA are not constrained by the same spatiotemporal variability and high fractionation effects observed in stable isotope analyses (SIA) of bulk tissues (carbons + lipids + proteins). Therefore, CSIA-AA represent a sea change in our ability to understand food webs and organism trophic interactions.  
+
+Certain amino acids can only be produced by primary producers (bacteria, algae, plants, fungi). These de novo synthesized amino acids, termed 'essential amino acids,' must be gained by animals through feeding/dietary means. Essential amino acids are passed from producers to consumers with limited fractionation or transamination, making them an ideal tool to examine the sources of carbon in consumers. Moreover, essential amino acids differ in their isotope signatures due to the biochemical pathways found in different groups of producers (i.e., fungi, bacteria, microalgae, C3/C4/CAM plants), allowing producers signatures to be mapped with high resolution. By using multiple essential amino acids as a multivariate trait, an essential amino acid fingerprint can be used to identify the source of amino acids in consumers and the contributions and identify of producers in diets.
+
+The role of terrestrial carbon in aquatic has been viewed as a resource, a subsidy, and a determent to aquatic consumers and ecosystems. For instance, zooplankton prefer the high fatty acid content of microalgae, which is a vital source for zooplankton nutrition. However, terrestrial carbon (leaves and detritus) into lakes leads to browning and a decrease in microalgae productivity as light is attenuated. In this case, allochthonous nutrition limits primary production but can be an important resource for consumers that are able to utilize the abundant (although low quality) nutritional source.
+
+Here, we used CSIA-AA to ask whether zooplankton in high elevation (largely ologotrophic) alpine lakes of the Sierra Nevada Mountains obtain their essential amino acids from in-water producers (particulate organic matter of microalgae origin) or from terrestrial C3 plants (sedges, pines, broadleaf deciduous trees). We sampled 6 lakes and 1 dystrophic pond in the Eastern Sierra Nevadas across an elevation gradient (2500-3200m) and measured environmental conditions (temperature, pH, DOC, TN, TP, chlorophyll a), measuring AA-carbon isotope values in producers and plankton consumers picked to individual species as well as size-fractioned plankton. 
+
+
+<center>  
+  
+![**Figure 1. Sierra Nevada lakes and plankton CSIA**](output/photos/sunrise1_lake.png){width=50%}
+ 
+</center>  
+
+
+```{r setup chunk, setup, include = FALSE, cache=FALSE, message=FALSE, warning=FALSE}
+if (!require('knitr')) install.packages('knitr'); library('knitr')
+knitr::opts_chunk$set(warning=FALSE, message=FALSE, fig.align='center')
+
+# load packages
+if (!require("pacman")) install.packages("pacman") # for rapid install if not in library
+
+# use pacman to load all the packages you are missing!
+pacman::p_load('knitr', 'lme4', 'lmerTest', 'tidyverse', 'effects', 'plyr', 'dplyr', 'plotrix', 'car',"gridExtra", "cowplot", "tools", "mgcv", "gratia", "MASS", "stats", "tidymv", "sjstats", "coin", "emmeans", "ggplot2", "mda", "nortest", "reshape2", "gmm", "propagate","ggmap", "RgoogleMaps")
+
+
+### general formatting for figures
+Fig.formatting<-(theme_classic()) +
+  theme(text=element_text(size=10),
+        axis.line=element_blank(),
+        legend.text.align = 0,
+        legend.text=element_text(size=10),
+        #legend.title = element_blank(),
+        panel.border = element_rect(fill=NA, colour = "black", linewidth =1),
+        aspect.ratio=1, 
+        axis.ticks.length=unit(0.25, "cm"),
+        axis.text.y=element_text(
+          margin=unit(c(0.5, 0.5, 0.5, 0.5), "cm"), colour="black", size=10), 
+        axis.text.x=element_text(
+          margin=unit(c(0.5, 0.5, 0.5, 0.5), "cm"), colour="black", size=8)) +
+  theme(legend.key.size = unit(0.4, "cm")) +
+  theme(aspect.ratio=1.3) +
+  theme(panel.spacing=unit(c(0, 0, 0, 0), "cm"))
+
+```
+
+
+### Site Maps
+```{r, site maps, fig.cap="**Figure 1**. Site map of the Eastern Sierra Nevada Mountains and sampling sites", fig.align='center', results='hide'}
+
+# load data
+SNL.env<-read.csv("data/SNL.envdata.csv")
+API<-read.csv("data/API_key.csv")
+API.key<-API[1,1]
+
+#quick map
+# ggplot(SNL.env, aes(x = longitude, y = latitude)) + coord_quickmap() + geom_point()
+
+######## using ggmap
+register_google(key=API.key)
+
+########
+#California Map
+########
+
+CA.map<-get_googlemap(center=c(-121, y = 37), zoom = 6, source="google", maptype="hybrid",
+                      style=c(feature="poi",element="labels",visibility="off")) 
+
+# "poi" is to remove places of interest from map, other options avaialble too...
+# no cities, roads, just "CA"...
+# style = 'feature:road|element:all|visibility:simplified&style=feature:administrative.locality|element:labels|visibility:off')
+# https://urldefense.com/v3/__https://developers.google.com/maps/documentation/maps-static/styling*features__;Iw!!Mih3wA!BY88Nu5HbyhcuJqyCDdu01uScF_zg_-tJoEHzZuFgyK1ZmiXaI28QgU96bMzJx_aGVvIwQd0nBmqanfHGw$ 
+
+CA.map_for_man <- ggmap(CA.map) +
+  geom_point(aes(x = -119, y = 38), pch=23,colour="black",fill="mediumseagreen", size = 3, stroke=0.5) +
+  xlab("longitude") + ylab("latitude") +
+ theme(text = element_text(size=6),
+       plot.margin = unit(c(0.2, 0.5, 0.2, 0.2), "cm")) 
+  #ggsn::scalebar(x.min=-124, x.max=-123, y.min=32.5, y.max=33, dist=2000, dist_unit="km",transform=TRUE,st.bottom=FALSE, st.size=2, box.fill=c("gray50", "white"), model="WGS84",st.color="white", border.size=0.5)
+
+
+##########
+# site map
+##########
+SNL.rev=c(x=-119.25, y = 37.75)
+
+map.SNL<-get_map(SNL.rev, 
+                      zoom=9, 
+                      scale = 2, 
+                      maptype= "satellite",
+                      source="google", extent= "device", legend="topright")
+
+## sites lat long
+lat.long<-SNL.env[,c(3,5,6)]
+
+SNL.sites<-
+  ggmap(map.SNL)+
+  geom_point(aes(x=longitude, y=latitude), data=lat.long, alpha=0.8, color="dodgerblue", size=4)+
+  geom_point(aes(x=longitude, y=latitude), data=lat.long, alpha=1, color="black", size=4, pch=21)+
+  labs(x="longitude", y="latitude") +
+  theme(text = element_text(size=6),
+       plot.margin = unit(c(0.2, 0.5, 0.2, 0.2), "cm")) 
+  #scale_y_continuous(limits=c(19.81785, 19.8242))+
+  #scale_x_continuous(limits=c(-155.3223, -155.311)) +
+  #annotate("text", x=-155.3187, y=19.8225, label= "KP", size=3, col="white") +
+  #annotate("text", x=-155.31478, y=19.8224, label= "RK", size=3, col="white") +
+#ggsn::scalebar(x.min=-155.314, x.max=-155.311, y.min=19.818, y.max=19.824, dist=100, 
+               #dist_unit="m", transform=TRUE,
+              #st.bottom=FALSE, st.size=2, box.fill=c("gray50", "white"), model="WGS84",st.color="white", border.size=0.5)
+
+###
+
+site.plots<-plot_grid(CA.map_for_man, SNL.sites, 
+          labels=c('A', 'B'), label_size=8, hjust=-1, vjust= 6, ncol=2, nrow=1)
+
+
+### export it
+pdf(file= "figures/Fig 1.sites.pdf", height=4, width=8)
+site.plots
+dev.off()
+```
+
+### Data 
+Load in the data and pull out the essential amino acids, then subset by sample type.  
+```{r load, eval =FALSE}
+
+###### this comes from another script to correct data #####
+###### the file and script to read in are currently NOT in repo ### 
+SNL.d13C.aa <- tbl13CSamp[substr(tbl13CSamp$SampleID,1,4)=="SNL-",]
+
+#Round AA d13C values to one digit
+library(dplyr)
+SNL.d13C.aa <- SNL.d13C.aa %>%
+  mutate_if(is.numeric, round, digits = 1)
+
+#Write csv file - d13C for all AA - UNM standard
+write.csv(SNL.d13C.aa, "data/Sierra Nevada Lakes AA d13C Data NMX standard.csv")
+
+```
+
+Pull in the standardized CSIA data and the ESS-AA, excluding Lysine
+```{r essAA}
+SNL.d13C.aa<- read.csv("data/Sierra Nevada Lakes AA d13C Data NMX standard.csv")
+
+
+#Pull out just the essential AA values (excluding Lys)
+SNL.ess <- data.frame(SNL.d13C.aa$SampleID, SNL.d13C.aa$Ile13C, SNL.d13C.aa$Leu13C, SNL.d13C.aa$Phe13C, SNL.d13C.aa$Thr13C, SNL.d13C.aa$Val13C)
+
+#Rename columns
+colnames(SNL.ess) <- c("ID", "Ile", "Leu", "Phe", "Thr", "Val")
+SNL.ess$ID <- as.character(SNL.ess$ID)
+
+#Subset terrestrial plants
+plants <- SNL.ess[substr(SNL.ess$ID,1,11)=="SNL-TERPLA-",]
+#Add a column for group
+plants$Group <- "Terrestrial Plants"
+
+#Subset POM
+pom <- SNL.ess[substr(SNL.ess$ID,1,8)=="SNL-POM-",]
+#Add a column for group
+pom$Group <- "POM"
+
+#Write csv file - primary producer d13C for just ess AA - UNM standard
+prod <- rbind(plants, pom)
+write.csv(prod, "output/SNL_producers_ess_AA_data.csv")
+
+#Subset zooplankton
+zoops <- SNL.ess[substr(SNL.ess$ID,1,9)=="SNL-ZOOP-",]
+
+#Pull in zooplankton metadata
+zoops_meta <- read.csv("data/Zoops_Meta.csv")
+zoops <- merge.data.frame(zoops_meta, zoops, by.x = "ID", by.y = "ID")
+
+#remove TB tanks
+zoops <- zoops[!(zoops$Lake=="TB-tanks"),]
+
+
+#Write csv file - zooplankton d13C for just ess AA - UNM standard
+#write.csv(zoops, "output/SNL_zooplankton_ess_AA_data.csv")
+
+```
+
+
+### Ess AA boxplot
+```{r AAess box}
+
+# function to bind the data frames together
+bind_cols_fill <- function(df_list) {
+  max_rows <- map_int(df_list, nrow) %>% max()
+  map(df_list, function(df) {
+    if(nrow(df) == max_rows) return(df)
+    first <- names(df)[1] %>% sym()
+    df %>% add_row(!!first := rep(NA, max_rows - nrow(df)))
+  }) %>% bind_cols()
+}
+
+
+ESS_df.wide<-as.data.frame(bind_cols_fill(list(tibble(plants$Ile), tibble(pom$Ile), tibble(zoops$Ile),
+                                          tibble(plants$Leu), tibble(pom$Leu), tibble(zoops$Leu),
+                                          tibble(plants$Phe), tibble(pom$Phe), tibble(zoops$Phe),
+                                          tibble(plants$Thr), tibble(pom$Thr), tibble(zoops$Thr),
+                                          tibble(plants$Val), tibble(pom$Val), tibble(zoops$Val))))
+
+# select columns that match the producers
+library(dplyr)
+
+zoop.sub<- zoops %>% 
+  dplyr::select(ID, Ile, Leu, Phe, Thr, Val, Group, Type, Lake)
+
+
+## with bindrows bring zoops and producers together
+ESS.df.long<- bind_rows(prod, zoop.sub)
+
+#simple boxplot
+colors<-c("seagreen3", "lightblue2", "salmon1")
+
+par(mar = c(4.1, 4.5, 2, 2))
+
+{boxplot(plants$Ile, pom$Ile, zoops$Ile, plants$Leu, pom$Leu, zoops$Leu, plants$Phe, pom$Phe, zoops$Phe, plants$Thr, pom$Thr, zoops$Thr, plants$Val, pom$Val, zoops$Val, 
+        xaxt="n", xlab="Essential Amino Acids", ylim=c(-45, -10),
+        ylab=(expression(paste(delta^{13}, C[ESS-AA]))),
+        col=c(colors, colors, colors, colors, colors))
+legend("bottomright", c("Plants", "POM", "Zooplankton"), inset=c(-0.15, 0),
+        fill=colors, cex=0.8, bty="n", x.intersp = 0.3)
+axis(1, at = seq(2, 15, by = 3), las=1,
+                                        labels =c("Ile","Leu","Phe","Thr","Val"))
+}
+#dev.copy(pdf, "figures/Sierra Nevada Lakes Ess AA Boxplot.pdf", width = 6, height = 6)
+#dev.off()
+
+```
+
+
+### LDA - Primary Producers
+```{r LDA PP}
+#Run an LDA with a jackknifing model fit to look at error rate
+#'CV = TRUE' makes the LDA run a jackknifed - leave one out - model fit
+All.lda <- lda(Group ~ Ile + Leu + Phe + Thr + Val, data = prod, CV = TRUE)
+
+#Create a table which compares the classification from the LDA model to the actual classification
+All.reclass <- table(prod$Group, All.lda$class)
+
+#Total percent of samples correctly classified is the sum of the diagonal of this table
+sum(diag(prop.table(All.reclass)))
+
+#Percent of each producer group correctly reclassified
+diag(prop.table(All.reclass, 1))
+
+#Create a training LDA function from the library data
+#Note - you can't use the 'All.lda' object above because the 'CV = TRUE' command was used to create it, and for some reason this won't work with the predict() function
+All.train <- lda(Group~ Ile + Leu + Phe + Thr + Val, data = prod)
+All.train
+
+#Write a csv file for the coefficients of LD1
+lda.info <- as.data.frame(All.train$scaling)
+write.csv(lda.info, "output/SNL_Producers_LDA_loadings_NMX.csv")
+
+#Create a data frame with these LDA coordinates
+AlldataPredict <- data.frame(Group = prod$Group, ID = prod$ID, predict(All.train)$x)
+
+#Write a csv file for the LDA coordinatinates
+write.csv(AlldataPredict, "output/SNL_Producers_LDA_coords_NMX.csv")
+
+```
+
+
+### LDA - Classify Zooplankton
+```{r LDA Zoop}
+#Classify zooplankton
+zoop.predict <- predict(object = All.train, newdata = zoops)
+zoop.predict.data <- data.frame(SampleID = zoops$ID, Type = zoops$Type, Lake = zoops$Lake, zoop.predict)
+
+#Write a csv file for the zooplankton LDA info
+write.csv(zoop.predict.data, "output/SNL_Zooplankton_LDA_info_NMX.csv")
+
+```
+
+#### LDA by sample
+```{r LDA plot}
+LDA.df<-read.csv("data/Producer_zoop_LDA_score.csv")
+
+# remove TB tanks
+LDA.df<-LDA.df[!(LDA.df$Lake=="TB-tanks"),]
+
+# the orginal metadata is "Type"
+# >>> reduced to clarify to fewer terms in "orig.class", 
+# >>>>>> and to higher taxonomy in "phy.group"
+# The LDA classification is "LD.class" (i.e., how do they align with sources of "plants or POM")
+
+make.fac<-c("Type", "Lake", "orig.class", "phy.group", "LD.class")
+LDA.df[make.fac]<-lapply(LDA.df[make.fac], factor) # make all these factors
+
+################
+## by site and phy-group
+#LDA.plot.phy<-ggplot(LDA.df, aes(x=LD1, y=y.axis.elev.order, 
+                                 #color = fct_reorder2(Lake, LD1, y.axis.elev.order),
+                                 #shape=phy.group))+
+  #geom_point(size=3)+
+  #geom_vline(xintercept=-0.75, linetype="dashed", color = "gray60")+
+  #annotate(geom="text", label="POM-source", x=-3.5, y=1.1, color="gray30", size=3) +
+  #annotate(geom="text", label="Plant-source", x=2.5, y=1.1, color="gray30", size=3) +
+  #xlab("LD1") +
+  #theme_classic()+
+  #theme(legend.title=element_blank(),
+  #      axis.title.y=element_blank(),
+  #      axis.text.y=element_blank())
+
+#LDA.plot.phy
+#dev.copy(pdf, "figures/LDA.plot.phy.pdf", width = 6, height = 6)
+#dev.off()
+
+############# order the lakes by their relative elevation
+LDA.df.el<-LDA.df
+
+# reorder lake by relative elevation
+LDA.df.el$Lake<-reorder(LDA.df.el$Lake, LDA.df.el$y.axis.elev.order)
+
+##
+LDA.plot.phy2<-ggplot(LDA.df.el, aes(x=LD1, y=Lake, 
+                                 color = orig.class))+
+  geom_point(size=3)+
+  geom_vline(xintercept=-0.75, linetype="dashed", color = "gray60")+
+  annotate(geom="text", label="POM-source", x=-3.5, y=10.5, color="gray30", size=3) +
+  annotate(geom="text", label="Plant-source", x=2.5, y=10.5, color="gray30", size=3) +
+  xlab("LD1") +
+  theme_classic()
+
+LDA.plot.phy2
+dev.copy(pdf, "figures/LDA.plot.class.site.pdf", width = 8, height = 6)
+dev.off()
+
+```
+
+### histograms
+```{r}
+library(viridis)
+library(ggridges)
+library(hrbrthemes)
+# reorder factors 
+LDA.df.el$orig.class<-factor(LDA.df.el$orig.class, levels=c("POM", "Plants", ">350um", "calanoid", 
+                                                            "copepods", "Ceriodaphnia", "Daphnia",
+                                                            "Holopedium"))
+
+density_LDA<-ggplot(data=LDA.df.el, aes(x=LD1, group=phy.group, fill=phy.group)) +
+    geom_density(adjust=1.5, alpha=.5) +
+    scale_fill_manual(values=c("plum4", "orange","coral", "springgreen4", "dodgerblue"))+ 
+  theme_classic()
+
+density_LDA
+dev.copy(pdf, "figures/LDA_density.pdf", width = 6, height = 4)
+dev.off()
+
+
+####### Ridgeline plot
+
+density.ridge<-ggplot(LDA.df.el, aes(x = LD1, y = orig.class, fill = after_stat(x))) +
+  geom_density_ridges_gradient(scale = 1, rel_min_height = 0.04) +
+  scale_fill_viridis_c(option = "mako")+
+    theme(
+      legend.position="none",
+      panel.spacing = unit(0.1, "lines"),
+      strip.text.x = element_text(size = 8)
+    )
+
+density.ridge
+dev.copy(pdf, "figures/LDA_ridge.pdf", width = 6, height = 4)
+dev.off()
+```
+
+
+#Load Packages for MixSIAR Models
+```{r}
+library(MixSIAR)
+library(dplyr)
+library(GGally)
+
+```
+
+
+#Export Zooplankton and Source Data
+```{r}
+#Create a new data frame with desired columns (Zooplankton)
+Mix.df <- LDA.df %>%
+  dplyr::select("SampleID", "orig.class", "phy.group", "Lake", "Elevation", "LD1")
+
+#Remove Plants from the data frame
+Mix.df <- Mix.df[!(Mix.df$orig.class=="Plants"),]
+
+#Remove POM from the data frame
+Mix.df <- Mix.df[!(Mix.df$orig.class=="POM"),]
+
+#Remove TB-tanks from the data frame
+Mix.df <- Mix.df[!(Mix.df$Lake=="TB-tanks"),]
+
+#Write and export a csv of the zooplankton data frame
+write.csv(Mix.df, "output/Mix.df.csv")
+
+#Create a new data frame with desired columns (Sources)
+Source.df <- LDA.df[(LDA.df$Lake=="Source"),]
+Source.df <- Source.df %>%
+  dplyr::select("Type", "LD1")
+
+#Calculate mean LD1 values of the sources
+mean.df <- aggregate(LD1~Type, data=Source.df, FUN=mean)
+
+#Calculate standard deviations for LD1 values of the sources
+sd.df <- aggregate(LD1~Type, data=Source.df, FUN=sd)
+
+#Calculate the number of samples for each of the sources
+n.df <- aggregate(LD1~Type, data=Source.df, FUN=length)
+
+#Bind the values calculated above into one data frame
+source.agg.df <- cbind(n.df, mean.df[2], sd.df[2])
+
+#Rename the columns in this data frame
+colnames(source.agg.df) <- c("Type", "n", "MeanLD1", "SDLD1")
+
+#Write and export a csv of the source data frame
+write.csv(source.agg.df, "output/source.agg.df.csv")
+
+```
+
+#Import Data and Create Model Structure
+```{r}
+###GO INTO THE ZOOPLANKTON FILE (Mix.df.csv) AND DELETE THE FIRST COLUMN###
+
+###GO INTO THE SOURCE FILE (source.agg.df.csv) AND DELETE THE FIRST COLUMN###
+
+#Load zooplankton (consumer) data and assign factors
+cons <- load_mix_data(filename = "output/Mix.df.csv",
+                          iso_names=c("LD1"),
+                          factors=c("SampleID"),
+                          fac_random=c(FALSE),
+                          fac_nested=c(FALSE),
+                          cont_effects=NULL)
+#SampleID is a fixed factor
+
+#Load source data
+source <- load_source_data(filename="output/source.agg.df.csv",
+                             source_factors=NULL,
+                             conc_dep=FALSE,
+                             data_type="means",
+                             cons)
+
+#Load TDF data
+discr <- load_discr_data(filename="output/MixSIAR_TDFs.csv", cons)
+
+```
+
+
+#Check data 
+```{r}
+# Make an isospace plot
+isospace_plot <- plot_data(filename="output/MixSIAR_isospace_plot_SampleIDs", plot_save_pdf=TRUE, plot_save_png=FALSE, cons,source,discr)
+
+```
+
+
+#Run MixSIAR Model
+```{r}
+#Define the model and error structure and write JAGS model file
+  model_filename <- "output/MixSIAR by SampleID/MixSIAR_Model_SampleID_fixed.txt"
+  resid_err <- FALSE
+  process_err <- TRUE
+  write_JAGS_model(model_filename, resid_err, process_err, cons, source)
+  
+#Run the JAGS model
+invt.jags.mod <- run_model(run="normal", cons, source, discr, model_filename, alpha.prior=1, resid_err, process_err)
+  
+#Process diagnostics, summary stats, and posterior plots
+  output_JAGS(invt.jags.mod, cons, source, output_options=list(
+    summary_save = TRUE,                   
+    summary_name = "output/MixSIAR by SampleID/MixSIAR_summary_statistics",
+    sup_post = FALSE,                       
+    plot_post_save_pdf = TRUE,              
+    plot_post_name = "output/MixSIAR by SampleID/MixSIAR_posterior_density",   
+    sup_pairs = TRUE,                       
+    plot_pairs_save_pdf = TRUE,             
+    plot_pairs_name = "output/MixSIAR by SampleID/MixSIAR_pairs_plot",         
+    sup_xy = TRUE,                          
+    plot_xy_save_pdf = TRUE,                
+    plot_xy_name = "output/MixSIAR by SampleID/MixSIAR_xy_plot",             
+    gelman = TRUE,                         
+    heidel = FALSE,                         
+    geweke = TRUE,                         
+    diag_save = TRUE,                       
+    diag_name = "output/MixSIAR by SampleID/MixSIAR_diagnostics",
+    indiv_effect = FALSE,
+    plot_post_save_png = FALSE,            
+    plot_pairs_save_png = FALSE,            
+    plot_xy_save_png = FALSE))
+    graphics.off()
+
+#save all results
+save.image("output/MixSIAR by SampleID/MixSIAR Model by Sample ID Fixed Normal.RData")
+
+```
+
+
+#Import Data and Create Models
+```{r}
+n.mod <- 4
+mix <- vector("list", n.mod) 
+
+#Define mixtures for each model
+
+#Null Model
+mix[[1]] <- load_mix_data(filename="output/Mix.df.csv",
+                          iso_names=c("LD1"),
+                          factors=NULL,
+                          fac_random=NULL,
+                          fac_nested=NULL,
+                          cont_effects=NULL)
+
+#Group - Fixed; Taxa - Random, Nested
+mix[[2]] <- load_mix_data(filename="output/Mix.df.csv",
+                          iso_names=c("LD1"),
+                          factors=c("phy.group", "orig.class"),
+                          fac_random=c(FALSE, TRUE),
+                          fac_nested=c(FALSE, TRUE),
+                          cont_effects=NULL)
+
+#Group - Fixed; Lake - Random, Nested
+mix[[3]] <- load_mix_data(filename="output/Mix.df.csv",
+                          iso_names=c("LD1"),
+                          factors=c("phy.group", "Lake"),
+                          fac_random=c(FALSE, TRUE),
+                          fac_nested=c(FALSE, TRUE),
+                          cont_effects=NULL)
+
+#Elevation - Continuous; Group - Random
+mix[[4]] <- load_mix_data(filename="output/Mix.df.csv",
+                          iso_names=c("LD1"),
+                          factors="phy.group",
+                          fac_random=TRUE,
+                          fac_nested=FALSE,
+                          cont_effects="Elevation")
+
+```
+
+
+#Run MixSIAR Models
+```{r}
+#Run the models
+source <- vector("list", n.mod)
+discr <- vector("list", n.mod)
+jags.mod <- vector("list", n.mod)
+
+#Run loop
+for(mod in 1:n.mod){
+
+  # create sub-directory and move into it
+  mainDir <- getwd()
+  subDir <- paste0("model_", mod)
+  dir.create(file.path(mainDir, subDir), showWarnings = FALSE)
+  setwd(file.path(mainDir, subDir))
+  
+  #Load source data
+  source[[mod]] <- load_source_data(filename="~/Downloads/Sierra-plankton-CSIA-main/MixSIAR/source.agg.df.csv",
+                             source_factors=NULL,
+                             conc_dep=FALSE,
+                             data_type="means",
+                             mix[[mod]])
+  
+  #Load TDF data
+  discr[[mod]] <- load_discr_data(filename="~/Downloads/Sierra-plankton-CSIA-main/MixSIAR/MixSIAR_TDFs.csv", mix[[mod]])
+  
+  #Define model structure and write JAGS model file
+  model_filename <- paste0("MixSIAR_model_", mod, ".txt")
+  resid_err <- TRUE
+  process_err <- TRUE
+  write_JAGS_model(model_filename, resid_err, process_err, mix[[mod]], source[[mod]])
+  
+  #Run JAGS model
+  jags.mod[[mod]] <- run_model(run="long", mix[[mod]], source[[mod]], discr[[mod]], model_filename, alpha.prior=1, resid_err, process_err)
+  
+  #Process diagnostics, summary stats, and posterior plots
+  output_JAGS(jags.mod[[mod]], mix[[mod]], source[[mod]], output_options=list(
+    summary_save = TRUE,
+    summary_name = "summary_statistics",
+    sup_post = FALSE,                 
+    plot_post_save_pdf = TRUE,            
+    plot_post_name = "posterior_density",
+    sup_pairs = TRUE,
+    plot_pairs_save_pdf = TRUE,
+    plot_pairs_name = "pairs_plot",
+    sup_xy = TRUE,
+    plot_xy_save_pdf = FALSE,
+    plot_xy_name = "xy_plot",
+    gelman = TRUE,
+    heidel = FALSE,
+    geweke = TRUE,
+    diag_save = TRUE,
+    diag_name = "diagnostics",
+    indiv_effect = FALSE,
+    plot_post_save_png = FALSE,
+    plot_pairs_save_png = FALSE,
+    plot_xy_save_png = FALSE))
+  graphics.off()
+  
+  setwd(mainDir)
+}
+
+# Save all results
+save.image("MixSiar_Model_Comparisons_Data.RData")
+  
+```
+
+
+#Compare Models
+```{r}
+#Use 'compare_models' to get table with LOOic weights
+names(jags.mod) <- c("null", "group_taxa","group_lake", "elev_group")
+comparison.table <- compare_models(jags.mod)
+
+comparison.table
+
+write.csv(comparison.table, "MixSIAR Model Comparison Table.csv")
+
+```
+

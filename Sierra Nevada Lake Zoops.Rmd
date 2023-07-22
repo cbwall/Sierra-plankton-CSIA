@@ -670,7 +670,11 @@ mod3.mixSIAR.output<-as.data.frame(mod3.mixSIAR.output)
 colnames(mod3.mixSIAR.output)<-"full.data"
 
 library(plyr)
-mod3.mixSIAR.output<-separate(mod3.mixSIAR.output, full.data, into = c("factor", "Mean", "SD", "2.5.perc", "5.perc", "25.perc", "50.perc", "75.perc", "95.perc"), sep=" Plants")
+mod3.mixSIAR.output<-separate(mod3.mixSIAR.output, full.data, into = c("factor", "Mean", "SD", "2.5.perc", "5.perc", "25.perc", "50.perc", "75.perc", "95.perc"), sep=" ")
+
+Mix.factors<-mod3.mixSIAR.output$factors
+
+Mix.factors<-separate(Mix.factors, factors, into = c("", "Mean", "SD", "2.5.perc", "5.perc", "25.perc", "50.perc", "75.perc", "95.perc"), sep=".")
 
 
 

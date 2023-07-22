@@ -154,7 +154,7 @@ SNL.ess$ID <- as.character(SNL.ess$ID)
 #Subset terrestrial plants
 plants <- SNL.ess[substr(SNL.ess$ID,1,11)=="SNL-TERPLA-",]
 #Add a column for group
-plants$Group <- "Terrestrial Plants"
+plants$Group <- "Plants"
 
 #Subset POM
 pom <- SNL.ess[substr(SNL.ess$ID,1,8)=="SNL-POM-",]
@@ -323,8 +323,8 @@ LDA.df.el$orig.class<-factor(LDA.df.el$orig.class, levels=c(">350um", "calanoid"
 phy.lda.col<-c("gray65", "firebrick1","firebrick1", "goldenrod1", "goldenrod1","goldenrod1", "dodgerblue","springgreen4")
 phy.lda.pts<-c(21, 21,24, 21,24,22, 21,21)
   
-##
-LDA.plot.phy2<-ggplot(LDA.df.el, aes(x=LD1, y=Lake, 
+###
+LDA.spp.lake<-ggplot(LDA.df.el, aes(x=LD1, y=Lake, 
                                  fill = orig.class, shape= orig.class))+
   geom_point(size=3)+
   geom_vline(xintercept=-0.75, linetype="dashed", color = "gray60")+
@@ -336,14 +336,39 @@ LDA.plot.phy2<-ggplot(LDA.df.el, aes(x=LD1, y=Lake,
   xlab("LD1") +
   theme_classic()
 
-LDA.plot.phy2
-dev.copy(pdf, "figures/LDA.plot.class.site.pdf", width = 8, height = 6)
+LDA.spp.lake
+dev.copy(pdf, "figures/LDA.spp.lake.pdf", width = 8, height = 6)
+dev.off()
+
+####################
+#LDA box plot by phy.group
+phy.5.colors<-c("dodgerblue", "gray85", "orange","coral", "springgreen4")
+
+LDA.df.el$phy.group<-factor(LDA.df.el$phy.group, levels=c("POM", ">350um", "cladocera", 
+                                                            "copepoda",
+                                                            "Plants"))
+
+LDA.phy.boxplot<-ggplot(LDA.df.el, aes(x=LD1, y=phy.group, 
+                                 fill = phy.group))+
+  geom_boxplot(alpha=0.5)+
+  geom_jitter(aes(fill=phy.group), colour="black",pch=21, size=2) +
+  geom_vline(xintercept=-0.75, linetype="dashed", color = "gray60")+
+  annotate(geom="text", label="POM-source", x=-3.5, y=5.5, color="gray30", size=3) +
+  annotate(geom="text", label="Plant-source", x=2.5, y=5.5, color="gray30", size=3) +
+  scale_fill_manual(values=phy.5.colors)+
+  scale_color_manual(values=phy.5.colors)+
+  ylab("Consumer or Source)") +
+  xlab("LD1") +
+  theme_classic()
+
+LDA.phy.boxplot
+dev.copy(pdf, "figures/LDA.phy.boxplot.pdf", width = 4, height = 6)
 dev.off()
 
 ```
 
-### histograms
-```{r}
+### LDA Ridgeline
+```{r, eval=FALSE}
 library(viridis)
 library(ggridges)
 library(hrbrthemes)
@@ -353,9 +378,6 @@ LDA.df.el$orig.class<-factor(LDA.df.el$orig.class, levels=c("POM", "Plants", ">3
                                                             "copepods", "Ceriodaphnia", "Daphnia",
                                                             "Holopedium"))
 
-LDA.df.el$phy.group<-factor(LDA.df.el$phy.group, levels=c("POM", ">350um", "cladocera", 
-                                                            "copepoda",
-                                                            "Plants"))
 
 density_LDA<-ggplot(data=LDA.df.el, aes(x=LD1, group=phy.group, fill=phy.group)) +
     geom_density(adjust=1.5, alpha=.5) +
@@ -639,3 +661,18 @@ comparison.table
 write.csv(comparison.table, "MixSIAR Model Comparison Table.csv")
 
 ```
+
+#### MixSIAR plots
+```{r}
+mod3.mixSIAR.output<-read.table("output/MixSIAR_models/model_3/summary_statistics.txt", 
+                                sep='\t', header=TRUE, skip=6)
+mod3.mixSIAR.output<-as.data.frame(mod3.mixSIAR.output)
+colnames(mod3.mixSIAR.output)<-"full.data"
+
+library(plyr)
+mod3.mixSIAR.output<-separate(mod3.mixSIAR.output, full.data, into = c("factor", "Mean", "SD", "2.5.perc", "5.perc", "25.perc", "50.perc", "75.perc", "95.perc"), sep=" Plants")
+
+
+
+```
+

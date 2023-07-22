@@ -1,29 +1,29 @@
 "","ID","Group","Type","Lake","Ile","Leu","Phe","Thr","Val"
-"1","SNL-ZOOP-01A","Zooplankton","Daphnia sp.","Lukens Lake",-28.4,-35.1,-36.9,-22.5,-31.8
-"2","SNL-ZOOP-02A","Zooplankton","Daphnia sp.","Lukens Lake",-26.1,-34.8,-34.2,-24,-31.1
-"3","SNL-ZOOP-03A","Zooplankton","copepods calanoid","Lukens Lake",-29.1,-38,-36.8,-23.5,-33.7
-"4","SNL-ZOOP-04A","Zooplankton","copepods calanoid","Lukens Lake",-29.2,-38.4,-36.6,-26.4,-33.1
-"5","SNL-ZOOP-05A","Zooplankton","copepods calanoid","May Pond",-31.1,-40.5,-37.3,-28.7,-34.9
-"6","SNL-ZOOP-06A","Zooplankton","copepods calanoid","May Pond",-29.7,-39.7,-35.1,-22.7,-30.8
-"7","SNL-ZOOP-07A","Zooplankton","copepods calanoid","May Pond",-30,-38.7,-34.7,-24.2,-31.4
-"8","SNL-ZOOP-08A","Zooplankton","copepods calanoid + cyclopoid","Blue Lake",-23.1,-32.8,-30.6,-16.2,-23.7
-"9","SNL-ZOOP-09A","Zooplankton","copepods calanoid + cyclopoid","Blue Lake",-25.6,-33.5,-30,-20.2,-26.4
-"10","SNL-ZOOP-10A","Zooplankton","Daphnia sp.","Blue Lake",-24.8,-31.8,-32.2,-16.9,-29.9
-"11","SNL-ZOOP-11A","Zooplankton","Daphnia sp.","Blue Lake",-21.4,-31,-29.3,-14.8,-23.6
-"12","SNL-ZOOP-13A","Zooplankton","Daphnia sp.","Cascade Lake ",-21.7,-34.4,-31.3,-16.1,-26.8
-"13","SNL-ZOOP-14A","Zooplankton","Daphnia sp.","Cascade Lake ",-22.4,-33.8,-32,-19.4,-26.5
-"14","SNL-ZOOP-15A","Zooplankton","Daphnia sp.","Eastern Brook",-22.7,-32.9,-29.6,-17.5,-24.9
-"15","SNL-ZOOP-16A","Zooplankton","copepods calanoid + cyclopoid","Eastern Brook",-23.1,-33.3,-33,-16.8,-25.7
-"16","SNL-ZOOP-17A","Zooplankton","copepods calanoid + cyclopoid","Eastern Brook",-23.3,-34.2,-31.1,-18.4,-27.6
-"17","SNL-ZOOP-18A","Zooplankton","Calanoids","Granite 2",-20,-30,-27.5,-13.4,-24
-"18","SNL-ZOOP-19A","Zooplankton","Daphnia sp.","Granite 2",-19,-27.7,-26,-12.8,-23
-"19","SNL-ZOOP-20A","Zooplankton","Ceriodaphnia","Granite 2",-17.1,-24.9,-24.5,-9.1,-19.1
-"20","SNL-ZOOP-GFF47","Zooplankton",">350 um","Sunrise 2 Lake",-29.1,-37.5,-36.3,-25.7,-35
-"21","SNL-ZOOP-GFF48","Zooplankton","Holopedium","Cascade Lake ",-23.2,-31.9,-30.6,-22.3,-30.4
-"22","SNL-ZOOP-GFF49","Zooplankton",">350 um","Blue Lake",-22.5,-33.2,-32.7,-20.5,-26.1
-"23","SNL-ZOOP-GFF53","Zooplankton",">350 um","Eastern Brook",-24.3,-32.9,-32.9,-20.5,-26.5
-"24","SNL-ZOOP-GFF65","Zooplankton",">350 um","Lukens Lake",-24.4,-35.4,-34.6,-22.9,-29.2
-"25","SNL-ZOOP-GFF66","Zooplankton",">350 um","Greenstone Lake",-18.1,-28.1,-29.1,-13.2,-19.6
-"26","SNL-ZOOP-GFF67","Zooplankton",">350um","Granite 2",-18.2,-26,-25.9,-14.4,-21.9
-"27","SNL-ZOOP-GFF69","Zooplankton",">350 um","May Pond",-33.1,-40.3,-39.4,-28.6,-36.4
-"28","SNL-ZOOP-GFF70","Zooplankton",">350 um","Cascade Lake ",-19.6,-31.8,-30.9,-18.7,-24
+"1","SNL-ZOOP-01A","Zooplankton","Daphnia.sp","Lukens",-28.4,-35.1,-36.9,-22.5,-31.8
+"2","SNL-ZOOP-02A","Zooplankton","Daphnia.sp","Lukens",-26.1,-34.8,-34.2,-24,-31.1
+"3","SNL-ZOOP-03A","Zooplankton","calanoid","Lukens",-29.1,-38,-36.8,-23.5,-33.7
+"4","SNL-ZOOP-04A","Zooplankton","calanoid","Lukens",-29.2,-38.4,-36.6,-26.4,-33.1
+"5","SNL-ZOOP-05A","Zooplankton","calanoid","May.pond",-31.1,-40.5,-37.3,-28.7,-34.9
+"6","SNL-ZOOP-06A","Zooplankton","calanoid","May.pond",-29.7,-39.7,-35.1,-22.7,-30.8
+"7","SNL-ZOOP-07A","Zooplankton","calanoid","May.pond",-30,-38.7,-34.7,-24.2,-31.4
+"8","SNL-ZOOP-08A","Zooplankton","calanoid.cyclopoid","Blue",-23.1,-32.8,-30.6,-16.2,-23.7
+"9","SNL-ZOOP-09A","Zooplankton","calanoid.cyclopoid","Blue",-25.6,-33.5,-30,-20.2,-26.4
+"10","SNL-ZOOP-10A","Zooplankton","Daphnia.sp","Blue",-24.8,-31.8,-32.2,-16.9,-29.9
+"11","SNL-ZOOP-11A","Zooplankton","Daphnia.sp","Blue",-21.4,-31,-29.3,-14.8,-23.6
+"12","SNL-ZOOP-13A","Zooplankton","Daphnia.sp","Cascade ",-21.7,-34.4,-31.3,-16.1,-26.8
+"13","SNL-ZOOP-14A","Zooplankton","Daphnia.sp","Cascade ",-22.4,-33.8,-32,-19.4,-26.5
+"14","SNL-ZOOP-15A","Zooplankton","Daphnia.sp","Eastern.Brook",-22.7,-32.9,-29.6,-17.5,-24.9
+"15","SNL-ZOOP-16A","Zooplankton","calanoid.cyclopoid","Eastern.Brook",-23.1,-33.3,-33,-16.8,-25.7
+"16","SNL-ZOOP-17A","Zooplankton","calanoid.cyclopoid","Eastern.Brook",-23.3,-34.2,-31.1,-18.4,-27.6
+"17","SNL-ZOOP-18A","Zooplankton","Calanoids","Granite.2",-20,-30,-27.5,-13.4,-24
+"18","SNL-ZOOP-19A","Zooplankton","Daphnia.sp","Granite.2",-19,-27.7,-26,-12.8,-23
+"19","SNL-ZOOP-20A","Zooplankton","Ceriodaphnia","Granite.2",-17.1,-24.9,-24.5,-9.1,-19.1
+"20","SNL-ZOOP-GFF47","Zooplankton",">350um","Sunrise.2",-29.1,-37.5,-36.3,-25.7,-35
+"21","SNL-ZOOP-GFF48","Zooplankton","Holopedium","Cascade ",-23.2,-31.9,-30.6,-22.3,-30.4
+"22","SNL-ZOOP-GFF49","Zooplankton",">350um","Blue",-22.5,-33.2,-32.7,-20.5,-26.1
+"23","SNL-ZOOP-GFF53","Zooplankton",">350um","Eastern.Brook",-24.3,-32.9,-32.9,-20.5,-26.5
+"24","SNL-ZOOP-GFF65","Zooplankton",">350um","Lukens",-24.4,-35.4,-34.6,-22.9,-29.2
+"25","SNL-ZOOP-GFF66","Zooplankton",">350um","Greenstone",-18.1,-28.1,-29.1,-13.2,-19.6
+"26","SNL-ZOOP-GFF67","Zooplankton",">350um","Granite.2",-18.2,-26,-25.9,-14.4,-21.9
+"27","SNL-ZOOP-GFF69","Zooplankton",">350um","May.pond",-33.1,-40.3,-39.4,-28.6,-36.4
+"28","SNL-ZOOP-GFF70","Zooplankton",">350um","Cascade ",-19.6,-31.8,-30.9,-18.7,-24

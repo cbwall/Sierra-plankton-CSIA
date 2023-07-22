@@ -139,22 +139,6 @@ dev.off()
 
 ### Data 
 Load in the data and pull out the essential amino acids, then subset by sample type.  
-```{r load, eval =FALSE}
-
-###### this comes from another script to correct data #####
-###### the file and script to read in are currently NOT in repo ### 
-SNL.d13C.aa <- tbl13CSamp[substr(tbl13CSamp$SampleID,1,4)=="SNL-",]
-
-#Round AA d13C values to one digit
-library(dplyr)
-SNL.d13C.aa <- SNL.d13C.aa %>%
-  mutate_if(is.numeric, round, digits = 1)
-
-#Write csv file - d13C for all AA - UNM standard
-write.csv(SNL.d13C.aa, "data/Sierra Nevada Lakes AA d13C Data NMX standard.csv")
-
-```
-
 Pull in the standardized CSIA data and the ESS-AA, excluding Lysine
 ```{r essAA}
 SNL.d13C.aa<- read.csv("data/Sierra Nevada Lakes AA d13C Data NMX standard.csv")
@@ -189,8 +173,7 @@ zoops_meta <- read.csv("data/Zoops_Meta.csv")
 zoops <- merge.data.frame(zoops_meta, zoops, by.x = "ID", by.y = "ID")
 
 #remove TB tanks
-zoop.sub<-zoop.sub[!(zoop.sub$Lake=="TB-tanks"),]
-
+zoops<-zoops[!(zoops$Lake=="TB-tanks"),]
 
 #Write csv file - zooplankton d13C for just ess AA - UNM standard
 write.csv(zoops, "output/SNL_zooplankton_ess_AA_data.csv")
@@ -270,13 +253,13 @@ All.train
 
 #Write a csv file for the coefficients of LD1
 lda.info <- as.data.frame(All.train$scaling)
-write.csv(lda.info, "output/SNL_Producers_LDA_loadings_UNM.csv")
+write.csv(lda.info, "output/SNL_Producers_LDA_loadings_NMX.csv")
 
 #Create a data frame with these LDA coordinates
 AlldataPredict <- data.frame(Group = prod$Group, ID = prod$ID, predict(All.train)$x)
 
 #Write a csv file for the LDA coordinatinates
-write.csv(AlldataPredict, "output/SNL_Producers_LDA_coords_UNM.csv")
+write.csv(AlldataPredict, "output/SNL_Producers_LDA_coords_NMX.csv")
 
 ```
 
@@ -288,7 +271,7 @@ zoop.predict <- predict(object = All.train, newdata = zoops)
 zoop.predict.data <- data.frame(SampleID = zoops$ID, Type = zoops$Type, Lake = zoops$Lake, zoop.predict)
 
 #Write a csv file for the zooplankton LDA info
-write.csv(zoop.predict.data, "output/SNL_Zooplankton_LDA_info_UNM.csv")
+write.csv(zoop.predict.data, "output/SNL_Zooplankton_LDA_info_NMX.csv")
 
 ```
 
@@ -310,8 +293,8 @@ LDA.df[make.fac]<-lapply(LDA.df[make.fac], factor) # make all these factors
 ################
 ## by site and phy-group
 #LDA.plot.phy<-ggplot(LDA.df, aes(x=LD1, y=y.axis.elev.order, 
-                                 color = fct_reorder2(Lake, LD1, y.axis.elev.order),
-                                 shape=phy.group))+
+                                 #color = fct_reorder2(Lake, LD1, y.axis.elev.order),
+                                 #shape=phy.group))+
   #geom_point(size=3)+
   #geom_vline(xintercept=-0.75, linetype="dashed", color = "gray60")+
   #annotate(geom="text", label="POM-source", x=-3.5, y=1.1, color="gray30", size=3) +
@@ -332,13 +315,24 @@ LDA.df.el<-LDA.df
 # reorder lake by relative elevation
 LDA.df.el$Lake<-reorder(LDA.df.el$Lake, LDA.df.el$y.axis.elev.order)
 
+# reorder factors 
+LDA.df.el$orig.class<-factor(LDA.df.el$orig.class, levels=c(">350um", "calanoid", 
+                                                            "copepods", "Ceriodaphnia", "Daphnia",
+                                                            "Holopedium", "POM", "Plants"))
+
+phy.lda.col<-c("gray65", "firebrick1","firebrick1", "goldenrod1", "goldenrod1","goldenrod1", "dodgerblue","springgreen4")
+phy.lda.pts<-c(21, 21,24, 21,24,22, 21,21)
+  
 ##
 LDA.plot.phy2<-ggplot(LDA.df.el, aes(x=LD1, y=Lake, 
-                                 color = orig.class))+
+                                 fill = orig.class, shape= orig.class))+
   geom_point(size=3)+
   geom_vline(xintercept=-0.75, linetype="dashed", color = "gray60")+
-  annotate(geom="text", label="POM-source", x=-3.5, y=10.5, color="gray30", size=3) +
-  annotate(geom="text", label="Plant-source", x=2.5, y=10.5, color="gray30", size=3) +
+  annotate(geom="text", label="POM-source", x=-3.5, y=9.5, color="gray30", size=3) +
+  annotate(geom="text", label="Plant-source", x=2.5, y=9.5, color="gray30", size=3) +
+  scale_fill_manual(values=phy.lda.col)+
+  scale_shape_manual(values=phy.lda.pts)+
+  ylab("Lake (high to low elevation)") +
   xlab("LD1") +
   theme_classic()
 
@@ -353,33 +347,295 @@ dev.off()
 library(viridis)
 library(ggridges)
 library(hrbrthemes)
+
 # reorder factors 
 LDA.df.el$orig.class<-factor(LDA.df.el$orig.class, levels=c("POM", "Plants", ">350um", "calanoid", 
                                                             "copepods", "Ceriodaphnia", "Daphnia",
                                                             "Holopedium"))
 
+LDA.df.el$phy.group<-factor(LDA.df.el$phy.group, levels=c("POM", ">350um", "cladocera", 
+                                                            "copepoda",
+                                                            "Plants"))
+
 density_LDA<-ggplot(data=LDA.df.el, aes(x=LD1, group=phy.group, fill=phy.group)) +
     geom_density(adjust=1.5, alpha=.5) +
-    scale_fill_manual(values=c("plum4", "orange","coral", "springgreen4", "dodgerblue"))+ 
+    scale_fill_manual(values=c("dodgerblue", "gray85", "orange","coral", "springgreen4"))+ 
   theme_classic()
 
 density_LDA
-dev.copy(pdf, "figures/LDA_density.pdf", width = 6, height = 4)
+dev.copy(pdf, "figures/LDA_density.pdf", width = 8, height = 5)
 dev.off()
 
 
 ####### Ridgeline plot
 
-density.ridge<-ggplot(LDA.df.el, aes(x = LD1, y = orig.class, fill = after_stat(x))) +
-  geom_density_ridges_gradient(scale = 1, rel_min_height = 0.04) +
-  scale_fill_viridis_c(option = "mako")+
-    theme(
-      legend.position="none",
-      panel.spacing = unit(0.1, "lines"),
-      strip.text.x = element_text(size = 8)
-    )
+density.ridge<-ggplot(LDA.df.el, aes(x = LD1, y = phy.group, fill = after_stat(x))) +
+  geom_density_ridges_gradient(jittered_points = TRUE, scale = 0.9, rel_min_height = .01,
+    point_shape = "o", point_size = 3, size = 0.25,
+    position = position_points_jitter(height = 0)) +
+  scale_y_discrete(expand = c(0, 0.1), name = "Source or consumer") +
+  scale_x_continuous(expand = c(0, 0.2), name = "LD1")+
+  scale_fill_gradient(low = "dodgerblue4", high = "darkseagreen2")+
+  theme_classic()+
+  theme(legend.position = "none")
 
 density.ridge
-dev.copy(pdf, "figures/LDA_ridge.pdf", width = 6, height = 4)
+dev.copy(pdf, "figures/LDA_ridge.pdf", width = 5, height = 6)
 dev.off()
+```
+
+
+
+
+
+### MixSIAR
+
+#Load Packages for MixSIAR Models
+```{r}
+library(MixSIAR)
+library(dplyr)
+library(GGally)
+
+```
+
+#### Export Zooplankton and Source Data
+```{r}
+#Create a new data frame with desired columns (Zooplankton)
+Mix.df <- LDA.df %>%
+  dplyr::select("SampleID", "orig.class", "phy.group", "Lake", "Elevation", "LD1")
+
+#Remove Plants from the data frame
+Mix.df <- Mix.df[!(Mix.df$orig.class=="Plants"),]
+
+#Remove POM from the data frame
+Mix.df <- Mix.df[!(Mix.df$orig.class=="POM"),]
+
+#Remove TB-tanks from the data frame
+Mix.df <- Mix.df[!(Mix.df$Lake=="TB-tanks"),]
+
+#Write and export a csv of the zooplankton data frame
+write.csv(Mix.df, "output/Mix.df.csv")
+
+#Create a new data frame with desired columns (Sources)
+Source.df <- LDA.df[(LDA.df$Lake=="Source"),]
+Source.df <- Source.df %>%
+  dplyr::select("Type", "LD1")
+
+#Calculate mean LD1 values of the sources
+mean.df <- aggregate(LD1~Type, data=Source.df, FUN=mean)
+
+#Calculate standard deviations for LD1 values of the sources
+sd.df <- aggregate(LD1~Type, data=Source.df, FUN=sd)
+
+#Calculate the number of samples for each of the sources
+n.df <- aggregate(LD1~Type, data=Source.df, FUN=length)
+
+#Bind the values calculated above into one data frame
+source.agg.df <- cbind(n.df, mean.df[2], sd.df[2])
+
+#Rename the columns in this data frame
+colnames(source.agg.df) <- c("Type", "n", "MeanLD1", "SDLD1")
+
+#Write and export a csv of the source data frame
+write.csv(source.agg.df, "output/source.agg.df.csv")
+
+```
+
+#### Import Data and Create Model Structure
+```{r}
+###GO INTO THE ZOOPLANKTON FILE (Mix.df.csv) AND DELETE THE FIRST COLUMN###
+
+###GO INTO THE SOURCE FILE (source.agg.df.csv) AND DELETE THE FIRST COLUMN###
+
+#Load zooplankton (consumer) data and assign factors
+cons <- load_mix_data(filename = "output/Mix.df.csv",
+                          iso_names=c("LD1"),
+                          factors=c("SampleID"),
+                          fac_random=c(FALSE),
+                          fac_nested=c(FALSE),
+                          cont_effects=NULL)
+#SampleID is a fixed factor
+
+#Load source data
+source <- load_source_data(filename="output/source.agg.df.csv",
+                             source_factors=NULL,
+                             conc_dep=FALSE,
+                             data_type="means",
+                             cons)
+
+#Load TDF data
+discr <- load_discr_data(filename="output/MixSIAR_TDFs.csv", cons)
+
+```
+
+
+#### Check data 
+```{r}
+# Make an isospace plot
+isospace_plot <- plot_data(filename="output/MixSIAR_isospace_plot_SampleIDs", plot_save_pdf=TRUE, plot_save_png=FALSE, cons,source,discr)
+
+```
+
+
+#### Run MixSIAR Model
+```{r}
+#Define the model and error structure and write JAGS model file
+  model_filename <- "output/MixSIAR by SampleID/MixSIAR_Model_SampleID_fixed.txt"
+  resid_err <- FALSE
+  process_err <- TRUE
+  write_JAGS_model(model_filename, resid_err, process_err, cons, source)
+  
+#Run the JAGS model
+invt.jags.mod <- run_model(run="normal", cons, source, discr, model_filename, alpha.prior=1, resid_err, process_err)
+  
+#Process diagnostics, summary stats, and posterior plots
+  output_JAGS(invt.jags.mod, cons, source, output_options=list(
+    summary_save = TRUE,                   
+    summary_name = "output/MixSIAR by SampleID/MixSIAR_summary_statistics",
+    sup_post = FALSE,                       
+    plot_post_save_pdf = TRUE,              
+    plot_post_name = "output/MixSIAR by SampleID/MixSIAR_posterior_density",   
+    sup_pairs = TRUE,                       
+    plot_pairs_save_pdf = TRUE,             
+    plot_pairs_name = "output/MixSIAR by SampleID/MixSIAR_pairs_plot",         
+    sup_xy = TRUE,                          
+    plot_xy_save_pdf = TRUE,                
+    plot_xy_name = "output/MixSIAR by SampleID/MixSIAR_xy_plot",             
+    gelman = TRUE,                         
+    heidel = FALSE,                         
+    geweke = TRUE,                         
+    diag_save = TRUE,                       
+    diag_name = "output/MixSIAR by SampleID/MixSIAR_diagnostics",
+    indiv_effect = FALSE,
+    plot_post_save_png = FALSE,            
+    plot_pairs_save_png = FALSE,            
+    plot_xy_save_png = FALSE))
+    graphics.off()
+
+#save all results
+save.image("output/MixSIAR by SampleID/MixSIAR Model by Sample ID Fixed Normal.RData")
+
+```
+
+
+#### Import Data and Create Models
+```{r}
+n.mod <- 4
+mix <- vector("list", n.mod) 
+
+#Define mixtures for each model
+
+#Null Model
+mix[[1]] <- load_mix_data(filename="output/Mix.df.csv",
+                          iso_names=c("LD1"),
+                          factors=NULL,
+                          fac_random=NULL,
+                          fac_nested=NULL,
+                          cont_effects=NULL)
+
+#Group - Fixed; Taxa - Random, Nested
+mix[[2]] <- load_mix_data(filename="output/Mix.df.csv",
+                          iso_names=c("LD1"),
+                          factors=c("phy.group", "orig.class"),
+                          fac_random=c(FALSE, TRUE),
+                          fac_nested=c(FALSE, TRUE),
+                          cont_effects=NULL)
+
+#Group - Fixed; Lake - Random, Nested
+mix[[3]] <- load_mix_data(filename="output/Mix.df.csv",
+                          iso_names=c("LD1"),
+                          factors=c("phy.group", "Lake"),
+                          fac_random=c(FALSE, TRUE),
+                          fac_nested=c(FALSE, TRUE),
+                          cont_effects=NULL)
+
+#Elevation - Continuous; Group - Random
+mix[[4]] <- load_mix_data(filename="output/Mix.df.csv",
+                          iso_names=c("LD1"),
+                          factors="phy.group",
+                          fac_random=TRUE,
+                          fac_nested=FALSE,
+                          cont_effects="Elevation")
+
+```
+
+
+#### Run MixSIAR Models
+```{r}
+#Run the models
+source <- vector("list", n.mod)
+discr <- vector("list", n.mod)
+jags.mod <- vector("list", n.mod)
+
+#Run loop
+for(mod in 1:n.mod){
+
+  # create sub-directory and move into it
+  mainDir <- getwd()
+  subDir <- paste0("model_", mod)
+  dir.create(file.path(mainDir, subDir), showWarnings = FALSE)
+  setwd(file.path(mainDir, subDir))
+  
+  #Load source data
+  source[[mod]] <- load_source_data(filename="~/Downloads/Sierra-plankton-CSIA-main/MixSIAR/source.agg.df.csv",
+                             source_factors=NULL,
+                             conc_dep=FALSE,
+                             data_type="means",
+                             mix[[mod]])
+  
+  #Load TDF data
+  discr[[mod]] <- load_discr_data(filename="~/Downloads/Sierra-plankton-CSIA-main/MixSIAR/MixSIAR_TDFs.csv", mix[[mod]])
+  
+  #Define model structure and write JAGS model file
+  model_filename <- paste0("MixSIAR_model_", mod, ".txt")
+  resid_err <- TRUE
+  process_err <- TRUE
+  write_JAGS_model(model_filename, resid_err, process_err, mix[[mod]], source[[mod]])
+  
+  #Run JAGS model
+  jags.mod[[mod]] <- run_model(run="long", mix[[mod]], source[[mod]], discr[[mod]], model_filename, alpha.prior=1, resid_err, process_err)
+  
+  #Process diagnostics, summary stats, and posterior plots
+  output_JAGS(jags.mod[[mod]], mix[[mod]], source[[mod]], output_options=list(
+    summary_save = TRUE,
+    summary_name = "summary_statistics",
+    sup_post = FALSE,                 
+    plot_post_save_pdf = TRUE,            
+    plot_post_name = "posterior_density",
+    sup_pairs = TRUE,
+    plot_pairs_save_pdf = TRUE,
+    plot_pairs_name = "pairs_plot",
+    sup_xy = TRUE,
+    plot_xy_save_pdf = FALSE,
+    plot_xy_name = "xy_plot",
+    gelman = TRUE,
+    heidel = FALSE,
+    geweke = TRUE,
+    diag_save = TRUE,
+    diag_name = "diagnostics",
+    indiv_effect = FALSE,
+    plot_post_save_png = FALSE,
+    plot_pairs_save_png = FALSE,
+    plot_xy_save_png = FALSE))
+  graphics.off()
+  
+  setwd(mainDir)
+}
+
+# Save all results
+save.image("MixSiar_Model_Comparisons_Data.RData")
+  
+```
+
+
+#### Compare Models
+```{r}
+#Use 'compare_models' to get table with LOOic weights
+names(jags.mod) <- c("null", "group_taxa","group_lake", "elev_group")
+comparison.table <- compare_models(jags.mod)
+
+comparison.table
+
+write.csv(comparison.table, "MixSIAR Model Comparison Table.csv")
+
 ```

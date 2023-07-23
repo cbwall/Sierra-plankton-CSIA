@@ -1,7 +1,7 @@
 ---
 title: "CSIA-Sierra Nevada Alpine Lakes Zooplankton"
 author: "Alexi and Chris"
-date: "04/12/2023"
+date: "07/22/2023"
 output:
   html_document:
     code_folding: hide
@@ -14,13 +14,13 @@ output:
 ---
 
 # Project Overview
-Compound specific isotope analysis of individual amino acids (CSIA-AA) is a new and exciting tool in the study of trophic ecology and animal nutrition. CSIA-AA are not constrained by the same spatiotemporal variability and high fractionation effects observed in stable isotope analyses (SIA) of bulk tissues (carbons + lipids + proteins). Therefore, CSIA-AA represent a sea change in our ability to understand food webs and organism trophic interactions.  
+Compound specific isotope analysis of individual amino acids (CSIA-AA) is a new and exciting tool in the study of trophic ecology and animal nutrition. CSIA-AA are not constrained by the same spatiotemporal variability and fractionation effects observed in stable isotope analyses (SIA) of bulk tissues (carbons + lipids + proteins). Therefore, CSIA-AA represent a sea change in our ability to understand food webs and organism trophic interactions.  
 
-Certain amino acids can only be produced by primary producers (bacteria, algae, plants, fungi). These de novo synthesized amino acids, termed 'essential amino acids,' must be gained by animals through feeding/dietary means. Essential amino acids are passed from producers to consumers with limited fractionation or transamination, making them an ideal tool to examine the sources of carbon in consumers. Moreover, essential amino acids differ in their isotope signatures due to the biochemical pathways found in different groups of producers (i.e., fungi, bacteria, microalgae, C3/C4/CAM plants), allowing producers signatures to be mapped with high resolution. By using multiple essential amino acids as a multivariate trait, an essential amino acid fingerprint can be used to identify the source of amino acids in consumers and the contributions and identify of producers in diets.
+Certain amino acids can only be produced by primary producers (bacteria, algae, plants, fungi). These *de novo* synthesized amino acids, termed 'essential amino acids,' must be gained by animals through feeding/dietary means. Essential amino acids are passed from producers to consumers with limited fractionation or transamination, making them an ideal tool to examine the sources of carbon in consumers. Moreover, essential amino acids differ in their isotope signatures due to the biochemical pathways found in different groups of producers (i.e., fungi, bacteria, microalgae, C~3~/C~4~/CAM plants), allowing producers signatures to be mapped with high resolution. By using multiple essential amino acids as a multivariate trait, an essential amino acid fingerprint can be used to identify the source of amino acids in consumers and the contributions and identify of producers in diets.
 
 The role of terrestrial carbon in aquatic has been viewed as a resource, a subsidy, and a determent to aquatic consumers and ecosystems. For instance, zooplankton prefer the high fatty acid content of microalgae, which is a vital source for zooplankton nutrition. However, terrestrial carbon (leaves and detritus) into lakes leads to browning and a decrease in microalgae productivity as light is attenuated. In this case, allochthonous nutrition limits primary production but can be an important resource for consumers that are able to utilize the abundant (although low quality) nutritional source.
 
-Here, we used CSIA-AA to ask whether zooplankton in high elevation (largely ologotrophic) alpine lakes of the Sierra Nevada Mountains obtain their essential amino acids from in-water producers (particulate organic matter of microalgae origin) or from terrestrial C3 plants (sedges, pines, broadleaf deciduous trees). We sampled 6 lakes and 1 dystrophic pond in the Eastern Sierra Nevadas across an elevation gradient (2500-3200m) and measured environmental conditions (temperature, pH, DOC, TN, TP, chlorophyll a), measuring AA-carbon isotope values in producers and plankton consumers picked to individual species as well as size-fractioned plankton. 
+Here, we used CSIA-AA to ask whether zooplankton in high elevation (largely oligotrophic) alpine lakes of the Sierra Nevada Mountains obtain their essential amino acids from in-water producers (particulate organic matter of microalgae origin) or from terrestrial C~3~ plants (sedges, pines, broadleaf deciduous trees). We sampled 6 lakes and 1 dystropic pond across an elevation gradient (2500-3200m) and measured environmental conditions (temperature, pH, DOC, TN, TP, chlorophyll-*a*), measuring AA-carbon isotope values in producers and plankton consumers picked to individual species as well as size-fractioned plankton (>350um). 
 
 
 <center>  
@@ -145,7 +145,8 @@ SNL.d13C.aa<- read.csv("data/Sierra Nevada Lakes AA d13C Data NMX standard.csv")
 
 
 #Pull out just the essential AA values (excluding Lys)
-SNL.ess <- data.frame(SNL.d13C.aa$SampleID, SNL.d13C.aa$Ile13C, SNL.d13C.aa$Leu13C, SNL.d13C.aa$Phe13C, SNL.d13C.aa$Thr13C, SNL.d13C.aa$Val13C)
+SNL.ess <- data.frame(SNL.d13C.aa$SampleID, SNL.d13C.aa$Ile13C, SNL.d13C.aa$Leu13C, SNL.d13C.aa$Phe13C,
+                      SNL.d13C.aa$Thr13C, SNL.d13C.aa$Val13C)
 
 #Rename columns
 colnames(SNL.ess) <- c("ID", "Ile", "Leu", "Phe", "Thr", "Val")
@@ -161,7 +162,7 @@ pom <- SNL.ess[substr(SNL.ess$ID,1,8)=="SNL-POM-",]
 #Add a column for group
 pom$Group <- "POM"
 
-#Write csv file - primary producer d13C for just ess AA - UNM standard
+#Write csv file - primary producer d13C for just ess AA - NMX standard
 prod <- rbind(plants, pom)
 write.csv(prod, "output/SNL_producers_ess_AA_data.csv")
 
@@ -177,13 +178,10 @@ zoops<-zoops[!(zoops$Lake=="TB-tanks"),]
 
 #Write csv file - zooplankton d13C for just ess AA - UNM standard
 write.csv(zoops, "output/SNL_zooplankton_ess_AA_data.csv")
-
 ```
-
 
 ### Ess AA boxplot
 ```{r AAess box}
-
 # function to bind the data frames together
 bind_cols_fill <- function(df_list) {
   max_rows <- map_int(df_list, nrow) %>% max()
@@ -193,7 +191,6 @@ bind_cols_fill <- function(df_list) {
     df %>% add_row(!!first := rep(NA, max_rows - nrow(df)))
   }) %>% bind_cols()
 }
-
 
 ESS_df.wide<-as.data.frame(bind_cols_fill(list(tibble(plants$Ile), tibble(pom$Ile), tibble(zoops$Ile),
                                           tibble(plants$Leu), tibble(pom$Leu), tibble(zoops$Leu),
@@ -211,9 +208,10 @@ zoop.sub<- zoops %>%
 ## with bindrows bring zoops and producers together
 ESS.df.long<- bind_rows(prod, zoop.sub)
 
-#simple boxplot
-colors<-c("seagreen3", "lightblue2", "salmon1")
+ESS.df.long["Type"][is.na(ESS.df.long["Type"])] <- "Source"
 
+#simple boxplot
+colors<-c("springgreen3", "dodgerblue", "coral")
 par(mar = c(4.1, 4.5, 2, 2))
 
 {boxplot(plants$Ile, pom$Ile, zoops$Ile, plants$Leu, pom$Leu, zoops$Leu, plants$Phe, pom$Phe, zoops$Phe, plants$Thr, pom$Thr, zoops$Thr, plants$Val, pom$Val, zoops$Val, 
@@ -274,6 +272,7 @@ zoop.predict.data <- data.frame(SampleID = zoops$ID, Type = zoops$Type, Lake = z
 write.csv(zoop.predict.data, "output/SNL_Zooplankton_LDA_info_NMX.csv")
 ```
 
+
 #### LDA dataframe smithing
 ```{r LDA Zoop}
 ##############
@@ -282,9 +281,11 @@ write.csv(zoop.predict.data, "output/SNL_Zooplankton_LDA_info_NMX.csv")
 
 ####### Producers
 # AlldataPredict.mod original columns as - "Group", "ID", "LD1"
+# rearrange
 AlldataPredict.mod<- AlldataPredict %>%
   dplyr::select("ID", "Group", "LD1")
-  
+
+# rename columns
 colnames(AlldataPredict.mod)<-c("SampleID", "orig.class", "LD1")
 
 # make new columns to allow merge
@@ -300,9 +301,11 @@ AlldataPredict.mod<- AlldataPredict.mod %>%
 # zoops: zoop.predict.data = 
 #          "SampleID", "Type", "Lake", "class", "posterior.Plants", "posterior.POM", "LD1"
 
+# grab columns we want
 zoop.predict.data.NMX<- zoop.predict.data %>%
   dplyr::select("SampleID", "Type", "Lake", "class", "LD1")
 
+# rename factors
 zoop.predict.data.NMX <- zoop.predict.data.NMX %>% 
        dplyr::rename("orig.class" = "Type")
 
@@ -310,10 +313,10 @@ zoop.predict.data.NMX <- zoop.predict.data.NMX %>%
        dplyr::rename("LD.class" = "class")
 
 
-####### bind them
+####### bind the 2 dfs
 LDA.df<-rbind(zoop.predict.data.NMX, AlldataPredict.mod)
 
-# make new level for "phy.group"
+# make new level for "phy.group" based on taxonomy
 LDA.df$phy.group<- ifelse(LDA.df$orig.class == "calanoid", "copepoda",
                              ifelse(LDA.df$orig.class == "calanoid_cyclopoid", "copepoda",
                              ifelse(LDA.df$orig.class == "Ceriodaphnia", "cladocera",
@@ -324,7 +327,7 @@ LDA.df$phy.group<- ifelse(LDA.df$orig.class == "calanoid", "copepoda",
                              ifelse(LDA.df$orig.class == "Plants", "Plants",
                                     "POM"))))))))
 
-# make new level for "Elevation"
+# make new level for "Elevation" (in m)
 LDA.df$Elevation<- ifelse(LDA.df$Lake == "Lukens", "2513",
                              ifelse(LDA.df$Lake == "MayPond", "2714",
                              ifelse(LDA.df$Lake == "Sunrise2", "2830",
@@ -403,6 +406,7 @@ dev.copy(pdf, "figures/LDA.phy.boxplot.pdf", width = 4, height = 6)
 dev.off()
 
 ```
+
 
 ### LDA Ridgeline
 ```{r, eval=FALSE}

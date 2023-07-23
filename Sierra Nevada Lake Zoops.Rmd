@@ -41,7 +41,7 @@ if (!require("pacman")) install.packages("pacman") # for rapid install if not in
 pacman::p_load('knitr', 'lme4', 'lmerTest', 'tidyverse', 'effects', 'plyr', 'dplyr', 'plotrix', 'car',"gridExtra", "cowplot", "tools", "mgcv", "gratia", "MASS", "stats", "tidymv", "sjstats", "coin", "emmeans", "ggplot2", "mda", "nortest", "reshape2", "gmm", "propagate","ggmap", "RgoogleMaps", "MixSIAR","GGally")
 
 
-### general formatting for figures
+### general formatting for figures 
 Fig.formatting<-(theme_classic()) +
   theme(text=element_text(size=10),
         axis.line=element_blank(),

@@ -38,7 +38,7 @@ knitr::opts_chunk$set(warning=FALSE, message=FALSE, fig.align='center')
 if (!require("pacman")) install.packages("pacman") # for rapid install if not in library
 
 # use pacman to load all the packages you are missing!
-pacman::p_load('knitr', 'lme4', 'lmerTest', 'tidyverse', 'effects', 'plyr', 'dplyr', 'plotrix', 'car',"gridExtra", "cowplot", "tools", "mgcv", "gratia", "MASS", "stats", "tidymv", "sjstats", "coin", "emmeans", "ggplot2", "mda", "nortest", "reshape2", "gmm", "propagate","ggmap", "RgoogleMaps")
+pacman::p_load('knitr', 'lme4', 'lmerTest', 'tidyverse', 'effects', 'plyr', 'dplyr', 'plotrix', 'car',"gridExtra", "cowplot", "tools", "mgcv", "gratia", "MASS", "stats", "tidymv", "sjstats", "coin", "emmeans", "ggplot2", "mda", "nortest", "reshape2", "gmm", "propagate","ggmap", "RgoogleMaps", "MixSIAR","GGally")
 
 
 ### general formatting for figures
@@ -138,6 +138,42 @@ dev.off()
 ```
 
 ### Data 
+
+#### BULK SIA, Symons et al
+```{r, Bulk SIA Symons et al}
+
+##### Bulk stable isotope analyses (SIA)
+bulk.iso<-read.csv("data/Symons iso data/Symons_Yos_bulkSIA.csv")
+
+str(bulk.iso)
+
+# elevation
+d13C.elevation<-ggplot(bulk.iso, aes(x=d13C, y=elevation.m, color=type)) +
+  scale_color_manual(values=c("orchid", "lightgoldenrod3", "mediumseagreen", "royalblue2", "coral")) +
+  xlab(expression(paste(delta^{13}, C, " (\u2030, V-PDB)")))+
+  ylab("Elevation (m)")+
+  labs(color = "")+
+  coord_cartesian(xlim=c(-45, -5), ylim=c(2400, 3500)) +
+  geom_point() +
+  stat_ellipse()+
+  theme_classic()
+ggsave("figures/Symons data plots/Bulk_13C.elevation.pdf", encod="MacRoman", height=6, width=7)
+
+#C vs N
+
+d13C.d15N<-ggplot(bulk.iso, aes(x=d13C, y=d15N, color=type)) +
+  scale_color_manual(values=c("orchid", "lightgoldenrod3", "mediumseagreen", "royalblue2", "coral")) +
+  xlab(expression(paste(delta^{13}, C, " (\u2030, V-PDB)")))+
+  ylab(expression(paste(delta^{15}, N, " (\u2030, Air)")))+
+  coord_cartesian(xlim=c(-45, -5), ylim=c(-6, 10)) +
+  labs(color = "")+
+  geom_point() +
+  stat_ellipse()+
+  theme_classic()
+ggsave("figures/Fig.S1x.Bulk_13C.15N.pdf", encod="MacRoman", height=6, width=7)
+```
+
+
 Load in the data and pull out the essential amino acids, then subset by sample type.  
 Pull in the standardized CSIA data and the ESS-AA, excluding Lysine
 ```{r essAA}
@@ -164,7 +200,7 @@ pom$Group <- "POM"
 
 #Write csv file - primary producer d13C for just ess AA - NMX standard
 prod <- rbind(plants, pom)
-write.csv(prod, "output/SNL_producers_ess_AA_data.csv")
+write.csv(prod, "output/SNL_producers_ess_AA_data.csv", row.names=FALSE)
 
 #Subset zooplankton
 zoops <- SNL.ess[substr(SNL.ess$ID,1,9)=="SNL-ZOOP-",]
@@ -177,7 +213,7 @@ zoops <- merge.data.frame(zoops_meta, zoops, by.x = "ID", by.y = "ID")
 zoops<-zoops[!(zoops$Lake=="TB-tanks"),]
 
 #Write csv file - zooplankton d13C for just ess AA - UNM standard
-write.csv(zoops, "output/SNL_zooplankton_ess_AA_data.csv")
+write.csv(zoops, "output/SNL_zooplankton_ess_AA_data.csv", row.names=FALSE)
 ```
 
 ### Ess AA boxplot
@@ -223,7 +259,7 @@ legend("bottomright", c("Plants", "POM", "Zooplankton"), inset=c(-0.15, 0),
 axis(1, at = seq(2, 15, by = 3), las=1,
                                         labels =c("Ile","Leu","Phe","Thr","Val"))
 }
-dev.copy(pdf, "figures/Sierra Nevada Lakes Ess AA Boxplot.pdf", width = 6, height = 6)
+dev.copy(pdf, "figures/Fig2.Sierra Nevada Lakes Ess AA Boxplot.pdf", width = 6, height = 6)
 dev.off()
 
 ```
@@ -251,13 +287,13 @@ All.train
 
 #Write a csv file for the coefficients of LD1
 lda.info <- as.data.frame(All.train$scaling)
-write.csv(lda.info, "output/SNL_Producers_LDA_loadings_NMX.csv")
+write.csv(lda.info, "output/SNL_Producers_LDA_loadings_NMX.csv", row.names=FALSE)
 
 #Create a data frame with these LDA coordinates
 AlldataPredict <- data.frame(Group = prod$Group, ID = prod$ID, predict(All.train)$x)
 
 #Write a csv file for the LDA coordinatinates
-write.csv(AlldataPredict, "output/SNL_Producers_LDA_coords_NMX.csv")
+write.csv(AlldataPredict, "output/SNL_Producers_LDA_coords_NMX.csv", row.names=FALSE)
 
 ```
 
@@ -269,7 +305,7 @@ zoop.predict <- predict(object = All.train, newdata = zoops)
 zoop.predict.data <- data.frame(SampleID = zoops$ID, Type = zoops$Type, Lake = zoops$Lake, zoop.predict)
 
 #Write a csv file for the zooplankton LDA info
-write.csv(zoop.predict.data, "output/SNL_Zooplankton_LDA_info_NMX.csv")
+write.csv(zoop.predict.data, "output/SNL_Zooplankton_LDA_info_NMX.csv", row.names=FALSE)
 ```
 
 
@@ -343,7 +379,7 @@ LDA.df$Elevation<- ifelse(LDA.df$Lake == "Lukens", "2513",
 LDA.df<- LDA.df %>%
   dplyr::select("SampleID", "Lake", "Elevation", "orig.class", "phy.group", "LD.class", "LD1")
 
-write.csv(LDA.df, "output/Producer_zoop_LDA_score.csv")
+write.csv(LDA.df, "output/Producer_zoop_LDA_score.csv", row.names=FALSE)
 ```
 
 #### LDA by sample
@@ -407,9 +443,9 @@ dev.off()
 
 ```
 
-
-### LDA Ridgeline
 ```{r, eval=FALSE}
+### LDA Ridgeline
+
 library(viridis)
 library(ggridges)
 library(hrbrthemes)
@@ -447,20 +483,15 @@ dev.copy(pdf, "figures/LDA_ridge.pdf", width = 5, height = 6)
 dev.off()
 ```
 
-
-
 ### MixSIAR
 
-#Load Packages for MixSIAR Models
+#### Export Zooplankton and Source Data
 ```{r}
+#Load Packages for MixSIAR Models .... should already load in setup chunk, but just in case
 library(MixSIAR)
 library(dplyr)
 library(GGally)
 
-```
-
-#### Export Zooplankton and Source Data
-```{r}
 #Create a new data frame with desired columns (Zooplankton)
 Mix.df <- LDA.df %>%
   dplyr::select("SampleID", "orig.class", "phy.group", "Lake", "Elevation", "LD1")
@@ -475,7 +506,7 @@ Mix.df <- Mix.df[!(Mix.df$orig.class=="POM"),]
 Mix.df <- Mix.df[!(Mix.df$Lake=="TB-tanks"),]
 
 #Write and export a csv of the zooplankton data frame
-write.csv(Mix.df, "output/Mix.df.csv")
+write.csv(Mix.df, "output/Mix.df.csv", row.names=FALSE)
 
 #Create a new data frame with desired columns (Sources)
 Source.df <- LDA.df[(LDA.df$Lake=="Source"),]
@@ -498,16 +529,12 @@ source.agg.df <- cbind(n.df, mean.df[2], sd.df[2])
 colnames(source.agg.df) <- c("orig.class", "n", "MeanLD1", "SDLD1")
 
 #Write and export a csv of the source data frame
-write.csv(source.agg.df, "output/source.agg.df.csv")
+write.csv(source.agg.df, "output/source.agg.df.csv", row.names=FALSE)
 
 ```
 
 #### Import Data and Create Model Structure
 ```{r}
-###GO INTO THE ZOOPLANKTON FILE (Mix.df.csv) AND DELETE THE FIRST COLUMN###
-
-###GO INTO THE SOURCE FILE (source.agg.df.csv) AND DELETE THE FIRST COLUMN###
-
 #Load zooplankton (consumer) data and assign factors
 cons <- load_mix_data(filename = "output/Mix.df.csv",
                           iso_names=c("LD1"),

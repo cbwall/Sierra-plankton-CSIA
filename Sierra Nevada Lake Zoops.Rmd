@@ -63,7 +63,7 @@ Fig.formatting<-(theme_classic()) +
 
 
 ### Site Maps
-```{r, site maps, fig.cap="**Figure 1**. Site map of the Eastern Sierra Nevada Mountains and sampling sites", fig.align='center', results='hide'}
+```{r, site maps, fig.cap="**Figure 1**. Site map of the Eastern Sierra Nevada Mountains and sampling sites", fig.align='center', results='hide', eval=FALSE}
 
 # load data
 SNL.env<-read.csv("data/SNL.envdata.csv")
@@ -299,7 +299,7 @@ write.csv(AlldataPredict, "output/SNL_Producers_LDA_coords_NMX.csv", row.names=F
 
 
 ### LDA - Classify Zooplankton
-```{r LDA Zoop}
+```{r LDA Zoop1}
 #Classify zooplankton
 zoop.predict <- predict(object = All.train, newdata = zoops)
 zoop.predict.data <- data.frame(SampleID = zoops$ID, Type = zoops$Type, Lake = zoops$Lake, zoop.predict)
@@ -310,7 +310,7 @@ write.csv(zoop.predict.data, "output/SNL_Zooplankton_LDA_info_NMX.csv", row.name
 
 
 #### LDA dataframe smithing
-```{r LDA Zoop}
+```{r LDA Zoop2}
 ##############
 # combine the zooplankton and source LDA
 ##############
@@ -428,9 +428,9 @@ LDA.phy.boxplot<-ggplot(LDA.df, aes(x=LD1, y=phy.group,
                                  fill = phy.group))+
   geom_boxplot(alpha=0.5)+
   geom_jitter(aes(fill=phy.group), colour="black",pch=21, size=2) +
-  geom_vline(xintercept=-0.75, linetype="dashed", color = "gray60")+
-  annotate(geom="text", label="POM-source", x=-3.5, y=5.5, color="gray30", size=3) +
-  annotate(geom="text", label="Plant-source", x=2.5, y=5.5, color="gray30", size=3) +
+  geom_vline(xintercept=0.4, linetype="dashed", color = "gray60")+
+  annotate(geom="text", label="Plant-Supported", x=-3.5, y=5.5, color="gray30", size=3) +
+  annotate(geom="text", label="POM-Supported", x=2.5, y=5.5, color="gray30", size=3) +
   scale_fill_manual(values=phy.5.colors)+
   scale_color_manual(values=phy.5.colors)+
   ylab("Consumer or Source)") +
@@ -552,7 +552,7 @@ source <- load_source_data(filename="output/source.agg.df.csv",
                              cons)
 
 #Load TDF data
-discr <- load_discr_data(filename="output/MixSIAR_TDFs.csv", cons)
+discr <- load_discr_data(filename="data/MixSIAR_TDFs.csv", cons)
 
 ```
 
@@ -560,15 +560,17 @@ discr <- load_discr_data(filename="output/MixSIAR_TDFs.csv", cons)
 #### Check data 
 ```{r}
 # Make an isospace plot
-isospace_plot <- plot_data(filename="output/MixSIAR_isospace_plot_SampleIDs", plot_save_pdf=TRUE, plot_save_png=FALSE, cons,source,discr)
+isospace_plot <- plot_data(filename="output/MixSIAR_isospace_plot_SampleIDs", plot_save_pdf=FALSE, plot_save_png=FALSE, cons,source,discr)
 
 ```
 
 
 #### Run MixSIAR Model
 ```{r}
+set.seed(12)
+
 #Define the model and error structure and write JAGS model file
-  model_filename <- "output/MixSIAR by SampleID/MixSIAR_Model_SampleID_fixed.txt"
+  model_filename <- "output/MixSIAR_models/SampleID_models/MixSIAR_Model_SampleID_fixed.txt"
   resid_err <- FALSE
   process_err <- TRUE
   write_JAGS_model(model_filename, resid_err, process_err, cons, source)
@@ -579,21 +581,21 @@ invt.jags.mod <- run_model(run="normal", cons, source, discr, model_filename, al
 #Process diagnostics, summary stats, and posterior plots
   output_JAGS(invt.jags.mod, cons, source, output_options=list(
     summary_save = TRUE,                   
-    summary_name = "output/MixSIAR by SampleID/MixSIAR_summary_statistics",
+    summary_name = "output/MixSIAR_models/SampleID_models/MixSIAR_SampleID_summary_stats",
     sup_post = FALSE,                       
     plot_post_save_pdf = TRUE,              
-    plot_post_name = "output/MixSIAR by SampleID/MixSIAR_posterior_density",   
+    plot_post_name = "output/MixSIAR_models/SampleID_models/MixSIAR_SampleID_posterior_density",   
     sup_pairs = TRUE,                       
     plot_pairs_save_pdf = TRUE,             
-    plot_pairs_name = "output/MixSIAR by SampleID/MixSIAR_pairs_plot",         
+    plot_pairs_name = "output/MixSIAR_models/SampleID_models/MixSIAR_SampleID_pairs_plot",         
     sup_xy = TRUE,                          
     plot_xy_save_pdf = TRUE,                
-    plot_xy_name = "output/MixSIAR by SampleID/MixSIAR_xy_plot",             
+    plot_xy_name = "output/MixSIAR_models/SampleID_models/MixSIAR_SampleID_xy_plot",             
     gelman = TRUE,                         
     heidel = FALSE,                         
     geweke = TRUE,                         
     diag_save = TRUE,                       
-    diag_name = "output/MixSIAR by SampleID/MixSIAR_diagnostics",
+    diag_name = "output/MixSIAR_models/SampleID_models/MixSIAR_SampleID_diagnostics",
     indiv_effect = FALSE,
     plot_post_save_png = FALSE,            
     plot_pairs_save_png = FALSE,            
@@ -601,7 +603,7 @@ invt.jags.mod <- run_model(run="normal", cons, source, discr, model_filename, al
     graphics.off()
 
 #save all results
-save.image("output/MixSIAR by SampleID/MixSIAR Model by Sample ID Fixed Normal.RData")
+save.image("output/MixSIAR_models/SampleID_models/MixSIAR_SampleID_fixed_data.RData")
 
 ```
 
@@ -650,6 +652,8 @@ mix[[4]] <- load_mix_data(filename="output/Mix.df.csv",
 
 #### Run MixSIAR Models
 ```{r}
+set.seed(12)
+
 #Run the models
 source <- vector("list", n.mod)
 discr <- vector("list", n.mod)
@@ -663,16 +667,16 @@ for(mod in 1:n.mod){
   subDir <- paste0("model_", mod)
   dir.create(file.path(mainDir, subDir), showWarnings = FALSE)
   setwd(file.path(mainDir, subDir))
-  
+                           
   #Load source data
-  source[[mod]] <- load_source_data(filename="~/Downloads/Sierra-plankton-CSIA-main/MixSIAR/source.agg.df.csv",
+  source[[mod]] <- load_source_data(filename="~/Desktop/Github/Sierra-plankton-CSIA/output/source.agg.df.csv",
                              source_factors=NULL,
                              conc_dep=FALSE,
                              data_type="means",
                              mix[[mod]])
   
   #Load TDF data
-  discr[[mod]] <- load_discr_data(filename="~/Downloads/Sierra-plankton-CSIA-main/MixSIAR/MixSIAR_TDFs.csv", mix[[mod]])
+  discr[[mod]] <- load_discr_data(filename="~/Desktop/Github/Sierra-plankton-CSIA/data/MixSIAR_TDFs.csv", mix[[mod]])
   
   #Define model structure and write JAGS model file
   model_filename <- paste0("MixSIAR_model_", mod, ".txt")
@@ -681,7 +685,7 @@ for(mod in 1:n.mod){
   write_JAGS_model(model_filename, resid_err, process_err, mix[[mod]], source[[mod]])
   
   #Run JAGS model
-  jags.mod[[mod]] <- run_model(run="long", mix[[mod]], source[[mod]], discr[[mod]], model_filename, alpha.prior=1, resid_err, process_err)
+  jags.mod[[mod]] <- run_model(run="very long", mix[[mod]], source[[mod]], discr[[mod]], model_filename, alpha.prior=1, resid_err, process_err)
   
   #Process diagnostics, summary stats, and posterior plots
   output_JAGS(jags.mod[[mod]], mix[[mod]], source[[mod]], output_options=list(
@@ -708,10 +712,11 @@ for(mod in 1:n.mod){
   graphics.off()
   
   setwd(mainDir)
+  
 }
 
 # Save all results
-save.image("MixSiar_Model_Comparisons_Data.RData")
+save.image("MixSIAR_Model_Comparisons_Data.RData")
   
 ```
 
@@ -722,14 +727,14 @@ save.image("MixSiar_Model_Comparisons_Data.RData")
 names(jags.mod) <- c("null", "group_taxa","group_lake", "elev_group")
 comparison.table <- compare_models(jags.mod)
 
-comparison.table
+comparison.table <- as.data.frame(comparison.table)
 
-write.csv(comparison.table, "MixSIAR Model Comparison Table.csv")
+write.csv(comparison.table, "MixSIAR_Model_Comparisons_Table.csv")
 
 ```
 
 #### MixSIAR plots
-```{r}
+```{r, eval=FALSE}
 mod3.mixSIAR.output<-read.table("output/MixSIAR_models/model_3/summary_statistics.txt", 
                                 sep='\t', header=TRUE, skip=6)
 mod3.mixSIAR.output<-as.data.frame(mod3.mixSIAR.output)
@@ -745,7 +750,7 @@ Mix.factors<-separate(Mix.factors, factors, into = c("", "mean", "SD", "2.5..per
 ```
 
 ### MixSIAR by sample
-```{r}
+```{r, eval=FALSE}
 Mix.sample<-read.csv("data/MixSIAR_stats_sample.csv")
 
 # correct column names

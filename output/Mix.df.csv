@@ -1,29 +1,29 @@
 "","SampleID","orig.class","phy.group","Lake","Elevation","LD1"
-"1","SNL-ZOOP-GFF65",">350um",">350um","Lukens Lake",2513,-2.430036981
-"2","SNL-ZOOP-03A","calanoid","copepoda","Lukens Lake",2513,-1.767290933
-"3","SNL-ZOOP-04A","calanoid","copepoda","Lukens Lake",2513,-2.026882996
-"4","SNL-ZOOP-01A","Daphnia","cladocera","Lukens Lake",2513,-5.338531302
-"5","SNL-ZOOP-02A","Daphnia","cladocera","Lukens Lake",2513,-3.27805835
-"6","SNL-ZOOP-GFF69",">350um",">350um","May Pond",2714,-4.175466781
-"7","SNL-ZOOP-05A","calanoid","copepoda","May Pond",2714,-1.20238264
-"8","SNL-ZOOP-06A","calanoid","copepoda","May Pond",2714,1.87625793
-"9","SNL-ZOOP-07A","calanoid","copepoda","May Pond",2714,0.607885587
-"10","SNL-ZOOP-GFF47",">350um",">350um","Sunrise 2 Lake",2830,-4.534684593
-"11","SNL-ZOOP-GFF49",">350um",">350um","Blue Lake",3054,-2.453734536
-"12","SNL-ZOOP-08A","copepods","copepoda","Blue Lake",3054,0.090782251
-"13","SNL-ZOOP-09A","copepods","copepoda","Blue Lake",3054,-0.421683674
-"14","SNL-ZOOP-10A","Daphnia","cladocera","Blue Lake",3054,-4.402116049
-"15","SNL-ZOOP-11A","Daphnia","cladocera","Blue Lake",3054,-2.7349715
-"16","SNL-ZOOP-GFF66",">350um",">350um","Greenstone Lake",3091,-2.579932068
-"17","SNL-ZOOP-GFF70",">350um",">350um","Cascade Lake ",3140,-2.333166758
-"18","SNL-ZOOP-13A","Daphnia","cladocera","Cascade Lake ",3140,0.307240331
-"19","SNL-ZOOP-14A","Daphnia","cladocera","Cascade Lake ",3140,-1.511882365
-"20","SNL-ZOOP-GFF48","Holopedium","cladocera","Cascade Lake ",3140,-4.318491322
-"21","SNL-ZOOP-GFF53",">350um",">350um","Eastern Brook",3155,-5.166394456
-"22","SNL-ZOOP-16A","copepods","copepoda","Eastern Brook",3155,-3.027185784
-"23","SNL-ZOOP-17A","copepods","copepoda","Eastern Brook",3155,-1.938687747
-"24","SNL-ZOOP-15A","Daphnia","cladocera","Eastern Brook",3155,-0.069702719
-"25","SNL-ZOOP-GFF67",">350um",">350um","Granite 2",3178,-5.769161379
-"26","SNL-ZOOP-18A","calanoid","copepoda","Granite 2",3178,-1.59770911
-"27","SNL-ZOOP-20A","Ceriodaphnia","cladocera","Granite 2",3178,-2.951602782
-"28","SNL-ZOOP-19A","Daphnia","cladocera","Granite 2",3178,-2.815375824
+"1","SNL-ZOOP-01A","Daphnia","cladocera","Lukens",2513,6.42415620053797
+"2","SNL-ZOOP-02A","Daphnia","cladocera","Lukens",2513,4.71651094539312
+"3","SNL-ZOOP-03A","calanoid","copepoda","Lukens",2513,3.62194776764597
+"4","SNL-ZOOP-04A","calanoid","copepoda","Lukens",2513,3.37356914326437
+"5","SNL-ZOOP-05A","calanoid","copepoda","MayPond",2714,2.33420055932612
+"6","SNL-ZOOP-06A","calanoid","copepoda","MayPond",2714,-0.0502543495362534
+"7","SNL-ZOOP-07A","calanoid","copepoda","MayPond",2714,1.13614871624204
+"8","SNL-ZOOP-08A","calanoid_cyclopoid","copepoda","Blue",3054,1.71347641519143
+"9","SNL-ZOOP-09A","calanoid_cyclopoid","copepoda","Blue",3054,1.76973795314361
+"10","SNL-ZOOP-10A","Daphnia","cladocera","Blue",3054,5.26790696628855
+"11","SNL-ZOOP-11A","Daphnia","cladocera","Blue",3054,2.41714213996559
+"12","SNL-ZOOP-13A","Daphnia","cladocera","Cascade",3140,0.784605948983299
+"13","SNL-ZOOP-14A","Daphnia","cladocera","Cascade",3140,2.47107784219812
+"14","SNL-ZOOP-15A","Daphnia","cladocera","EasternBrook",3155,1.23696992967776
+"15","SNL-ZOOP-16A","calanoid_cyclopoid","copepoda","EasternBrook",3155,3.29579081533648
+"16","SNL-ZOOP-17A","calanoid_cyclopoid","copepoda","EasternBrook",3155,1.48925403798932
+"17","SNL-ZOOP-18A","calanoid","copepoda","Granite2",3178,1.97280516191844
+"18","SNL-ZOOP-19A","Daphnia","cladocera","Granite2",3178,3.13087029536121
+"19","SNL-ZOOP-20A","Ceriodaphnia","cladocera","Granite2",3178,3.8266574902391
+"20","SNL-ZOOP-GFF47",">350um",">350um","Sunrise2",2830,4.36692227999861
+"21","SNL-ZOOP-GFF48","Holopedium","cladocera","Cascade",3140,4.74748903002668
+"22","SNL-ZOOP-GFF49",">350um",">350um","Blue",3054,3.75632797464172
+"23","SNL-ZOOP-GFF53",">350um",">350um","EasternBrook",3155,4.46943326677686
+"24","SNL-ZOOP-GFF65",">350um",">350um","Lukens",2513,3.69595430355491
+"25","SNL-ZOOP-GFF66",">350um",">350um","Greenstone",3091,4.3280512234631
+"26","SNL-ZOOP-GFF67",">350um",">350um","Granite2",3178,4.9528723344058
+"27","SNL-ZOOP-GFF69",">350um",">350um","MayPond",2714,4.48526124479589
+"28","SNL-ZOOP-GFF70",">350um",">350um","Cascade",3140,3.15164989175778

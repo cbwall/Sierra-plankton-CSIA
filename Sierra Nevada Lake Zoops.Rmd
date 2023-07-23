@@ -272,64 +272,101 @@ zoop.predict.data <- data.frame(SampleID = zoops$ID, Type = zoops$Type, Lake = z
 
 #Write a csv file for the zooplankton LDA info
 write.csv(zoop.predict.data, "output/SNL_Zooplankton_LDA_info_NMX.csv")
+```
 
+#### LDA dataframe smithing
+```{r LDA Zoop}
+##############
+# combine the zooplankton and source LDA
+##############
+
+####### Producers
+# AlldataPredict.mod original columns as - "Group", "ID", "LD1"
+AlldataPredict.mod<- AlldataPredict %>%
+  dplyr::select("ID", "Group", "LD1")
+  
+colnames(AlldataPredict.mod)<-c("SampleID", "orig.class", "LD1")
+
+# make new columns to allow merge
+AlldataPredict.mod$Lake<-"Source"
+AlldataPredict.mod$LD.class<-"Source"
+
+# rearrange
+AlldataPredict.mod<- AlldataPredict.mod %>%
+  dplyr::select("SampleID", "orig.class", "Lake", "LD.class", "LD1")
+
+
+############# Zooplankton
+# zoops: zoop.predict.data = 
+#          "SampleID", "Type", "Lake", "class", "posterior.Plants", "posterior.POM", "LD1"
+
+zoop.predict.data.NMX<- zoop.predict.data %>%
+  dplyr::select("SampleID", "Type", "Lake", "class", "LD1")
+
+zoop.predict.data.NMX <- zoop.predict.data.NMX %>% 
+       dplyr::rename("orig.class" = "Type")
+
+zoop.predict.data.NMX <- zoop.predict.data.NMX %>% 
+       dplyr::rename("LD.class" = "class")
+
+
+####### bind them
+LDA.df<-rbind(zoop.predict.data.NMX, AlldataPredict.mod)
+
+# make new level for "phy.group"
+LDA.df$phy.group<- ifelse(LDA.df$orig.class == "calanoid", "copepoda",
+                             ifelse(LDA.df$orig.class == "calanoid_cyclopoid", "copepoda",
+                             ifelse(LDA.df$orig.class == "Ceriodaphnia", "cladocera",
+                             ifelse(LDA.df$orig.class == "Daphnia", "cladocera",
+                             ifelse(LDA.df$orig.class == "Holopedium", "cladocera",
+                             ifelse(LDA.df$orig.class == "Ceriodaphnia", "cladocera",
+                             ifelse(LDA.df$orig.class == ">350um", ">350um",
+                             ifelse(LDA.df$orig.class == "Plants", "Plants",
+                                    "POM"))))))))
+
+# make new level for "Elevation"
+LDA.df$Elevation<- ifelse(LDA.df$Lake == "Lukens", "2513",
+                             ifelse(LDA.df$Lake == "MayPond", "2714",
+                             ifelse(LDA.df$Lake == "Sunrise2", "2830",
+                             ifelse(LDA.df$Lake == "Blue", "3054",
+                             ifelse(LDA.df$Lake == "Greenstone", "3091",
+                             ifelse(LDA.df$Lake == "Cascade", "3140",
+                             ifelse(LDA.df$Lake == "EasternBrook", "3155",
+                             ifelse(LDA.df$Lake == "Granite2", "3178",
+                                    "0"))))))))
+
+
+# rearrange
+LDA.df<- LDA.df %>%
+  dplyr::select("SampleID", "Lake", "Elevation", "orig.class", "phy.group", "LD.class", "LD1")
+
+write.csv(LDA.df, "output/Producer_zoop_LDA_score.csv")
 ```
 
 #### LDA by sample
 ```{r LDA plot}
-LDA.df<-read.csv("data/Producer_zoop_LDA_score.csv")
+##### can load in from output '("output/Producer_zoop_LDA_score.csv")'
 
-# remove TB tanks
-LDA.df<-LDA.df[!(LDA.df$Lake=="TB-tanks"),]
-
-# the orginal metadata is "Type"
-# >>> reduced to clarify to fewer terms in "orig.class", 
-# >>>>>> and to higher taxonomy in "phy.group"
-# The LDA classification is "LD.class" (i.e., how do they align with sources of "plants or POM")
-
-make.fac<-c("Type", "Lake", "orig.class", "phy.group", "LD.class")
-LDA.df[make.fac]<-lapply(LDA.df[make.fac], factor) # make all these factors
-
-################
-## by site and phy-group
-#LDA.plot.phy<-ggplot(LDA.df, aes(x=LD1, y=y.axis.elev.order, 
-                                 #color = fct_reorder2(Lake, LD1, y.axis.elev.order),
-                                 #shape=phy.group))+
-  #geom_point(size=3)+
-  #geom_vline(xintercept=-0.75, linetype="dashed", color = "gray60")+
-  #annotate(geom="text", label="POM-source", x=-3.5, y=1.1, color="gray30", size=3) +
-  #annotate(geom="text", label="Plant-source", x=2.5, y=1.1, color="gray30", size=3) +
-  #xlab("LD1") +
-  #theme_classic()+
-  #theme(legend.title=element_blank(),
-  #      axis.title.y=element_blank(),
-  #      axis.text.y=element_blank())
-
-#LDA.plot.phy
-#dev.copy(pdf, "figures/LDA.plot.phy.pdf", width = 6, height = 6)
-#dev.off()
-
-############# order the lakes by their relative elevation
-LDA.df.el<-LDA.df
+LDA.df$Elevation<-as.numeric(LDA.df$Elevation)
 
 # reorder lake by relative elevation
-LDA.df.el$Lake<-reorder(LDA.df.el$Lake, LDA.df.el$y.axis.elev.order)
+LDA.df$Lake<-reorder(LDA.df$Lake, LDA.df$Elevation)
 
 # reorder factors 
-LDA.df.el$orig.class<-factor(LDA.df.el$orig.class, levels=c(">350um", "calanoid", 
-                                                            "copepods", "Ceriodaphnia", "Daphnia",
-                                                            "Holopedium", "POM", "Plants"))
+LDA.df$orig.class<-factor(LDA.df$orig.class, levels=c(">350um", "calanoid", 
+                                                            "calanoid_cyclopoid", "Ceriodaphnia",
+                                                            "Daphnia", "Holopedium", "POM", "Plants"))
 
 phy.lda.col<-c("gray65", "firebrick1","firebrick1", "goldenrod1", "goldenrod1","goldenrod1", "dodgerblue","springgreen4")
 phy.lda.pts<-c(21, 21,24, 21,24,22, 21,21)
   
 ###
-LDA.spp.lake<-ggplot(LDA.df.el, aes(x=LD1, y=Lake, 
+LDA.spp.lake<-ggplot(LDA.df, aes(x=LD1, y=Lake, 
                                  fill = orig.class, shape= orig.class))+
   geom_point(size=3)+
-  geom_vline(xintercept=-0.75, linetype="dashed", color = "gray60")+
-  annotate(geom="text", label="POM-source", x=-3.5, y=9.5, color="gray30", size=3) +
-  annotate(geom="text", label="Plant-source", x=2.5, y=9.5, color="gray30", size=3) +
+  geom_vline(xintercept=0.4, linetype="dashed", color = "gray60")+
+  annotate(geom="text", label="Plant-Supported", x=-3.5, y=9.5, color="gray30", size=3) +
+  annotate(geom="text", label="POM-Supported", x=2.5, y=9.5, color="gray30", size=3) +
   scale_fill_manual(values=phy.lda.col)+
   scale_shape_manual(values=phy.lda.pts)+
   ylab("Lake (high to low elevation)") +
@@ -344,11 +381,11 @@ dev.off()
 #LDA box plot by phy.group
 phy.5.colors<-c("dodgerblue", "gray85", "orange","coral", "springgreen4")
 
-LDA.df.el$phy.group<-factor(LDA.df.el$phy.group, levels=c("POM", ">350um", "cladocera", 
+LDA.df$phy.group<-factor(LDA.df$phy.group, levels=c("POM", ">350um", "cladocera", 
                                                             "copepoda",
                                                             "Plants"))
 
-LDA.phy.boxplot<-ggplot(LDA.df.el, aes(x=LD1, y=phy.group, 
+LDA.phy.boxplot<-ggplot(LDA.df, aes(x=LD1, y=phy.group, 
                                  fill = phy.group))+
   geom_boxplot(alpha=0.5)+
   geom_jitter(aes(fill=phy.group), colour="black",pch=21, size=2) +
@@ -374,12 +411,12 @@ library(ggridges)
 library(hrbrthemes)
 
 # reorder factors 
-LDA.df.el$orig.class<-factor(LDA.df.el$orig.class, levels=c("POM", "Plants", ">350um", "calanoid", 
+LDA.df$orig.class<-factor(LDA.df$orig.class, levels=c("POM", "Plants", ">350um", "calanoid", 
                                                             "copepods", "Ceriodaphnia", "Daphnia",
                                                             "Holopedium"))
 
 
-density_LDA<-ggplot(data=LDA.df.el, aes(x=LD1, group=phy.group, fill=phy.group)) +
+density_LDA<-ggplot(data=LDA.df, aes(x=LD1, group=phy.group, fill=phy.group)) +
     geom_density(adjust=1.5, alpha=.5) +
     scale_fill_manual(values=c("dodgerblue", "gray85", "orange","coral", "springgreen4"))+ 
   theme_classic()
@@ -391,7 +428,7 @@ dev.off()
 
 ####### Ridgeline plot
 
-density.ridge<-ggplot(LDA.df.el, aes(x = LD1, y = phy.group, fill = after_stat(x))) +
+density.ridge<-ggplot(LDA.df, aes(x = LD1, y = phy.group, fill = after_stat(x))) +
   geom_density_ridges_gradient(jittered_points = TRUE, scale = 0.9, rel_min_height = .01,
     point_shape = "o", point_size = 3, size = 0.25,
     position = position_points_jitter(height = 0)) +
@@ -405,8 +442,6 @@ density.ridge
 dev.copy(pdf, "figures/LDA_ridge.pdf", width = 5, height = 6)
 dev.off()
 ```
-
-
 
 
 
@@ -441,22 +476,22 @@ write.csv(Mix.df, "output/Mix.df.csv")
 #Create a new data frame with desired columns (Sources)
 Source.df <- LDA.df[(LDA.df$Lake=="Source"),]
 Source.df <- Source.df %>%
-  dplyr::select("Type", "LD1")
+  dplyr::select("orig.class", "LD1")
 
 #Calculate mean LD1 values of the sources
-mean.df <- aggregate(LD1~Type, data=Source.df, FUN=mean)
+mean.df <- aggregate(LD1~orig.class, data=Source.df, FUN=mean)
 
 #Calculate standard deviations for LD1 values of the sources
-sd.df <- aggregate(LD1~Type, data=Source.df, FUN=sd)
+sd.df <- aggregate(LD1~orig.class, data=Source.df, FUN=sd)
 
 #Calculate the number of samples for each of the sources
-n.df <- aggregate(LD1~Type, data=Source.df, FUN=length)
+n.df <- aggregate(LD1~orig.class, data=Source.df, FUN=length)
 
 #Bind the values calculated above into one data frame
 source.agg.df <- cbind(n.df, mean.df[2], sd.df[2])
 
 #Rename the columns in this data frame
-colnames(source.agg.df) <- c("Type", "n", "MeanLD1", "SDLD1")
+colnames(source.agg.df) <- c("orig.class", "n", "MeanLD1", "SDLD1")
 
 #Write and export a csv of the source data frame
 write.csv(source.agg.df, "output/source.agg.df.csv")
@@ -674,9 +709,22 @@ mod3.mixSIAR.output<-separate(mod3.mixSIAR.output, full.data, into = c("factor",
 
 Mix.factors<-mod3.mixSIAR.output$factors
 
-Mix.factors<-separate(Mix.factors, factors, into = c("", "Mean", "SD", "2.5.perc", "5.perc", "25.perc", "50.perc", "75.perc", "95.perc"), sep=".")
+Mix.factors<-separate(Mix.factors, factors, into = c("", "mean", "SD", "2.5..per", "5..per", "25..per", "50..per", "75..per", "95..per", "97.5..per"), sep=".")
 
+```
 
+### MixSIAR by sample
+```{r}
+Mix.sample<-read.csv("data/MixSIAR_stats_sample.csv")
+
+# correct column names
+colnames(Mix.sample)<- c("Sample", "mean", "SD", "2.5..per", "5..per", "25..per", "50..per", "75..per", "95..per", "97.5..per")
+
+Sample<- as.data.frame(Mix.sample$Sample)
+colnames(Sample)<-"sampl"
+Sample$sampl<-as.factor(Sample$sampl)
+
+Sample<-separate(Sample, col=sampl, into=c("p", "Sample", "Source"), sep='.')
 
 ```
 

@@ -185,16 +185,18 @@ SNL.ess <- data.frame(SNL.d13C.aa$SampleID, SNL.d13C.aa$Ile13C, SNL.d13C.aa$Leu1
                       SNL.d13C.aa$Thr13C, SNL.d13C.aa$Val13C)
 
 #Rename columns
-colnames(SNL.ess) <- c("ID", "Ile", "Leu", "Phe", "Thr", "Val")
-SNL.ess$ID <- as.character(SNL.ess$ID)
+colnames(SNL.ess) <- c("SampleID", "Ile", "Leu", "Phe", "Thr", "Val")
+SNL.ess$SampleID <- as.character(SNL.ess$SampleID)
 
 #Subset terrestrial plants
-plants <- SNL.ess[substr(SNL.ess$ID,1,11)=="SNL-TERPLA-",]
+plants <- SNL.ess[substr(SNL.ess$SampleID,1,11)=="SNL-TERPLA-",]
+
 #Add a column for group
 plants$Group <- "Plants"
 
 #Subset POM
-pom <- SNL.ess[substr(SNL.ess$ID,1,8)=="SNL-POM-",]
+pom <- SNL.ess[substr(SNL.ess$SampleID,1,8)=="SNL-POM-",]
+
 #Add a column for group
 pom$Group <- "POM"
 
@@ -203,11 +205,11 @@ prod <- rbind(plants, pom)
 write.csv(prod, "output/SNL_producers_ess_AA_data.csv", row.names=FALSE)
 
 #Subset zooplankton
-zoops <- SNL.ess[substr(SNL.ess$ID,1,9)=="SNL-ZOOP-",]
+zoops <- SNL.ess[substr(SNL.ess$SampleID,1,9)=="SNL-ZOOP-",]
 
 #Pull in zooplankton metadata
 zoops_meta <- read.csv("data/Zoops_Meta.csv")
-zoops <- merge.data.frame(zoops_meta, zoops, by.x = "ID", by.y = "ID")
+zoops <- merge.data.frame(zoops_meta, zoops, by.x = "SampleID", by.y = "SampleID")
 
 #remove TB tanks
 zoops<-zoops[!(zoops$Lake=="TB-tanks"),]
@@ -238,10 +240,14 @@ ESS_df.wide<-as.data.frame(bind_cols_fill(list(tibble(plants$Ile), tibble(pom$Il
 library(dplyr)
 
 zoop.sub<- zoops %>% 
-  dplyr::select(ID, Ile, Leu, Phe, Thr, Val, Group, Type, Lake)
+  dplyr::select(SampleID, Ile, Leu, Phe, Thr, Val, Group, Type, Lake)
 
 
-## with bindrows bring zoops and producers together
+## with bind rows bring zoops and producers together
+prod$Type<-"NA"
+prod$Lake<-"NA"
+# the above to "check yourself!", but the code below will set NAs by default
+
 ESS.df.long<- bind_rows(prod, zoop.sub)
 
 ESS.df.long["Type"][is.na(ESS.df.long["Type"])] <- "Source"
@@ -290,7 +296,7 @@ lda.info <- as.data.frame(All.train$scaling)
 write.csv(lda.info, "output/SNL_Producers_LDA_loadings_NMX.csv", row.names=FALSE)
 
 #Create a data frame with these LDA coordinates
-AlldataPredict <- data.frame(Group = prod$Group, ID = prod$ID, predict(All.train)$x)
+AlldataPredict <- data.frame(Group = prod$Group, SampleID = prod$ID, predict(All.train)$x)
 
 #Write a csv file for the LDA coordinatinates
 write.csv(AlldataPredict, "output/SNL_Producers_LDA_coords_NMX.csv", row.names=FALSE)
@@ -316,10 +322,10 @@ write.csv(zoop.predict.data, "output/SNL_Zooplankton_LDA_info_NMX.csv", row.name
 ##############
 
 ####### Producers
-# AlldataPredict.mod original columns as - "Group", "ID", "LD1"
+# AlldataPredict.mod original columns as - "Group", "SampleID", "LD1"
 # rearrange
 AlldataPredict.mod<- AlldataPredict %>%
-  dplyr::select("ID", "Group", "LD1")
+  dplyr::select("SampleID", "Group", "LD1")
 
 # rename columns
 colnames(AlldataPredict.mod)<-c("SampleID", "orig.class", "LD1")
@@ -363,7 +369,7 @@ LDA.df$phy.group<- ifelse(LDA.df$orig.class == "calanoid", "copepoda",
                              ifelse(LDA.df$orig.class == "Plants", "Plants",
                                     "POM"))))))))
 
-# make new level for "Elevation" (in m)
+# make new level for "Elevation" (in m), "0" for ordering, but actually is "NA"
 LDA.df$Elevation<- ifelse(LDA.df$Lake == "Lukens", "2513",
                              ifelse(LDA.df$Lake == "MayPond", "2714",
                              ifelse(LDA.df$Lake == "Sunrise2", "2830",
@@ -433,7 +439,7 @@ LDA.phy.boxplot<-ggplot(LDA.df, aes(x=LD1, y=phy.group,
   annotate(geom="text", label="POM-Supported", x=2.5, y=5.5, color="gray30", size=3) +
   scale_fill_manual(values=phy.5.colors)+
   scale_color_manual(values=phy.5.colors)+
-  ylab("Consumer or Source)") +
+  ylab("Consumer or Source") +
   xlab("LD1") +
   theme_classic()
 
@@ -533,7 +539,8 @@ write.csv(source.agg.df, "output/source.agg.df.csv", row.names=FALSE)
 
 ```
 
-#### Import Data and Create Model Structure
+#### MixSIAR by-sample models
+##### Import Data and Create Model Structure
 ```{r}
 #Load zooplankton (consumer) data and assign factors
 cons <- load_mix_data(filename = "output/Mix.df.csv",
@@ -556,16 +563,14 @@ discr <- load_discr_data(filename="data/MixSIAR_TDFs.csv", cons)
 
 ```
 
-
-#### Check data 
+##### Check data 
 ```{r}
 # Make an isospace plot
 isospace_plot <- plot_data(filename="output/MixSIAR_isospace_plot_SampleIDs", plot_save_pdf=FALSE, plot_save_png=FALSE, cons,source,discr)
 
 ```
 
-
-#### Run MixSIAR Model
+##### Run MixSIAR by-sample Model
 ```{r}
 set.seed(12)
 
@@ -607,9 +612,43 @@ save.image("output/MixSIAR_models/SampleID_models/MixSIAR_SampleID_fixed_data.RD
 
 ```
 
+##### Clean and process summary stats
+```{r MixSIAR by sample output}
+# read in the summary stats from mixSIAR, parse and make a dataframe, replacing spaces from .txt
 
-#### Import Data and Create Models
-```{r}
+SAMP.mixSIAR.output<-read.table("output/MixSIAR_models/SampleID_models/MixSIAR_SampleID_summary_stats.txt", sep='\t', header=TRUE, skip=6)
+
+SAMP.mixSIAR.output<-as.data.frame(SAMP.mixSIAR.output)
+colnames(SAMP.mixSIAR.output)<-"full.data"
+
+# remove all extra spaces using "squish", make them 1 space only
+library(stringr)
+SAMP.mixSIAR.output$full.data<- str_squish(SAMP.mixSIAR.output$full.data)
+
+# rename columns
+library(plyr)
+samp.mix.out<-separate(SAMP.mixSIAR.output, full.data, into = c("factor", "Mean", "SD", "2.5.perc", "5.perc", "25.perc", "50.perc", "75.perc", "95.perc", "97.5.perc"), sep=" ")
+
+# parse the factors here into 3 columns
+new.cols<- stringr::str_split_fixed(samp.mix.out$factor, "\\.", 3) %>%
+        as.data.frame() %>%
+       setNames(c("proportion", "SampleID", "Source"))
+
+new.cols<- new.cols %>%
+  dplyr::select("SampleID", "Source")
+
+# combine the new, separated columns with the data, verify the levels match, then remove "factor"
+Samp.out.cleaned<-cbind(new.cols, samp.mix.out[1:10])
+Samp.out.cleaned<-Samp.out.cleaned %>%
+  dplyr::select(-factor)
+                          
+write.csv(Samp.out.cleaned, "output/MixSIAR_Samp.df.csv", row.names=FALSE)
+```
+
+#### MixSIAR complete models
+
+##### Import Data and Create Models
+```{r import mixSIAR data complete}
 n.mod <- 4
 mix <- vector("list", n.mod) 
 
@@ -649,9 +688,8 @@ mix[[4]] <- load_mix_data(filename="output/Mix.df.csv",
 
 ```
 
-
-#### Run MixSIAR Models
-```{r}
+##### Run MixSIAR complete models
+```{r full MixSIAR run}
 set.seed(12)
 
 #Run the models
@@ -720,9 +758,8 @@ save.image("MixSIAR_Model_Comparisons_Data.RData")
   
 ```
 
-
-#### Compare Models
-```{r}
+##### Compare Models
+```{r full MixSIAR compare}
 #Use 'compare_models' to get table with LOOic weights
 names(jags.mod) <- c("null", "group_taxa","group_lake", "elev_group")
 comparison.table <- compare_models(jags.mod)
@@ -733,34 +770,179 @@ write.csv(comparison.table, "MixSIAR_Model_Comparisons_Table.csv")
 
 ```
 
-#### MixSIAR plots
-```{r, eval=FALSE}
-mod3.mixSIAR.output<-read.table("output/MixSIAR_models/model_3/summary_statistics.txt", 
+##### Clean and process summary stats
+This is the data for the MixSIAR full output, 
+```{r read comp Mix summary}
+# read in the summary stats from mixSIAR, parse and make a dataframe, replacing spaces from .txt
+mod3.mixSIAR.output<-read.table("model_3/summary_statistics.txt", 
                                 sep='\t', header=TRUE, skip=6)
 mod3.mixSIAR.output<-as.data.frame(mod3.mixSIAR.output)
 colnames(mod3.mixSIAR.output)<-"full.data"
 
-library(plyr)
-mod3.mixSIAR.output<-separate(mod3.mixSIAR.output, full.data, into = c("factor", "Mean", "SD", "2.5.perc", "5.perc", "25.perc", "50.perc", "75.perc", "95.perc"), sep=" ")
+# remove all extra spaces using "squish", make them 1 space only, using library(stringr)
+mod3.mixSIAR.output$full.data<- str_squish(mod3.mixSIAR.output$full.data)
 
-Mix.factors<-mod3.mixSIAR.output$factors
+# separate using library(plyr)
+mod3.out<-separate(mod3.mixSIAR.output, full.data, into = c("factor", "Mean", "SD", "2.5.perc", "5.perc", "25.perc", "50.perc", "75.perc", "95.perc", "97.5.perc"), sep=" ")
 
-Mix.factors<-separate(Mix.factors, factors, into = c("", "mean", "SD", "2.5..per", "5..per", "25..per", "50..per", "75..per", "95..per", "97.5..per"), sep=".")
+# remove top 2 rows from output
+mod3.out<- mod3.out[-c(1:2),]
 
+### top 6 rows need to be handles differently since there is no "lake" here
+mod3.out.phy<-mod3.out[c(1:6), ]
+new.cols.mod3.phy<- stringr::str_split_fixed(mod3.out.phy$factor, "\\.", 3) %>%
+        as.data.frame() %>%
+       setNames(c("proportion", "phy.group", "Source"))
+
+#make NA column for Lake
+new.cols.mod3.phy$Lake<-NA
+
+#rearrange
+new.cols.mod3.phy<-new.cols.mod3.phy %>% 
+  dplyr::select("phy.group", "Lake", "Source")
+
+
+### now, the rest of data, by Lake
+mod3.out.by.lake<-mod3.out[-c(1:6), ]
+
+# parse the factors here
+new.cols.mod3.lake<- stringr::str_split_fixed(mod3.out.by.lake$factor, "\\.", 4) %>%
+        as.data.frame() %>%
+       setNames(c("proportion", "phy.group", "Lake", "Source"))
+
+new.cols.mod3.lake<- new.cols.mod3.lake %>%
+  dplyr::select("phy.group", "Lake", "Source")
+
+# combine the new, separated columns with the data
+Mod3.all.facs<-rbind(new.cols.mod3.phy, new.cols.mod3.lake)
+
+# combine with data
+Mod3.out.cleaned<-cbind(Mod3.all.facs, mod3.out[1:10]) # verify the levels match, then remove "factor"
+Mod3.out.cleaned<-Mod3.out.cleaned %>%
+  dplyr::select(-factor)
+                          
+write.csv(Mod3.out.cleaned, "output/MixSIAR_Mod3.df.csv", row.names=FALSE)
 ```
 
-### MixSIAR by sample
-```{r, eval=FALSE}
-Mix.sample<-read.csv("data/MixSIAR_stats_sample.csv")
+### Figs mixSIAR models and plots
+```{r mixSIAR plots}
+############### now makes some plots and run models
 
-# correct column names
-colnames(Mix.sample)<- c("Sample", "mean", "SD", "2.5..per", "5..per", "25..per", "50..per", "75..per", "95..per", "97.5..per")
+mod3<-read.csv("output/MixSIAR_Mod3.df.csv", check.names=FALSE) 
+#check.names=FALSE prevents an "X" being added to the columns that start with a number
 
-Sample<- as.data.frame(Mix.sample$Sample)
-colnames(Sample)<-"sampl"
-Sample$sampl<-as.factor(Sample$sampl)
+# make factors for columns
+make.fac<-c("phy.group", "Source")
+mod3[make.fac] <- lapply(mod3[make.fac], factor)
 
-Sample<-separate(Sample, col=sampl, into=c("p", "Sample", "Source"), sep='.')
+mod3$Source<-factor(mod3$Source, levels=c("POM", "Plants"))
+
+############# Look at the groups pooled across the lakes
+# phy group effects, across lakes
+mod3.phy<-mod3[(1:6),]
+
+mod3.phy.fig<-ggplot(data=mod3.phy, aes(x=phy.group, y=Mean, fill=Source))+
+  scale_fill_manual(values=c("dodgerblue", "springgreen3"))+
+  geom_errorbar(aes(ymin=Mean-SD, ymax=Mean+SD, width=.2),
+                 position=position_dodge(0.5))+
+  geom_point(size=4,  position=position_dodge(0.5), color="black", pch=21)+
+  ylab("Proportion of EAA-source") +
+  xlab("Zooplankton Groups") +
+  theme_classic()
+
+### export it
+pdf(file= "figures/Fig x.Phy.mixsiar.pdf", height=5, width=5)
+mod3.phy.fig
+dev.off()
+
+
+############# Look at the groups within each lake
+# phy group effects, across lakes
+mod3.lake<-mod3[-(1:6),]
+
+# make new level for "Elevation" (in m)
+mod3.lake$Elevation<- as.numeric(ifelse(mod3.lake$Lake == "Lukens", "2513",
+                             ifelse(mod3.lake$Lake == "MayPond", "2714",
+                             ifelse(mod3.lake$Lake == "Sunrise2", "2830",
+                             ifelse(mod3.lake$Lake == "Blue", "3054",
+                             ifelse(mod3.lake$Lake == "Greenstone", "3091",
+                             ifelse(mod3.lake$Lake == "Cascade", "3140",
+                             ifelse(mod3.lake$Lake == "EasternBrook", "3155",
+                             ifelse(mod3.lake$Lake == "Granite2", "3178",
+                                    "0")))))))))
+
+# reorder lake by relative elevation
+mod3.lake$Lake<-as.factor(reorder(mod3.lake$Lake, mod3.lake$Elevation))
+
+### make the plot
+mod3.lake.fig<-ggplot(data=mod3.lake, aes(x=Lake, y=Mean, fill=Source))+
+  facet_wrap(.~phy.group)+
+  scale_fill_manual(values=c("dodgerblue", "springgreen3"))+
+  geom_errorbar(aes(ymin=Mean-SD, ymax=Mean+SD, width=.2),
+                 position=position_dodge(0.5))+
+  geom_point(size=4,  position=position_dodge(0.5), color="black", pch=21)+
+  ylab("Proportion of EAA-source") +
+  xlab("Lakes: low-to-high elevation") +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+
+### export it
+pdf(file= "figures/Fig x.Lake.mixsiar.pdf", height=7, width=12)
+mod3.lake.fig
+dev.off()
+```
+
+```{r generate ful data}
+#### by sample
+samp.mix.df<-read.csv("output/MixSIAR_Samp.df.csv", check.names=FALSE) 
+#check.names=FALSE prevents an "X" being added to the columns that start with a number
+
+#merge data from mixsiar with other data
+# read in the EAA values for zoops (loaded above, "output/SNL_zooplankton_ess_AA_data.csv", and reorganized in "zoop.sub")
+
+# combine zoops and producers, calle in from 'ESS.df.long'
+head(ESS.df.long)
+
+MSiar.LD.meta <- merge.data.frame(samp.mix.df, LDA.df, by.x = "SampleID", by.y = "SampleID", all=TRUE)
+MSiar.LD.meta.EAA <- merge.data.frame(MSiar.LD.meta, ESS.df.long, 
+                                      by.x = "SampleID", by.y = "SampleID", all=TRUE)
+
+#### simplify data
+# select useful columns
+MSiar.LD.meta.EAA<- MSiar.LD.meta.EAA %>%
+  dplyr::select("SampleID", "Source", "Mean", "SD", "Lake.x", 
+                "orig.class", "phy.group", "LD.class", "LD1", "Group", 
+                "Ile", "Leu", "Phe", "Thr", "Val")
+
+MSiar.LD.meta.EAA<- MSiar.LD.meta.EAA %>% 
+  dplyr::rename("Lake" = "Lake.x")
+
+
+# read in environmental data (loaded above, <-read.csv("data/SNL.envdata.csv"), "SNL.env"
+MSiar.data.env<-merge.data.frame(MSiar.LD.meta.EAA, SNL.env, by.x = "Lake", by.y = "Lake", all=TRUE)
+
+# select useful columns
+MSiar.data.env<- MSiar.data.env %>%
+  dplyr::select("Location", "Date", "Lake", "elevation", "latitude", "longitude", "depth..ft",
+                "secchi..ft", "temp..C", "DO..perc", "spc", "pH", "DOC..mg.L",
+                "TN..ug.L", "TP..ug.L", "chla", "SampleID", "orig.class", "phy.group", 
+                "Ile", "Leu", "Phe", "Thr", "Val",
+                "LD.class", "LD1", "LD.class", "Source", "Mean", "SD")
+
+#### export full data for project
+write.csv(MSiar.data.env, "output/SNL.CSIA.fulldata.csv")
+```
+
+```{r models for env mixsiar}
+# use 'MSiar.data.env' to run models
+
+# look at % plant contributions by environmental data
+mod.df<- MSiar.data.env %>%
+  dplyr::select(SampleID, Lake, elevation, depth..ft, temp..C, DO..perc, pH, DOC..mg.L,
+                TN..ug.L, TP..ug.L, chla, phy.group, LD.class, LD1, Source, Mean, SD)
+
+Plant.nut.env<- mod.df[(mod.df$Source=="Plants"),]
+POM.nut.env<- mod.df[(mod.df$Source=="POM"),]
 
 ```
 

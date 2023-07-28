@@ -148,7 +148,7 @@ bulk.iso<-read.csv("data/Symons iso data/Symons_Yos_bulkSIA.csv")
 str(bulk.iso)
 
 # elevation
-d13C.elevation<-ggplot(bulk.iso, aes(x=d13C, y=elevation.m, color=type)) +
+d13C.elevation<-ggplot(bulk.iso, aes(x=d13C, y=elevation..m, color=type)) +
   scale_color_manual(values=c("orchid", "lightgoldenrod3", "mediumseagreen", "royalblue2", "coral")) +
   xlab(expression(paste(delta^{13}, C, " (\u2030, V-PDB)")))+
   ylab("Elevation (m)")+
@@ -296,7 +296,7 @@ lda.info <- as.data.frame(All.train$scaling)
 write.csv(lda.info, "output/SNL_Producers_LDA_loadings_NMX.csv", row.names=FALSE)
 
 #Create a data frame with these LDA coordinates
-AlldataPredict <- data.frame(Group = prod$Group, SampleID = prod$ID, predict(All.train)$x)
+AlldataPredict <- data.frame(Group = prod$Group, SampleID = prod$SampleID, predict(All.train)$x)
 
 #Write a csv file for the LDA coordinatinates
 write.csv(AlldataPredict, "output/SNL_Producers_LDA_coords_NMX.csv", row.names=FALSE)
@@ -308,7 +308,7 @@ write.csv(AlldataPredict, "output/SNL_Producers_LDA_coords_NMX.csv", row.names=F
 ```{r LDA Zoop1}
 #Classify zooplankton
 zoop.predict <- predict(object = All.train, newdata = zoops)
-zoop.predict.data <- data.frame(SampleID = zoops$ID, Type = zoops$Type, Lake = zoops$Lake, zoop.predict)
+zoop.predict.data <- data.frame(SampleID = zoops$SampleID, Type = zoops$Type, Lake = zoops$Lake, zoop.predict)
 
 #Write a csv file for the zooplankton LDA info
 write.csv(zoop.predict.data, "output/SNL_Zooplankton_LDA_info_NMX.csv", row.names=FALSE)
@@ -340,9 +340,6 @@ AlldataPredict.mod<- AlldataPredict.mod %>%
 
 
 ############# Zooplankton
-# zoops: zoop.predict.data = 
-#          "SampleID", "Type", "Lake", "class", "posterior.Plants", "posterior.POM", "LD1"
-
 # grab columns we want
 zoop.predict.data.NMX<- zoop.predict.data %>%
   dplyr::select("SampleID", "Type", "Lake", "class", "LD1")
@@ -564,7 +561,7 @@ discr <- load_discr_data(filename="data/MixSIAR_TDFs.csv", cons)
 ```
 
 ##### Check data 
-```{r}
+```{r, eval=FALSE}
 # Make an isospace plot
 isospace_plot <- plot_data(filename="output/MixSIAR_isospace_plot_SampleIDs", plot_save_pdf=FALSE, plot_save_png=FALSE, cons,source,discr)
 
@@ -894,10 +891,11 @@ dev.off()
 
 ```{r generate ful data}
 #### by sample
-samp.mix.df<-read.csv("output/MixSIAR_Samp.df.csv", check.names=FALSE) 
 #check.names=FALSE prevents an "X" being added to the columns that start with a number
+samp.mix.df<-read.csv("output/MixSIAR_Samp.df.csv", check.names=FALSE) 
 
-#merge data from mixsiar with other data
+
+#### merge data from mixsiar with other data
 # read in the EAA values for zoops (loaded above, "output/SNL_zooplankton_ess_AA_data.csv", and reorganized in "zoop.sub")
 
 # combine zoops and producers, calle in from 'ESS.df.long'
@@ -919,13 +917,13 @@ MSiar.LD.meta.EAA<- MSiar.LD.meta.EAA %>%
 
 
 # read in environmental data (loaded above, <-read.csv("data/SNL.envdata.csv"), "SNL.env"
-MSiar.data.env<-merge.data.frame(MSiar.LD.meta.EAA, SNL.env, by.x = "Lake", by.y = "Lake", all=TRUE)
+MSiar.data.env<-merge.data.frame(MSiar.LD.meta.EAA, SNL.env, by.x = "Lake", by.y = "Lake",all=TRUE)
 
 # select useful columns
 MSiar.data.env<- MSiar.data.env %>%
-  dplyr::select("Location", "Date", "Lake", "elevation", "latitude", "longitude", "depth..ft",
-                "secchi..ft", "temp..C", "DO..perc", "spc", "pH", "DOC..mg.L",
-                "TN..ug.L", "TP..ug.L", "chla", "SampleID", "orig.class", "phy.group", 
+  dplyr::select("Location", "Date", "Lake", "elevation..m", "latitude", "longitude", "depth..m",
+                "secchi..m", "temp..C", "DO..perc", "spc", "pH", "DOC..mg.L",
+                "TN..ug.L", "TP..ug.L", "chla..ug.L", "SampleID", "orig.class", "phy.group", 
                 "Ile", "Leu", "Phe", "Thr", "Val",
                 "LD.class", "LD1", "LD.class", "Source", "Mean", "SD")
 
@@ -938,11 +936,262 @@ write.csv(MSiar.data.env, "output/SNL.CSIA.fulldata.csv")
 
 # look at % plant contributions by environmental data
 mod.df<- MSiar.data.env %>%
-  dplyr::select(SampleID, Lake, elevation, depth..ft, temp..C, DO..perc, pH, DOC..mg.L,
-                TN..ug.L, TP..ug.L, chla, phy.group, LD.class, LD1, Source, Mean, SD)
+  dplyr::select(SampleID, Lake, elevation..m, depth..m, temp..C, DO..perc, pH, DOC..mg.L,
+                TN..ug.L, TP..ug.L, chla..ug.L, phy.group, LD.class, LD1, Source, Mean, SD)
+
+# remove data where elevation for samples is missing (ie the source samples that were pooled across all sampling sites)
+mod.df<-mod.df[!(mod.df$Lake=="Source"),] 
 
 Plant.nut.env<- mod.df[(mod.df$Source=="Plants"),]
+Plant.nut.env <- Plant.nut.env %>% 
+       dplyr::rename("Prop.plant" = "Mean")
+  
+
 POM.nut.env<- mod.df[(mod.df$Source=="POM"),]
+POM.nut.env <- POM.nut.env %>% 
+       dplyr::rename("Prop.pom" = "Mean")
+
+# models for prop.plants
+mod1<-lm(Prop.plant~elevation..m, data=Plant.nut.env); anova(mod1) # no relationship
+mod2<-lm(Prop.plant~depth..m, data=Plant.nut.env); anova(mod2) # no relationship
+mod3<-lm(Prop.plant~temp..C, data=Plant.nut.env); anova(mod3) # no relationship
+mod4<-lm(Prop.plant~DO..perc, data=Plant.nut.env); anova(mod4) # no relationship
+mod5<-lm(Prop.plant~pH, data=Plant.nut.env); anova(mod5) # no relationship
+mod6<-lm(Prop.plant~TN..ug.L, data=Plant.nut.env); anova(mod6) # no relationship
+mod7<-lm(Prop.plant~TP..ug.L, data=Plant.nut.env); anova(mod7) # no relationship
+mod8<-lm(Prop.plant~chla..ug.L, data=Plant.nut.env); anova(mod8) # no relationship
+
+
+# models for prop.plants
+mod1<-lm(Prop.pom~elevation..m, data=POM.nut.env); anova(mod1) # no relationship
+mod2<-lm(Prop.pom~depth..m, data=POM.nut.env); anova(mod2) # no relationship
+mod3<-lm(Prop.pom~temp..C, data=POM.nut.env); anova(mod3) # no relationship
+mod4<-lm(Prop.pom~DO..perc, data=POM.nut.env); anova(mod4) # no relationship
+mod5<-lm(Prop.pom~pH, data=POM.nut.env); anova(mod5) # no relationship, but best one at p=0.2
+mod6<-lm(Prop.pom~TN..ug.L, data=POM.nut.env); anova(mod6) # no relationship
+mod7<-lm(Prop.pom~TP..ug.L, data=POM.nut.env); anova(mod7) # no relationship
+mod8<-lm(Prop.pom~chla..ug.L, data=POM.nut.env); anova(mod8) # no relationship, R2=0.03
+
+
+### clearly copepods have much stronger variance... why?
+copep.plant<-Plant.nut.env[(Plant.nut.env$phy.group=="copepoda"),]
+cladoc.plant<-Plant.nut.env[(Plant.nut.env$phy.group=="cladocera"),]
+
+# models for prop.plants
+mod1<-lm(Prop.plant~elevation..m, data=copep.plant); anova(mod1) # no relationship
+mod2<-lm(Prop.plant~depth..m, data=copep.plant); anova(mod2) # no relationship
+mod3<-lm(Prop.plant~temp..C, data=copep.plant); anova(mod3) # no relationship
+mod4<-lm(Prop.plant~DO..perc, data=copep.plant); anova(mod4) # no relationship
+mod5<-lm(Prop.plant~pH, data=copep.plant); anova(mod5) # no relationship
+mod6<-lm(Prop.plant~TN..ug.L, data=copep.plant); anova(mod6) # no relationship
+mod7<-lm(Prop.plant~TP..ug.L, data=copep.plant); anova(mod7) # no relationship
+mod8<-lm(Prop.plant~chla..ug.L, data=copep.plant); anova(mod8) # no relationship, but best one, R2 0.19
+
+### plots
+
+# Elevation, all groups
+elev.prop.plant<-ggplot(Plant.nut.env, aes(x=elevation..m, y=Prop.plant)) +
+  geom_smooth(method = lm, color="purple", alpha=0.2, fill="purple")+
+  geom_point(color="violet", size=2)+
+  ylab("Proportion Plant-EAA")+
+  xlab("Elevation (m)")+
+  ggtitle("All zoops")+
+  theme_classic()
+
+# Cladocera
+clad.elev.plant<-ggplot(cladoc.plant, aes(x=elevation..m, y=Prop.plant)) +
+  geom_smooth(method = lm, color="goldenrod4", alpha=0.2, fill="goldenrod4")+
+  geom_point(color="goldenrod2", size=2)+
+  ylab("Proportion Plant-EAA")+
+  xlab("Elevation (m)")+
+  ggtitle("Cladocera")+
+  theme_classic()
+
+# Copepoda
+copepod.elev.plant<-ggplot(copep.plant, aes(x=elevation..m, y=Prop.plant)) +
+  geom_smooth(method = lm, color="darkred", alpha=0.2, fill="darkred")+
+  geom_point(color="coral", size=2)+
+  ylab("Proportion Plant-EAA")+
+  xlab("Elevation (m)")+
+  ggtitle("Copepoda")+
+  theme_classic()
+
+
+################ Chlorophyll 
+
+# Chloropyll, all groups
+chla.prop.plant<-ggplot(Plant.nut.env, aes(x=chla..ug.L, y=Prop.plant)) +
+  geom_smooth(method = lm, color="purple", alpha=0.2, fill="purple")+
+  geom_point(color="violet", size=2)+
+  ylab("Proportion Plant-EAA")+
+  xlab("chlorophyll a (ug/L)")+
+  ggtitle("All zoops")+
+  theme_classic()
+
+
+# cladocera, R2=0.04 and NS
+clad.chla<-ggplot(cladoc.plant, aes(x=chla..ug.L, y=Prop.plant)) +
+  geom_smooth(method = lm, color="goldenrod4", alpha=0.2, fill="goldenrod4")+
+  geom_point(color="goldenrod2", size=2)+
+  ylab("Proportion Plant-EAA")+
+  xlab("chlorophyll a (ug/L)")+
+  ggtitle("Cladocera")+
+  theme_classic()
+
+
+# copepods, R2=0.19 but NS
+copepod.chla<-ggplot(copep.plant, aes(x=chla..ug.L, y=Prop.plant)) +
+  geom_smooth(method = lm, color="darkred", alpha=0.2, fill="darkred")+
+  geom_point(color="coral", size=2)+
+  ylab("Proportion Plant-EAA")+
+  xlab("chlorophyll a (ug/L)")+
+  ggtitle("Copepoda")+
+  theme_classic()
+
+
+################ TN 
+
+# TN, all groups
+N.prop.plant<-ggplot(Plant.nut.env, aes(x=TN..ug.L, y=Prop.plant)) +
+  geom_smooth(method = lm, color="purple", alpha=0.2, fill="purple")+
+  geom_point(color="violet", size=2)+
+  ylab("Proportion Plant-EAA")+
+  xlab("Total N (ug/L)")+
+  ggtitle("All zoops")+
+  theme_classic()
+
+
+# cladocera
+clad.TN<-ggplot(cladoc.plant, aes(x=TN..ug.L, y=Prop.plant)) +
+  geom_smooth(method = lm, color="goldenrod4", alpha=0.2, fill="goldenrod4")+
+  geom_point(color="goldenrod2", size=2)+
+  ylab("Proportion Plant-EAA")+
+  xlab("Total N (ug/L)")+
+  ggtitle("Cladocera")+
+  theme_classic()
+
+
+# copepods
+copepod.TN<-ggplot(copep.plant, aes(x=TN..ug.L, y=Prop.plant)) +
+  geom_smooth(method = lm, color="darkred", alpha=0.2, fill="darkred")+
+  geom_point(color="coral", size=2)+
+  ylab("Proportion Plant-EAA")+
+  xlab("Total N (ug/L)")+
+  ggtitle("Copepoda")+
+  theme_classic()
+
+################ TP 
+
+# TP, all groups
+P.prop.plant<-ggplot(Plant.nut.env, aes(x=TP..ug.L, y=Prop.plant)) +
+  geom_smooth(method = lm, color="purple", alpha=0.2, fill="purple")+
+  geom_point(color="violet", size=2)+
+  ylab("Proportion Plant-EAA")+
+  xlab("Total P (ug/L)")+
+  ggtitle("All zoops")+
+  theme_classic()
+
+
+# cladocera
+clad.TP<-ggplot(cladoc.plant, aes(x=TP..ug.L, y=Prop.plant)) +
+  geom_smooth(method = lm, color="goldenrod4", alpha=0.2, fill="goldenrod4")+
+  geom_point(color="goldenrod2", size=2)+
+  ylab("Proportion Plant-EAA")+
+  xlab("Total P (ug/L)")+
+  ggtitle("Cladocera")+
+  theme_classic()
+
+
+# copepods
+copepod.TP<-ggplot(copep.plant, aes(x=TP..ug.L, y=Prop.plant)) +
+  geom_smooth(method = lm, color="darkred", alpha=0.2, fill="darkred")+
+  geom_point(color="coral", size=2)+
+  ylab("Proportion Plant-EAA")+
+  xlab("Total P (ug/L)")+
+  ggtitle("Copepoda")+
+  theme_classic()
+
+
+################ DOC
+
+# DOC, all groups
+C.prop.plant<-ggplot(Plant.nut.env, aes(x=DOC..mg.L, y=Prop.plant)) +
+  geom_smooth(method = lm, color="purple", alpha=0.2, fill="purple")+
+  geom_point(color="violet", size=2)+
+  ylab("Proportion Plant-EAA")+
+  xlab("DOC (mg/L)")+
+  ggtitle("All zoops")+
+  theme_classic()
+
+
+# cladocera
+clad.DOC<-ggplot(cladoc.plant, aes(x=DOC..mg.L, y=Prop.plant)) +
+  geom_smooth(method = lm, color="goldenrod4", alpha=0.2, fill="goldenrod4")+
+  geom_point(color="goldenrod2", size=2)+
+  ylab("Proportion Plant-EAA")+
+  xlab("DOC (mg/L)")+
+  ggtitle("Cladocera")+
+  theme_classic()
+
+
+# copepods
+copepod.DOC<-ggplot(copep.plant, aes(x=DOC..mg.L, y=Prop.plant)) +
+  geom_smooth(method = lm, color="darkred", alpha=0.2, fill="darkred")+
+  geom_point(color="coral", size=2)+
+  ylab("Proportion Plant-EAA")+
+  xlab("DOC (mg/L)")+
+  ggtitle("Copepoda")+
+  theme_classic()
+
+prop.plant.mod.fig<-plot_grid(elev.prop.plant, clad.elev.plant, copepod.elev.plant,
+          chla.prop.plant, clad.chla, copepod.chla,
+          N.prop.plant, clad.TN, copepod.TN,
+          P.prop.plant, clad.TP, copepod.TP,
+          C.prop.plant, clad.DOC, copepod.DOC, ncol=3, nrow=5)
+
+
+### export it
+pdf(file= "figures/Fig x.Plant.prop.mod.pdf", height=18, width=8)
+prop.plant.mod.fig
+dev.off()
+
+
+
+################ TP 
+
+# TP, all groups
+P.prop.plant<-ggplot(Plant.nut.env, aes(x=TP..ug.L, y=Prop.plant)) +
+  geom_smooth(method = lm, color="purple", alpha=0.2, fill="purple")+
+  geom_point(color="violet", size=2)+
+  ylab("Proportion Plant-EAA")+
+  xlab("Total P (ug/L)")+
+  ggtitle("All zoops")+
+  theme_classic()
+
+
+# cladocera
+clad.TP<-ggplot(cladoc.plant, aes(x=TP..ug.L, y=Prop.plant)) +
+  geom_smooth(method = lm, color="goldenrod4", alpha=0.2, fill="goldenrod4")+
+  geom_point(color="goldenrod2", size=2)+
+  ylab("Proportion Plant-EAA")+
+  xlab("Total P (ug/L)")+
+  ggtitle("Cladocera")+
+  theme_classic()
+
+
+# copepods
+copepod.TP<-ggplot(copep.plant, aes(x=TP..ug.L, y=Prop.plant)) +
+  geom_smooth(method = lm, color="darkred", alpha=0.2, fill="darkred")+
+  geom_point(color="coral", size=2)+
+  ylab("Proportion Plant-EAA")+
+  xlab("Total P (ug/L)")+
+  ggtitle("Copepoda")+
+  theme_classic()
+
+plot_grid(elev.prop.plant, clad.elev.plant, copepod.elev.plant,
+          elev.prop.plant, clad.chla, copepod.chla, ncol=3, nrow=2)
+
+
 
 ```
 

@@ -1,4 +1,4 @@
-Year,type,Lake.ID,Lake.name,elevation.m,d13C,d15N,notes
+Year,type,Lake.ID,Lake.name,elevation..m,d13C,d15N,notes
 2015,fish,1,NA,3205,-16.25,5.42,"from Symons et al. 2019, Oecologia"
 2015,fish,1,NA,3205,-15.84,6.15,"from Symons et al. 2019, Oecologia"
 2015,fish,2,NA,3151,-17.99,6.93,"from Symons et al. 2019, Oecologia"
@@ -352,7 +352,7 @@ Year,type,Lake.ID,Lake.name,elevation.m,d13C,d15N,notes
 2016,pine,21,NA,2882,NA,NA,"from Symons et al. 2019, Oecologia"
 2016,pine,20,NA,2801,-26.33,-5.46,"from Symons et al. 2019, Oecologia"
 2017,zooplankton,NA,Steelhead,3137,-29.41,1.27,
-2017,zooplankton,NA,Aster,2777,-31.60,2.46,*mean of 2 duplicates
+2017,zooplankton,NA,Aster,2777,-31.6,2.46,*mean of 2 duplicates
 2017,zooplankton,NA,Grant 1,2824,-30.59,3.12,*mean of 2 duplicates
 2017,zooplankton,NA,Pear ,2920,-28.64,1.36,*mean of 2 duplicates
 2017,zooplankton,NA,Mack ,3164,-27.03,2.81,
@@ -373,7 +373,7 @@ Year,type,Lake.ID,Lake.name,elevation.m,d13C,d15N,notes
 2017,zooplankton,NA,Serene,3120,-27.11,4.41,
 2017,zooplankton,NA,Cathedral 2.heterocope,2928,-34.83,2.98,
 2017,zooplankton,NA,Grant 2.heterocope,2884,-35.65,3.91,
-2017,zooplankton,NA,Little Steelhead,3137,-28.57,0.90,
+2017,zooplankton,NA,Little Steelhead,3137,-28.57,0.9,
 2017,zooplankton,NA,Cathedral 1.heterocope,2838,-34.58,2.38,
 2017,zooplankton,NA,Gaylor 1,3155,-34.76,2.77,
 2014,zooplankton,NA,Sunrise1,2804,-26.82,5.76,

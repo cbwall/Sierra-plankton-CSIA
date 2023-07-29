@@ -108,7 +108,8 @@ map.SNL<-get_map(SNL.rev,
                       source="google", extent= "device", legend="topright")
 
 ## sites lat long
-lat.long<-SNL.env[,c(3,5,6)]
+lat.long<-SNL.env %>%
+  dplyr::select(Lake, latitude, longitude, elevation..m)
 
 SNL.sites<-
   ggmap(map.SNL)+
@@ -922,7 +923,7 @@ MSiar.data.env<-merge.data.frame(MSiar.LD.meta.EAA, SNL.env, by.x = "Lake", by.y
 # select useful columns
 MSiar.data.env<- MSiar.data.env %>%
   dplyr::select("Location", "Date", "Lake", "elevation..m", "latitude", "longitude", "depth..m",
-                "secchi..m", "temp..C", "DO..perc", "spc", "pH", "DOC..mg.L",
+                "secchi..m", "temp..C", "DO..perc", "cond", "pH", "DOC..mg.L",
                 "TN..ug.L", "TP..ug.L", "chla..ug.L", "SampleID", "orig.class", "phy.group", 
                 "Ile", "Leu", "Phe", "Thr", "Val",
                 "LD.class", "LD1", "LD.class", "Source", "Mean", "SD")
@@ -957,9 +958,10 @@ mod2<-lm(Prop.plant~depth..m, data=Plant.nut.env); anova(mod2) # no relationship
 mod3<-lm(Prop.plant~temp..C, data=Plant.nut.env); anova(mod3) # no relationship
 mod4<-lm(Prop.plant~DO..perc, data=Plant.nut.env); anova(mod4) # no relationship
 mod5<-lm(Prop.plant~pH, data=Plant.nut.env); anova(mod5) # no relationship
-mod6<-lm(Prop.plant~TN..ug.L, data=Plant.nut.env); anova(mod6) # no relationship
-mod7<-lm(Prop.plant~TP..ug.L, data=Plant.nut.env); anova(mod7) # no relationship
+mod6<-lm(Prop.plant~TN..ug.L, data=Plant.nut.env); anova(mod6) # SIGNIFICANT!
+mod7<-lm(Prop.plant~TP..ug.L, data=Plant.nut.env); anova(mod7) # SIGNIFICANT!
 mod8<-lm(Prop.plant~chla..ug.L, data=Plant.nut.env); anova(mod8) # no relationship
+mod9<-lm(Prop.plant~DOC..mg.L, data=Plant.nut.env); anova(mod9) # SIGNIFICANT!
 
 
 # models for prop.plants
@@ -967,25 +969,38 @@ mod1<-lm(Prop.pom~elevation..m, data=POM.nut.env); anova(mod1) # no relationship
 mod2<-lm(Prop.pom~depth..m, data=POM.nut.env); anova(mod2) # no relationship
 mod3<-lm(Prop.pom~temp..C, data=POM.nut.env); anova(mod3) # no relationship
 mod4<-lm(Prop.pom~DO..perc, data=POM.nut.env); anova(mod4) # no relationship
-mod5<-lm(Prop.pom~pH, data=POM.nut.env); anova(mod5) # no relationship, but best one at p=0.2
-mod6<-lm(Prop.pom~TN..ug.L, data=POM.nut.env); anova(mod6) # no relationship
-mod7<-lm(Prop.pom~TP..ug.L, data=POM.nut.env); anova(mod7) # no relationship
-mod8<-lm(Prop.pom~chla..ug.L, data=POM.nut.env); anova(mod8) # no relationship, R2=0.03
-
+mod5<-lm(Prop.pom~pH, data=POM.nut.env); anova(mod5) # no relationship, but p=0.2
+mod6<-lm(Prop.pom~TN..ug.L, data=POM.nut.env); anova(mod6) # SIGNIFICANT!
+mod7<-lm(Prop.pom~TP..ug.L, data=POM.nut.env); anova(mod7) # SIGNIFICANT!
+mod8<-lm(Prop.pom~chla..ug.L, data=POM.nut.env); anova(mod8) # no relationship
+mod9<-lm(Prop.pom~DOC..mg.L, data=POM.nut.env); anova(mod9) # SIGNIFICANT!
 
 ### clearly copepods have much stronger variance... why?
 copep.plant<-Plant.nut.env[(Plant.nut.env$phy.group=="copepoda"),]
 cladoc.plant<-Plant.nut.env[(Plant.nut.env$phy.group=="cladocera"),]
 
-# models for prop.plants
+# models for prop.plants, copepoda
 mod1<-lm(Prop.plant~elevation..m, data=copep.plant); anova(mod1) # no relationship
 mod2<-lm(Prop.plant~depth..m, data=copep.plant); anova(mod2) # no relationship
 mod3<-lm(Prop.plant~temp..C, data=copep.plant); anova(mod3) # no relationship
 mod4<-lm(Prop.plant~DO..perc, data=copep.plant); anova(mod4) # no relationship
 mod5<-lm(Prop.plant~pH, data=copep.plant); anova(mod5) # no relationship
-mod6<-lm(Prop.plant~TN..ug.L, data=copep.plant); anova(mod6) # no relationship
-mod7<-lm(Prop.plant~TP..ug.L, data=copep.plant); anova(mod7) # no relationship
-mod8<-lm(Prop.plant~chla..ug.L, data=copep.plant); anova(mod8) # no relationship, but best one, R2 0.19
+mod6<-lm(Prop.plant~TN..ug.L, data=copep.plant); anova(mod6) # TREND >>
+mod7<-lm(Prop.plant~TP..ug.L, data=copep.plant); anova(mod7) # TREND >>
+mod8<-lm(Prop.plant~chla..ug.L, data=copep.plant); anova(mod8) # TREND
+mod9<-lm(Prop.plant~DOC..mg.L, data=copep.plant); anova(mod9) # TREND >
+
+
+# models for prop.plants, cladocera
+mod1<-lm(Prop.plant~elevation..m, data=cladoc.plant); anova(mod1) # no relationship
+mod2<-lm(Prop.plant~depth..m, data=cladoc.plant); anova(mod2) # no relationship
+mod3<-lm(Prop.plant~temp..C, data=cladoc.plant); anova(mod3) # no relationship
+mod4<-lm(Prop.plant~DO..perc, data=cladoc.plant); anova(mod4) # no relationship
+mod5<-lm(Prop.plant~pH, data=cladoc.plant); anova(mod5) # TREND
+mod6<-lm(Prop.plant~TN..ug.L, data=cladoc.plant); anova(mod6) # no relationship
+mod7<-lm(Prop.plant~TP..ug.L, data=cladoc.plant); anova(mod7) # no relationship
+mod8<-lm(Prop.plant~chla..ug.L, data=cladoc.plant); anova(mod8) # no relationship
+mod9<-lm(Prop.plant~DOC..mg.L, data=cladoc.plant); anova(mod9) # no relationship
 
 ### plots
 
@@ -1151,45 +1166,10 @@ prop.plant.mod.fig<-plot_grid(elev.prop.plant, clad.elev.plant, copepod.elev.pla
 
 
 ### export it
-pdf(file= "figures/Fig x.Plant.prop.mod.pdf", height=18, width=8)
+pdf(file= "figures/Fig x.Plant.prop.mod.pdf", height=22, width=8)
 prop.plant.mod.fig
 dev.off()
 
-
-
-################ TP 
-
-# TP, all groups
-P.prop.plant<-ggplot(Plant.nut.env, aes(x=TP..ug.L, y=Prop.plant)) +
-  geom_smooth(method = lm, color="purple", alpha=0.2, fill="purple")+
-  geom_point(color="violet", size=2)+
-  ylab("Proportion Plant-EAA")+
-  xlab("Total P (ug/L)")+
-  ggtitle("All zoops")+
-  theme_classic()
-
-
-# cladocera
-clad.TP<-ggplot(cladoc.plant, aes(x=TP..ug.L, y=Prop.plant)) +
-  geom_smooth(method = lm, color="goldenrod4", alpha=0.2, fill="goldenrod4")+
-  geom_point(color="goldenrod2", size=2)+
-  ylab("Proportion Plant-EAA")+
-  xlab("Total P (ug/L)")+
-  ggtitle("Cladocera")+
-  theme_classic()
-
-
-# copepods
-copepod.TP<-ggplot(copep.plant, aes(x=TP..ug.L, y=Prop.plant)) +
-  geom_smooth(method = lm, color="darkred", alpha=0.2, fill="darkred")+
-  geom_point(color="coral", size=2)+
-  ylab("Proportion Plant-EAA")+
-  xlab("Total P (ug/L)")+
-  ggtitle("Copepoda")+
-  theme_classic()
-
-plot_grid(elev.prop.plant, clad.elev.plant, copepod.elev.plant,
-          elev.prop.plant, clad.chla, copepod.chla, ncol=3, nrow=2)
 
 
 

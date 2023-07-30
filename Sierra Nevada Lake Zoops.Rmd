@@ -931,24 +931,26 @@ MSiar.data.env<- MSiar.data.env %>%
 #### export full data for project
 write.csv(MSiar.data.env, "output/SNL.CSIA.fulldata.csv")
 ```
-
+  
+#### Run linear models for %plant
 ```{r models for env mixsiar}
 # use 'MSiar.data.env' to run models
 
 # look at % plant contributions by environmental data
-mod.df<- MSiar.data.env %>%
+mod.data<- MSiar.data.env %>%
   dplyr::select(SampleID, Lake, elevation..m, depth..m, temp..C, DO..perc, pH, DOC..mg.L,
-                TN..ug.L, TP..ug.L, chla..ug.L, phy.group, LD.class, LD1, Source, Mean, SD)
+                TN..ug.L, TP..ug.L, chla..ug.L, phy.group, Ile, Leu, Phe, Thr, Val, LD.class, 
+                LD1, Source, Mean, SD)
 
 # remove data where elevation for samples is missing (ie the source samples that were pooled across all sampling sites)
-mod.df<-mod.df[!(mod.df$Lake=="Source"),] 
+mod.df<-mod.data[!(mod.data$Lake=="Source"),] 
 
-Plant.nut.env<- mod.df[(mod.df$Source=="Plants"),]
+Plant.nut.env<- mod.data[(mod.data$Source=="Plants"),]
 Plant.nut.env <- Plant.nut.env %>% 
        dplyr::rename("Prop.plant" = "Mean")
   
 
-POM.nut.env<- mod.df[(mod.df$Source=="POM"),]
+POM.nut.env<- mod.data[(mod.data$Source=="POM"),]
 POM.nut.env <- POM.nut.env %>% 
        dplyr::rename("Prop.pom" = "Mean")
 
@@ -1002,7 +1004,8 @@ mod7<-lm(Prop.plant~TP..ug.L, data=cladoc.plant); anova(mod7) # no relationship
 mod8<-lm(Prop.plant~chla..ug.L, data=cladoc.plant); anova(mod8) # no relationship
 mod9<-lm(Prop.plant~DOC..mg.L, data=cladoc.plant); anova(mod9) # no relationship
 
-### plots
+
+############################## plots
 
 # Elevation, all groups
 elev.prop.plant<-ggplot(Plant.nut.env, aes(x=elevation..m, y=Prop.plant)) +
@@ -1169,9 +1172,86 @@ prop.plant.mod.fig<-plot_grid(elev.prop.plant, clad.elev.plant, copepod.elev.pla
 pdf(file= "figures/Fig x.Plant.prop.mod.pdf", height=22, width=8)
 prop.plant.mod.fig
 dev.off()
+```
+
+```{r}
+#NMDS df with NAs removes
+Zoop.NMDS<-na.omit(Plant.nut.env)
+
+# factors
+Zoop.NMDS.fac<- Zoop.NMDS %>%
+  dplyr::select(Lake, phy.group)
+
+Zoop.NMDS.dat<- Zoop.NMDS %>%
+  dplyr::select(Ile, Phe, Thr, Val, Prop.plant)
+
+Env.NMDS.dat<- Zoop.NMDS %>%
+  dplyr::select(temp..C, DO..perc, pH, DOC..mg.L, TN..ug.L, TP..ug.L, chla..ug.L)
 
 
+###########PCA
+library(devtools)
+install_github("vqv/ggbiplot")
+library(ggbiplot)
 
+# make the PCA df
+PCA.df<-mod.data %>% 
+  dplyr::select(Lake, phy.group, Ile, Leu, Phe, Thr, Val, Mean)
+PCA.df <- PCA.df %>% 
+       dplyr::rename("Prop.plant" = "Mean")
+
+# if POM, then 0 % plant, if Plant, then 100%
+#PCA.df$Prop.plant<-as.numeric(ifelse(PCA.df$phy.group=="POM", "0", 
+#                         ifelse(PCA.df$phy.group=="Plants", "1",  PCA.df$Prop.plant)))
+
+# if POM, then 0 % plant, if Plant, then 100%
+#PCA.df$Lake<-as.character(PCA.df$Lake) # need to do this to trick R into letting the character be read
+#PCA.df$Lake<-as.factor(ifelse(PCA.df$phy.group=="POM", "POM", 
+#                         ifelse(PCA.df$phy.group=="Plants", "Plants", PCA.df$Lake)))
+
+
+PCA.df<-na.omit(PCA.df)
+
+# remove sources here
+#PCA.df<-PCA.df[!(PCA.df$Lake=="POM" | PCA.df$Lake=="Plants"),]
+
+# factors
+PCA.fac<- PCA.df %>%
+  dplyr::select(Lake, phy.group)
+
+# the response variables
+PCA.dat<- PCA.df %>%
+  dplyr::select(Ile, Leu, Phe, Thr, Val)
+
+# run the PCA on scaled and centered data
+PC.plank<- prcomp(PCA.dat, center = TRUE, scale= TRUE) 
+
+PC.plank.summary<-summary(PC.plank)
+#plot(PC.plank, type="lines", main="PC.area eigenvalues")
+
+
+###### plot for PCA by Lake
+
+## PC1 and PC2
+PCA.lake.plank <- ggbiplot(PC.plank, choices = 1:2, obs.scale = 1, var.scale = 1, 
+                      groups=PCA.fac$Lake,
+                      ellipse = TRUE, circle = FALSE, alpha=0, ellipse.prob=0.90) + #alpha = zero makes points clear
+  geom_point(aes(colour=PCA.fac$Lake, 
+                 shape=PCA.fac$phy.group), size = 2) +
+  scale_x_continuous(breaks=pretty_breaks(n=5))+
+  #scale_color_manual(values=PCA.col2)+
+  #scale_shape_manual(values=c(16,1,22,2,3))+
+  theme(axis.ticks.length=unit(-0.25, "cm"), axis.text.y=element_text(margin=unit(c(0.5, 0.5, 0.5, 0.5), "cm")), axis.text.x=element_text(margin=unit(c(0.5, 0.5, 0.5, 0.5), "cm"))) +
+  theme_classic() +
+  theme(legend.text=element_text(size=10)) +
+  theme(panel.background = element_rect(colour = "black", linewidth=1))+
+  theme(legend.title = element_blank())+
+  theme(aspect.ratio=0.8)
+
+### export it
+pdf(file= "figures/Fig x.PCA.lake plot.pdf", height=8, width=8)
+PCA.lake.plank
+dev.off()
 
 ```
 

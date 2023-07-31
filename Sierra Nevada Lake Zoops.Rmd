@@ -38,7 +38,7 @@ knitr::opts_chunk$set(warning=FALSE, message=FALSE, fig.align='center')
 if (!require("pacman")) install.packages("pacman") # for rapid install if not in library
 
 # use pacman to load all the packages you are missing!
-pacman::p_load('knitr', 'lme4', 'lmerTest', 'tidyverse', 'effects', 'plyr', 'dplyr', 'plotrix', 'car',"gridExtra", "cowplot", "tools", "mgcv", "gratia", "MASS", "stats", "tidymv", "sjstats", "coin", "emmeans", "ggplot2", "mda", "nortest", "reshape2", "gmm", "propagate","ggmap", "RgoogleMaps", "MixSIAR","GGally")
+pacman::p_load('knitr', 'lme4', 'lmerTest', 'tidyverse', 'effects', 'plyr', 'dplyr', 'plotrix', 'car',"gridExtra", "cowplot", "tools", "mgcv", "gratia", "MASS", "stats", "tidymv", "sjstats", "coin", "emmeans", "ggplot2", "mda", "nortest", "reshape2", "gmm", "propagate","ggmap", "RgoogleMaps", "MixSIAR","GGally", "ggbiplot")
 
 
 ### general formatting for figures 
@@ -942,69 +942,180 @@ mod.data<- MSiar.data.env %>%
                 TN..ug.L, TP..ug.L, chla..ug.L, phy.group, Ile, Leu, Phe, Thr, Val, LD.class, 
                 LD1, Source, Mean, SD)
 
+
 # remove data where elevation for samples is missing (ie the source samples that were pooled across all sampling sites)
 mod.df<-mod.data[!(mod.data$Lake=="Source"),] 
 
-Plant.nut.env<- mod.data[(mod.data$Source=="Plants"),]
+Plant.nut.env<- mod.df[(mod.df$Source=="Plants"),]
 Plant.nut.env <- Plant.nut.env %>% 
        dplyr::rename("Prop.plant" = "Mean")
   
 
-POM.nut.env<- mod.data[(mod.data$Source=="POM"),]
+POM.nut.env<- mod.df[(mod.df$Source=="POM"),]
 POM.nut.env <- POM.nut.env %>% 
        dplyr::rename("Prop.pom" = "Mean")
 
-# models for prop.plants
-mod1<-lm(Prop.plant~elevation..m, data=Plant.nut.env); anova(mod1) # no relationship
-mod2<-lm(Prop.plant~depth..m, data=Plant.nut.env); anova(mod2) # no relationship
-mod3<-lm(Prop.plant~temp..C, data=Plant.nut.env); anova(mod3) # no relationship
-mod4<-lm(Prop.plant~DO..perc, data=Plant.nut.env); anova(mod4) # no relationship
-mod5<-lm(Prop.plant~pH, data=Plant.nut.env); anova(mod5) # no relationship
-mod6<-lm(Prop.plant~TN..ug.L, data=Plant.nut.env); anova(mod6) # SIGNIFICANT!
-mod7<-lm(Prop.plant~TP..ug.L, data=Plant.nut.env); anova(mod7) # SIGNIFICANT!
-mod8<-lm(Prop.plant~chla..ug.L, data=Plant.nut.env); anova(mod8) # no relationship
-mod9<-lm(Prop.plant~DOC..mg.L, data=Plant.nut.env); anova(mod9) # SIGNIFICANT!
+############# ############# ############# ############# 
+############# look at correlation matrix, what variables strongly correlate?
 
+# Install and load the ggcorrplot package
+install.packages("ggcorrplot")
+library(ggcorrplot)
 
-# models for prop.plants
-mod1<-lm(Prop.pom~elevation..m, data=POM.nut.env); anova(mod1) # no relationship
-mod2<-lm(Prop.pom~depth..m, data=POM.nut.env); anova(mod2) # no relationship
-mod3<-lm(Prop.pom~temp..C, data=POM.nut.env); anova(mod3) # no relationship
-mod4<-lm(Prop.pom~DO..perc, data=POM.nut.env); anova(mod4) # no relationship
-mod5<-lm(Prop.pom~pH, data=POM.nut.env); anova(mod5) # no relationship, but p=0.2
-mod6<-lm(Prop.pom~TN..ug.L, data=POM.nut.env); anova(mod6) # SIGNIFICANT!
-mod7<-lm(Prop.pom~TP..ug.L, data=POM.nut.env); anova(mod7) # SIGNIFICANT!
-mod8<-lm(Prop.pom~chla..ug.L, data=POM.nut.env); anova(mod8) # no relationship
-mod9<-lm(Prop.pom~DOC..mg.L, data=POM.nut.env); anova(mod9) # SIGNIFICANT!
+# Keep predictors for the model
+reduced_data <- Plant.nut.env %>%
+  dplyr::select(elevation..m, temp..C, pH,
+                TN..ug.L, TP..ug.L, chla..ug.L, DOC..mg.L)
 
-### clearly copepods have much stronger variance... why?
+# Compute correlation at 2 decimal places
+corr_matrix = round(cor(reduced_data), 2)
+
+# Compute and show the  result
+ggcorrplot(corr_matrix, hc.order = TRUE, type = "lower",
+          lab = TRUE)
+
+# from here, TN, TP, DOC all correlate with >0.77 (TN and DOC at 0.94!) So only need 1 of these in a multiple linear regression
+############# ############# ############# ############# 
+library(MASS)
+
+# run a full model
+mod.mult<-lm(Prop.plant~elevation..m+temp..C+pH+TN..ug.L+TP..ug.L+chla..ug.L+DOC..mg.L,
+             data=Plant.nut.env)
+
+# model fit
+summary(mod.mult)
+
+# check distribution and residuals
+hist(mod.mult$residuals)
+{qqnorm(mod.mult$residuals)+qqline(mod.mult$residuals)}
+
+sigma(mod.mult)/mean(Plant.nut.env$Prop.plant) #70% error rate, not awesome. 
+
+# run model selection
+all.zoop.mods<-stepAIC(mod.mult, trace=TRUE)
+
+# best model is with chla (p=0.111) and TN (p=0.009), R2-adjust = 0.19, RSE= 0.099
+mod.mult.all<-lm(Prop.plant~TN..ug.L+chla..ug.L,
+             data=Plant.nut.env)
+summary(mod.mult.all)
+Anova(mod.mult.all, type=2)
+
+### if doing single models, the outcome is the same -- trend for chla and signifiance for DOC, TN, TP (which all correlate)
+
+# TN, all groups
+N.prop.plant<-ggplot(Plant.nut.env, aes(x=TN..ug.L, y=Prop.plant)) +
+  geom_smooth(method = lm, color="purple", alpha=0.2, fill="purple")+
+  geom_point(color="violet", size=2)+
+  ylab("Proportion Plant-EAA")+
+  xlab("Total N (ug/L)")+
+  ggtitle("All zoops")+
+  theme_classic()
+
+# Chloropyll, all groups
+chla.prop.plant<-ggplot(Plant.nut.env, aes(x=chla..ug.L, y=Prop.plant)) +
+  geom_smooth(method = lm, color="purple", alpha=0.2, fill="purple")+
+  geom_point(color="violet", size=2)+
+  ylab("Proportion Plant-EAA")+
+  xlab("chlorophyll a (ug/L)")+
+  ggtitle("All zoops")+
+  theme_classic()
+```
+
+Multiple regressions for Copepoda alone
+```{r Copepoda MultR2}
+### separate dataframes
 copep.plant<-Plant.nut.env[(Plant.nut.env$phy.group=="copepoda"),]
+
+#############################
+##### Copepods
+# run a full model, but 3 not defined because of singularities
+mod.mult.copepod<-lm(Prop.plant~elevation..m+temp..C+pH+TN..ug.L+TP..ug.L+chla..ug.L+DOC..mg.L,
+             data=copep.plant)
+
+# model fit
+summary(mod.mult.copepod)
+
+# check distribution and residuals
+hist(mod.mult.copepod$residuals)
+{qqnorm(mod.mult.copepod$residuals)+qqline(mod.mult.copepod$residuals)}
+
+sigma(mod.mult.copepod)/mean(copep.plant$Prop.plant) #43% error rate. 
+
+# run model selection
+copep.mods<-stepAIC(mod.mult.copepod, trace=TRUE)
+
+# best model is with temp..C (p=0.229) and TN (p=0.041), R2-adjust = 0.33, RSE= 0.096
+mod.mult.copepod<-lm(Prop.plant~TN..ug.L+temp..C,
+             data=copep.plant)
+summary(mod.mult.copepod)
+Anova(mod.mult.copepod, type=2)
+
+# copepods, N significant
+copepod.TN<-ggplot(copep.plant, aes(x=TN..ug.L, y=Prop.plant)) +
+  geom_smooth(method = lm, color="darkred", alpha=0.2, fill="darkred")+
+  geom_point(color="coral", size=2)+
+  ylab("Proportion Plant-EAA")+
+  xlab("Total N (ug/L)")+
+  ggtitle("Copepoda")+
+  theme_classic()
+
+# copepods, Temp barely a trend, nothing clear
+copepod.Temp<-ggplot(copep.plant, aes(x=temp..C, y=Prop.plant)) +
+  geom_smooth(method = lm, color="darkred", alpha=0.2, fill="darkred")+
+  geom_point(color="coral", size=2)+
+  ylab("Proportion Plant-EAA")+
+  xlab("Temperature (C)")+
+  ggtitle("Copepoda")+
+  theme_classic()
+```
+
+Multiple regressions for cladocera alone
+```{r cladocera multR2}
+#############################
+##### Cladocerans
 cladoc.plant<-Plant.nut.env[(Plant.nut.env$phy.group=="cladocera"),]
 
-# models for prop.plants, copepoda
-mod1<-lm(Prop.plant~elevation..m, data=copep.plant); anova(mod1) # no relationship
-mod2<-lm(Prop.plant~depth..m, data=copep.plant); anova(mod2) # no relationship
-mod3<-lm(Prop.plant~temp..C, data=copep.plant); anova(mod3) # no relationship
-mod4<-lm(Prop.plant~DO..perc, data=copep.plant); anova(mod4) # no relationship
-mod5<-lm(Prop.plant~pH, data=copep.plant); anova(mod5) # no relationship
-mod6<-lm(Prop.plant~TN..ug.L, data=copep.plant); anova(mod6) # TREND >>
-mod7<-lm(Prop.plant~TP..ug.L, data=copep.plant); anova(mod7) # TREND >>
-mod8<-lm(Prop.plant~chla..ug.L, data=copep.plant); anova(mod8) # TREND
-mod9<-lm(Prop.plant~DOC..mg.L, data=copep.plant); anova(mod9) # TREND >
+# run a full model, but 3 not defined because of singularities
+mod.mult.cladoc<-lm(Prop.plant~elevation..m+temp..C+pH+TN..ug.L+TP..ug.L+chla..ug.L+DOC..mg.L,
+             data=cladoc.plant)
+
+# model fit
+summary(mod.mult.cladoc)
+
+# check distribution and residuals
+hist(mod.mult.cladoc$residuals)
+{qqnorm(mod.mult.cladoc$residuals)+qqline(mod.mult.cladoc$residuals)}
+
+sigma(mod.mult.cladoc)/mean(cladoc.plant$Prop.plant) #71% error rate 
+
+# run model selection
+cladoc.mods<-stepAIC(mod.mult.cladoc, trace=TRUE)
+
+# best model is with pH alone (p=0.081) R2-adjust = 0.25, RSE= 0.092
+mod.mult.cladoc.reduced<-lm(Prop.plant~pH,data=cladoc.plant)
+summary(mod.mult.cladoc.reduced)
+Anova(mod.mult.cladoc.reduced, type=2)
 
 
-# models for prop.plants, cladocera
-mod1<-lm(Prop.plant~elevation..m, data=cladoc.plant); anova(mod1) # no relationship
-mod2<-lm(Prop.plant~depth..m, data=cladoc.plant); anova(mod2) # no relationship
-mod3<-lm(Prop.plant~temp..C, data=cladoc.plant); anova(mod3) # no relationship
-mod4<-lm(Prop.plant~DO..perc, data=cladoc.plant); anova(mod4) # no relationship
-mod5<-lm(Prop.plant~pH, data=cladoc.plant); anova(mod5) # TREND
-mod6<-lm(Prop.plant~TN..ug.L, data=cladoc.plant); anova(mod6) # no relationship
-mod7<-lm(Prop.plant~TP..ug.L, data=cladoc.plant); anova(mod7) # no relationship
-mod8<-lm(Prop.plant~chla..ug.L, data=cladoc.plant); anova(mod8) # no relationship
-mod9<-lm(Prop.plant~DOC..mg.L, data=cladoc.plant); anova(mod9) # no relationship
+# this is best model for mutiple regression, RSE 0.099, R2-adjust =0.186
+mod.mult<-lm(Prop.plant~elevation..m+(TN..ug.L)+chla..ug.L+DOC..mg.L,
+             data=cladoc.plant)
+summary(mod.mult)
+sigma(mod3)/mean(Plant.nut.env$Prop.plant) #63% error rate
 
 
+# Cladocera, near signif trend for pH (lower plant nutrition with increase in pH)
+clad.pH.plant<-ggplot(cladoc.plant, aes(x=pH, y=Prop.plant)) +
+  geom_smooth(method = lm, color="goldenrod4", alpha=0.2, fill="goldenrod4")+
+  geom_point(color="goldenrod2", size=2)+
+  ylab("Proportion Plant-EAA")+
+  xlab("pH")+
+  ggtitle("Cladocera")+
+  theme_classic()
+```
+
+- plots using linear regression alone, making multipanels
+```{r all regr plots}
 ############################## plots
 
 # Elevation, all groups
@@ -1174,20 +1285,8 @@ prop.plant.mod.fig
 dev.off()
 ```
 
-```{r}
+```{r PCA}
 #NMDS df with NAs removes
-Zoop.NMDS<-na.omit(Plant.nut.env)
-
-# factors
-Zoop.NMDS.fac<- Zoop.NMDS %>%
-  dplyr::select(Lake, phy.group)
-
-Zoop.NMDS.dat<- Zoop.NMDS %>%
-  dplyr::select(Ile, Phe, Thr, Val, Prop.plant)
-
-Env.NMDS.dat<- Zoop.NMDS %>%
-  dplyr::select(temp..C, DO..perc, pH, DOC..mg.L, TN..ug.L, TP..ug.L, chla..ug.L)
-
 
 ###########PCA
 library(devtools)
@@ -1240,17 +1339,97 @@ PCA.lake.plank <- ggbiplot(PC.plank, choices = 1:2, obs.scale = 1, var.scale = 1
                  shape=PCA.fac$phy.group), size = 2) +
   scale_x_continuous(breaks=pretty_breaks(n=5))+
   #scale_color_manual(values=PCA.col2)+
-  #scale_shape_manual(values=c(16,1,22,2,3))+
-  theme(axis.ticks.length=unit(-0.25, "cm"), axis.text.y=element_text(margin=unit(c(0.5, 0.5, 0.5, 0.5), "cm")), axis.text.x=element_text(margin=unit(c(0.5, 0.5, 0.5, 0.5), "cm"))) +
-  theme_classic() +
-  theme(legend.text=element_text(size=10)) +
-  theme(panel.background = element_rect(colour = "black", linewidth=1))+
-  theme(legend.title = element_blank())+
-  theme(aspect.ratio=0.8)
+  #scale_shape_manual(values=c(16,1,22,2,3)) +
+  ggtitle("ESS-raw")+
+  theme_classic()+
+  theme(legend.text=element_text(size=10), 
+    panel.background = element_rect(colour = "black", linewidth=1),
+    element_blank(), aspect.ratio=0.8, axis.ticks.length=unit(-0.25, "cm"),
+    axis.text.y=element_text(margin=unit(c(0.5, 0.5, 0.5, 0.5), "cm")),
+    axis.text.x=element_text(margin=unit(c(0.5, 0.5, 0.5, 0.5), "cm")))
 
 ### export it
 pdf(file= "figures/Fig x.PCA.lake plot.pdf", height=8, width=8)
 PCA.lake.plank
+dev.off()
+
+```
+
+```{r mean norm}
+
+# make the PCA df
+PCA.df2<-mod.data %>% 
+  dplyr::select(Lake, phy.group, Ile, Leu, Phe, Thr, Val, Mean)
+PCA.df2 <- PCA.df2 %>% 
+       dplyr::rename("Prop.plant" = "Mean")
+
+# if POM, then 0 % plant, if Plant, then 100%
+PCA.df2$Prop.plant<-as.numeric(ifelse(PCA.df2$phy.group=="POM", "0", 
+                         ifelse(PCA.df2$phy.group=="Plants", "1",  PCA.df2$Prop.plant)))
+
+# if POM, then 0 % plant, if Plant, then 100%
+PCA.df2$Lake<-as.character(PCA.df2$Lake) # do this to trick R into letting the character be read
+PCA.df2$Lake<-as.factor(ifelse(PCA.df2$phy.group=="POM", "POM", 
+                         ifelse(PCA.df2$phy.group=="Plants", "Plants", PCA.df2$Lake)))
+
+
+#mean normalize PCA
+PCA.df2.normAA<-PCA.df2[-8]
+
+#make ID column to run the normalization
+PCA.df2.normAA$ID<-1:nrow(PCA.df2.normAA)
+
+for(i in 1:length(PCA.df2.normAA$ID)){
+  PCA.df2.normAA$Ile.n[i] <- (PCA.df2.normAA$Ile[i]-mean(as.numeric(PCA.df2.normAA[i,3:7])))
+  PCA.df2.normAA$Leu.n[i] <- (PCA.df2.normAA$Leu[i]-mean(as.numeric(PCA.df2.normAA[i,3:7])))
+  PCA.df2.normAA$Phe.n[i] <- (PCA.df2.normAA$Phe[i]-mean(as.numeric(PCA.df2.normAA[i,3:7])))
+  PCA.df2.normAA$Thr.n[i] <- (PCA.df2.normAA$Thr[i]-mean(as.numeric(PCA.df2.normAA[i,3:7])))
+  PCA.df2.normAA$Val.n[i] <- (PCA.df2.normAA$Val[i]-mean(as.numeric(PCA.df2.normAA[i,3:7])))
+}
+
+
+# the response variables
+PCA.dat2.norm<- PCA.df2.normAA %>%
+  dplyr::select(Ile.n, Leu.n, Phe.n, Thr.n, Val.n)
+
+# the factors 
+PCA.fac2.norm<- PCA.df2.normAA %>%
+  dplyr::select(Lake, phy.group)
+
+# run the PCA on scaled and centered data
+PC.plank.norm2<- prcomp(PCA.dat2.norm, center = TRUE, scale= TRUE) 
+
+PC.plank.norm.summ2<-summary(PC.plank.norm2)
+#plot(PC.plank, type="lines", main="PC.area eigenvalues")
+
+
+###### plot for PCA by Lake
+#LDA box plot by phy.group
+phy.5.colors<-c("dodgerblue", "gray65", "orange","firebrick2", "springgreen4")
+
+PCA.fac2.norm$phy.group<-factor(PCA.fac2.norm$phy.group, levels=c("POM", ">350um", "cladocera", 
+                                                            "copepoda","Plants"))
+
+## PC1 and PC2
+PCA.norm.plank <- ggbiplot(PC.plank.norm2, choices = 1:2, obs.scale = 1, var.scale = 1, 
+                      groups=PCA.fac2.norm$phy.group,
+                      ellipse = TRUE, circle = FALSE, alpha=0, ellipse.prob=0.70) + #alpha = zero makes points clear
+  geom_point(aes(colour=PCA.fac2.norm$phy.group), size = 2) +
+  scale_x_continuous(breaks=pretty_breaks(n=5))+
+  scale_color_manual(values=phy.5.colors)+
+  #scale_shape_manual(values=c(16,1,22,2,3))+
+  theme(axis.ticks.length=unit(-0.25, "cm"), axis.text.y=element_text(margin=unit(c(0.5, 0.5, 0.5, 0.5), "cm")), axis.text.x=element_text(margin=unit(c(0.5, 0.5, 0.5, 0.5), "cm"))) +
+  ggtitle("ESS-normalized")+
+   theme_classic()+
+   theme(legend.text=element_text(size=10), 
+    panel.background = element_rect(colour = "black", linewidth=1),
+    element_blank(), aspect.ratio=0.8, axis.ticks.length=unit(-0.25, "cm"),
+    axis.text.y=element_text(margin=unit(c(0.5, 0.5, 0.5, 0.5), "cm")),
+    axis.text.x=element_text(margin=unit(c(0.5, 0.5, 0.5, 0.5), "cm")))
+
+### export it
+pdf(file= "figures/Fig x.PCA.norm.lake plot2.pdf", height=7, width=12)
+plot_grid(PCA.lake.plank, PCA.norm.plank)
 dev.off()
 
 ```

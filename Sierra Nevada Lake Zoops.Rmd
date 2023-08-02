@@ -38,7 +38,7 @@ knitr::opts_chunk$set(warning=FALSE, message=FALSE, fig.align='center')
 if (!require("pacman")) install.packages("pacman") # for rapid install if not in library
 
 # use pacman to load all the packages you are missing!
-pacman::p_load('knitr', 'lme4', 'lmerTest', 'tidyverse', 'effects', 'plyr', 'dplyr', 'plotrix', 'car',"gridExtra", "cowplot", "tools", "mgcv", "gratia", "MASS", "stats", "tidymv", "sjstats", "coin", "emmeans", "ggplot2", "mda", "nortest", "reshape2", "gmm", "propagate","ggmap", "RgoogleMaps", "MixSIAR","GGally")
+pacman::p_load('knitr', 'lme4', 'lmerTest', 'tidyverse', 'effects', 'plyr', 'dplyr', 'plotrix', 'car',"gridExtra", "cowplot", "tools", "mgcv", "gratia", "MASS", "stats", "tidymv", "sjstats", "coin", "emmeans", "ggplot2", "mda", "nortest", "reshape2", "gmm", "propagate","ggmap", "RgoogleMaps", "MixSIAR","GGally", "ggbiplot")
 
 
 ### general formatting for figures 
@@ -108,7 +108,8 @@ map.SNL<-get_map(SNL.rev,
                       source="google", extent= "device", legend="topright")
 
 ## sites lat long
-lat.long<-SNL.env[,c(3,5,6)]
+lat.long<-SNL.env %>%
+  dplyr::select(Lake, latitude, longitude, elevation..m)
 
 SNL.sites<-
   ggmap(map.SNL)+
@@ -148,7 +149,7 @@ bulk.iso<-read.csv("data/Symons iso data/Symons_Yos_bulkSIA.csv")
 str(bulk.iso)
 
 # elevation
-d13C.elevation<-ggplot(bulk.iso, aes(x=d13C, y=elevation.m, color=type)) +
+d13C.elevation<-ggplot(bulk.iso, aes(x=d13C, y=elevation..m, color=type)) +
   scale_color_manual(values=c("orchid", "lightgoldenrod3", "mediumseagreen", "royalblue2", "coral")) +
   xlab(expression(paste(delta^{13}, C, " (\u2030, V-PDB)")))+
   ylab("Elevation (m)")+
@@ -185,16 +186,18 @@ SNL.ess <- data.frame(SNL.d13C.aa$SampleID, SNL.d13C.aa$Ile13C, SNL.d13C.aa$Leu1
                       SNL.d13C.aa$Thr13C, SNL.d13C.aa$Val13C)
 
 #Rename columns
-colnames(SNL.ess) <- c("ID", "Ile", "Leu", "Phe", "Thr", "Val")
-SNL.ess$ID <- as.character(SNL.ess$ID)
+colnames(SNL.ess) <- c("SampleID", "Ile", "Leu", "Phe", "Thr", "Val")
+SNL.ess$SampleID <- as.character(SNL.ess$SampleID)
 
 #Subset terrestrial plants
-plants <- SNL.ess[substr(SNL.ess$ID,1,11)=="SNL-TERPLA-",]
+plants <- SNL.ess[substr(SNL.ess$SampleID,1,11)=="SNL-TERPLA-",]
+
 #Add a column for group
 plants$Group <- "Plants"
 
 #Subset POM
-pom <- SNL.ess[substr(SNL.ess$ID,1,8)=="SNL-POM-",]
+pom <- SNL.ess[substr(SNL.ess$SampleID,1,8)=="SNL-POM-",]
+
 #Add a column for group
 pom$Group <- "POM"
 
@@ -203,11 +206,11 @@ prod <- rbind(plants, pom)
 write.csv(prod, "output/SNL_producers_ess_AA_data.csv", row.names=FALSE)
 
 #Subset zooplankton
-zoops <- SNL.ess[substr(SNL.ess$ID,1,9)=="SNL-ZOOP-",]
+zoops <- SNL.ess[substr(SNL.ess$SampleID,1,9)=="SNL-ZOOP-",]
 
 #Pull in zooplankton metadata
 zoops_meta <- read.csv("data/Zoops_Meta.csv")
-zoops <- merge.data.frame(zoops_meta, zoops, by.x = "ID", by.y = "ID")
+zoops <- merge.data.frame(zoops_meta, zoops, by.x = "SampleID", by.y = "SampleID")
 
 #remove TB tanks
 zoops<-zoops[!(zoops$Lake=="TB-tanks"),]
@@ -238,10 +241,14 @@ ESS_df.wide<-as.data.frame(bind_cols_fill(list(tibble(plants$Ile), tibble(pom$Il
 library(dplyr)
 
 zoop.sub<- zoops %>% 
-  dplyr::select(ID, Ile, Leu, Phe, Thr, Val, Group, Type, Lake)
+  dplyr::select(SampleID, Ile, Leu, Phe, Thr, Val, Group, Type, Lake)
 
 
-## with bindrows bring zoops and producers together
+## with bind rows bring zoops and producers together
+prod$Type<-"NA"
+prod$Lake<-"NA"
+# the above to "check yourself!", but the code below will set NAs by default
+
 ESS.df.long<- bind_rows(prod, zoop.sub)
 
 ESS.df.long["Type"][is.na(ESS.df.long["Type"])] <- "Source"
@@ -290,7 +297,7 @@ lda.info <- as.data.frame(All.train$scaling)
 write.csv(lda.info, "output/SNL_Producers_LDA_loadings_NMX.csv", row.names=FALSE)
 
 #Create a data frame with these LDA coordinates
-AlldataPredict <- data.frame(Group = prod$Group, ID = prod$ID, predict(All.train)$x)
+AlldataPredict <- data.frame(Group = prod$Group, SampleID = prod$SampleID, predict(All.train)$x)
 
 #Write a csv file for the LDA coordinatinates
 write.csv(AlldataPredict, "output/SNL_Producers_LDA_coords_NMX.csv", row.names=FALSE)
@@ -302,7 +309,7 @@ write.csv(AlldataPredict, "output/SNL_Producers_LDA_coords_NMX.csv", row.names=F
 ```{r LDA Zoop1}
 #Classify zooplankton
 zoop.predict <- predict(object = All.train, newdata = zoops)
-zoop.predict.data <- data.frame(SampleID = zoops$ID, Type = zoops$Type, Lake = zoops$Lake, zoop.predict)
+zoop.predict.data <- data.frame(SampleID = zoops$SampleID, Type = zoops$Type, Lake = zoops$Lake, zoop.predict)
 
 #Write a csv file for the zooplankton LDA info
 write.csv(zoop.predict.data, "output/SNL_Zooplankton_LDA_info_NMX.csv", row.names=FALSE)
@@ -316,10 +323,10 @@ write.csv(zoop.predict.data, "output/SNL_Zooplankton_LDA_info_NMX.csv", row.name
 ##############
 
 ####### Producers
-# AlldataPredict.mod original columns as - "Group", "ID", "LD1"
+# AlldataPredict.mod original columns as - "Group", "SampleID", "LD1"
 # rearrange
 AlldataPredict.mod<- AlldataPredict %>%
-  dplyr::select("ID", "Group", "LD1")
+  dplyr::select("SampleID", "Group", "LD1")
 
 # rename columns
 colnames(AlldataPredict.mod)<-c("SampleID", "orig.class", "LD1")
@@ -334,9 +341,6 @@ AlldataPredict.mod<- AlldataPredict.mod %>%
 
 
 ############# Zooplankton
-# zoops: zoop.predict.data = 
-#          "SampleID", "Type", "Lake", "class", "posterior.Plants", "posterior.POM", "LD1"
-
 # grab columns we want
 zoop.predict.data.NMX<- zoop.predict.data %>%
   dplyr::select("SampleID", "Type", "Lake", "class", "LD1")
@@ -363,7 +367,7 @@ LDA.df$phy.group<- ifelse(LDA.df$orig.class == "calanoid", "copepoda",
                              ifelse(LDA.df$orig.class == "Plants", "Plants",
                                     "POM"))))))))
 
-# make new level for "Elevation" (in m)
+# make new level for "Elevation" (in m), "0" for ordering, but actually is "NA"
 LDA.df$Elevation<- ifelse(LDA.df$Lake == "Lukens", "2513",
                              ifelse(LDA.df$Lake == "MayPond", "2714",
                              ifelse(LDA.df$Lake == "Sunrise2", "2830",
@@ -433,7 +437,7 @@ LDA.phy.boxplot<-ggplot(LDA.df, aes(x=LD1, y=phy.group,
   annotate(geom="text", label="POM-Supported", x=2.5, y=5.5, color="gray30", size=3) +
   scale_fill_manual(values=phy.5.colors)+
   scale_color_manual(values=phy.5.colors)+
-  ylab("Consumer or Source)") +
+  ylab("Consumer or Source") +
   xlab("LD1") +
   theme_classic()
 
@@ -533,7 +537,8 @@ write.csv(source.agg.df, "output/source.agg.df.csv", row.names=FALSE)
 
 ```
 
-#### Import Data and Create Model Structure
+#### MixSIAR by-sample models
+##### Import Data and Create Model Structure
 ```{r}
 #Load zooplankton (consumer) data and assign factors
 cons <- load_mix_data(filename = "output/Mix.df.csv",
@@ -556,16 +561,14 @@ discr <- load_discr_data(filename="data/MixSIAR_TDFs.csv", cons)
 
 ```
 
-
-#### Check data 
-```{r}
+##### Check data 
+```{r, eval=FALSE}
 # Make an isospace plot
 isospace_plot <- plot_data(filename="output/MixSIAR_isospace_plot_SampleIDs", plot_save_pdf=FALSE, plot_save_png=FALSE, cons,source,discr)
 
 ```
 
-
-#### Run MixSIAR Model
+##### Run MixSIAR by-sample Model
 ```{r}
 set.seed(12)
 
@@ -607,9 +610,43 @@ save.image("output/MixSIAR_models/SampleID_models/MixSIAR_SampleID_fixed_data.RD
 
 ```
 
+##### Clean and process summary stats
+```{r MixSIAR by sample output}
+# read in the summary stats from mixSIAR, parse and make a dataframe, replacing spaces from .txt
 
-#### Import Data and Create Models
-```{r}
+SAMP.mixSIAR.output<-read.table("output/MixSIAR_models/SampleID_models/MixSIAR_SampleID_summary_stats.txt", sep='\t', header=TRUE, skip=6)
+
+SAMP.mixSIAR.output<-as.data.frame(SAMP.mixSIAR.output)
+colnames(SAMP.mixSIAR.output)<-"full.data"
+
+# remove all extra spaces using "squish", make them 1 space only
+library(stringr)
+SAMP.mixSIAR.output$full.data<- str_squish(SAMP.mixSIAR.output$full.data)
+
+# rename columns
+library(plyr)
+samp.mix.out<-separate(SAMP.mixSIAR.output, full.data, into = c("factor", "Mean", "SD", "2.5.perc", "5.perc", "25.perc", "50.perc", "75.perc", "95.perc", "97.5.perc"), sep=" ")
+
+# parse the factors here into 3 columns
+new.cols<- stringr::str_split_fixed(samp.mix.out$factor, "\\.", 3) %>%
+        as.data.frame() %>%
+       setNames(c("proportion", "SampleID", "Source"))
+
+new.cols<- new.cols %>%
+  dplyr::select("SampleID", "Source")
+
+# combine the new, separated columns with the data, verify the levels match, then remove "factor"
+Samp.out.cleaned<-cbind(new.cols, samp.mix.out[1:10])
+Samp.out.cleaned<-Samp.out.cleaned %>%
+  dplyr::select(-factor)
+                          
+write.csv(Samp.out.cleaned, "output/MixSIAR_Samp.df.csv", row.names=FALSE)
+```
+
+#### MixSIAR complete models
+
+##### Import Data and Create Models
+```{r import mixSIAR data complete}
 n.mod <- 4
 mix <- vector("list", n.mod) 
 
@@ -649,9 +686,8 @@ mix[[4]] <- load_mix_data(filename="output/Mix.df.csv",
 
 ```
 
-
-#### Run MixSIAR Models
-```{r}
+##### Run MixSIAR complete models
+```{r full MixSIAR run}
 set.seed(12)
 
 #Run the models
@@ -720,9 +756,8 @@ save.image("MixSIAR_Model_Comparisons_Data.RData")
   
 ```
 
-
-#### Compare Models
-```{r}
+##### Compare Models
+```{r full MixSIAR compare}
 #Use 'compare_models' to get table with LOOic weights
 names(jags.mod) <- c("null", "group_taxa","group_lake", "elev_group")
 comparison.table <- compare_models(jags.mod)
@@ -733,34 +768,669 @@ write.csv(comparison.table, "MixSIAR_Model_Comparisons_Table.csv")
 
 ```
 
-#### MixSIAR plots
-```{r, eval=FALSE}
-mod3.mixSIAR.output<-read.table("output/MixSIAR_models/model_3/summary_statistics.txt", 
+##### Clean and process summary stats
+This is the data for the MixSIAR full output, 
+```{r read comp Mix summary}
+# read in the summary stats from mixSIAR, parse and make a dataframe, replacing spaces from .txt
+mod3.mixSIAR.output<-read.table("model_3/summary_statistics.txt", 
                                 sep='\t', header=TRUE, skip=6)
 mod3.mixSIAR.output<-as.data.frame(mod3.mixSIAR.output)
 colnames(mod3.mixSIAR.output)<-"full.data"
 
-library(plyr)
-mod3.mixSIAR.output<-separate(mod3.mixSIAR.output, full.data, into = c("factor", "Mean", "SD", "2.5.perc", "5.perc", "25.perc", "50.perc", "75.perc", "95.perc"), sep=" ")
+# remove all extra spaces using "squish", make them 1 space only, using library(stringr)
+mod3.mixSIAR.output$full.data<- str_squish(mod3.mixSIAR.output$full.data)
 
-Mix.factors<-mod3.mixSIAR.output$factors
+# separate using library(plyr)
+mod3.out<-separate(mod3.mixSIAR.output, full.data, into = c("factor", "Mean", "SD", "2.5.perc", "5.perc", "25.perc", "50.perc", "75.perc", "95.perc", "97.5.perc"), sep=" ")
 
-Mix.factors<-separate(Mix.factors, factors, into = c("", "mean", "SD", "2.5..per", "5..per", "25..per", "50..per", "75..per", "95..per", "97.5..per"), sep=".")
+# remove top 2 rows from output
+mod3.out<- mod3.out[-c(1:2),]
+
+### top 6 rows need to be handles differently since there is no "lake" here
+mod3.out.phy<-mod3.out[c(1:6), ]
+new.cols.mod3.phy<- stringr::str_split_fixed(mod3.out.phy$factor, "\\.", 3) %>%
+        as.data.frame() %>%
+       setNames(c("proportion", "phy.group", "Source"))
+
+#make NA column for Lake
+new.cols.mod3.phy$Lake<-NA
+
+#rearrange
+new.cols.mod3.phy<-new.cols.mod3.phy %>% 
+  dplyr::select("phy.group", "Lake", "Source")
+
+
+### now, the rest of data, by Lake
+mod3.out.by.lake<-mod3.out[-c(1:6), ]
+
+# parse the factors here
+new.cols.mod3.lake<- stringr::str_split_fixed(mod3.out.by.lake$factor, "\\.", 4) %>%
+        as.data.frame() %>%
+       setNames(c("proportion", "phy.group", "Lake", "Source"))
+
+new.cols.mod3.lake<- new.cols.mod3.lake %>%
+  dplyr::select("phy.group", "Lake", "Source")
+
+# combine the new, separated columns with the data
+Mod3.all.facs<-rbind(new.cols.mod3.phy, new.cols.mod3.lake)
+
+# combine with data
+Mod3.out.cleaned<-cbind(Mod3.all.facs, mod3.out[1:10]) # verify the levels match, then remove "factor"
+Mod3.out.cleaned<-Mod3.out.cleaned %>%
+  dplyr::select(-factor)
+                          
+write.csv(Mod3.out.cleaned, "output/MixSIAR_Mod3.df.csv", row.names=FALSE)
+```
+
+### Figs mixSIAR models and plots
+```{r mixSIAR plots}
+############### now makes some plots and run models
+
+mod3<-read.csv("output/MixSIAR_Mod3.df.csv", check.names=FALSE) 
+#check.names=FALSE prevents an "X" being added to the columns that start with a number
+
+# make factors for columns
+make.fac<-c("phy.group", "Source")
+mod3[make.fac] <- lapply(mod3[make.fac], factor)
+
+mod3$Source<-factor(mod3$Source, levels=c("POM", "Plants"))
+
+############# Look at the groups pooled across the lakes
+# phy group effects, across lakes
+mod3.phy<-mod3[(1:6),]
+
+mod3.phy.fig<-ggplot(data=mod3.phy, aes(x=phy.group, y=Mean, fill=Source))+
+  scale_fill_manual(values=c("dodgerblue", "springgreen3"))+
+  geom_errorbar(aes(ymin=Mean-SD, ymax=Mean+SD, width=.2),
+                 position=position_dodge(0.5))+
+  geom_point(size=4,  position=position_dodge(0.5), color="black", pch=21)+
+  ylab("Proportion of EAA-source") +
+  xlab("Zooplankton Groups") +
+  theme_classic()
+
+### export it
+pdf(file= "figures/Fig x.Phy.mixsiar.pdf", height=5, width=5)
+mod3.phy.fig
+dev.off()
+
+
+############# Look at the groups within each lake
+# phy group effects, across lakes
+mod3.lake<-mod3[-(1:6),]
+
+# make new level for "Elevation" (in m)
+mod3.lake$Elevation<- as.numeric(ifelse(mod3.lake$Lake == "Lukens", "2513",
+                             ifelse(mod3.lake$Lake == "MayPond", "2714",
+                             ifelse(mod3.lake$Lake == "Sunrise2", "2830",
+                             ifelse(mod3.lake$Lake == "Blue", "3054",
+                             ifelse(mod3.lake$Lake == "Greenstone", "3091",
+                             ifelse(mod3.lake$Lake == "Cascade", "3140",
+                             ifelse(mod3.lake$Lake == "EasternBrook", "3155",
+                             ifelse(mod3.lake$Lake == "Granite2", "3178",
+                                    "0")))))))))
+
+# reorder lake by relative elevation
+mod3.lake$Lake<-as.factor(reorder(mod3.lake$Lake, mod3.lake$Elevation))
+
+### make the plot
+mod3.lake.fig<-ggplot(data=mod3.lake, aes(x=Lake, y=Mean, fill=Source))+
+  facet_wrap(.~phy.group)+
+  scale_fill_manual(values=c("dodgerblue", "springgreen3"))+
+  geom_errorbar(aes(ymin=Mean-SD, ymax=Mean+SD, width=.2),
+                 position=position_dodge(0.5))+
+  geom_point(size=4,  position=position_dodge(0.5), color="black", pch=21)+
+  ylab("Proportion of EAA-source") +
+  xlab("Lakes: low-to-high elevation") +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+
+### export it
+pdf(file= "figures/Fig x.Lake.mixsiar.pdf", height=7, width=12)
+mod3.lake.fig
+dev.off()
+```
+
+```{r generate ful data}
+#### by sample
+#check.names=FALSE prevents an "X" being added to the columns that start with a number
+samp.mix.df<-read.csv("output/MixSIAR_Samp.df.csv", check.names=FALSE) 
+
+
+#### merge data from mixsiar with other data
+# read in the EAA values for zoops (loaded above, "output/SNL_zooplankton_ess_AA_data.csv", and reorganized in "zoop.sub")
+
+# combine zoops and producers, calle in from 'ESS.df.long'
+head(ESS.df.long)
+
+MSiar.LD.meta <- merge.data.frame(samp.mix.df, LDA.df, by.x = "SampleID", by.y = "SampleID", all=TRUE)
+MSiar.LD.meta.EAA <- merge.data.frame(MSiar.LD.meta, ESS.df.long, 
+                                      by.x = "SampleID", by.y = "SampleID", all=TRUE)
+
+#### simplify data
+# select useful columns
+MSiar.LD.meta.EAA<- MSiar.LD.meta.EAA %>%
+  dplyr::select("SampleID", "Source", "Mean", "SD", "Lake.x", 
+                "orig.class", "phy.group", "LD.class", "LD1", "Group", 
+                "Ile", "Leu", "Phe", "Thr", "Val")
+
+MSiar.LD.meta.EAA<- MSiar.LD.meta.EAA %>% 
+  dplyr::rename("Lake" = "Lake.x")
+
+
+# read in environmental data (loaded above, <-read.csv("data/SNL.envdata.csv"), "SNL.env"
+MSiar.data.env<-merge.data.frame(MSiar.LD.meta.EAA, SNL.env, by.x = "Lake", by.y = "Lake",all=TRUE)
+
+# select useful columns
+MSiar.data.env<- MSiar.data.env %>%
+  dplyr::select("Location", "Date", "Lake", "elevation..m", "latitude", "longitude", "depth..m",
+                "secchi..m", "temp..C", "DO..perc", "cond", "pH", "DOC..mg.L",
+                "TN..ug.L", "TP..ug.L", "chla..ug.L", "SampleID", "orig.class", "phy.group", 
+                "Ile", "Leu", "Phe", "Thr", "Val",
+                "LD.class", "LD1", "LD.class", "Source", "Mean", "SD")
+
+#### export full data for project
+write.csv(MSiar.data.env, "output/SNL.CSIA.fulldata.csv")
+```
+  
+#### Run linear models for %plant
+```{r models for env mixsiar}
+# use 'MSiar.data.env' to run models
+
+# look at % plant contributions by environmental data
+mod.data<- MSiar.data.env %>%
+  dplyr::select(SampleID, Lake, elevation..m, depth..m, temp..C, DO..perc, pH, DOC..mg.L,
+                TN..ug.L, TP..ug.L, chla..ug.L, phy.group, Ile, Leu, Phe, Thr, Val, LD.class, 
+                LD1, Source, Mean, SD)
+
+
+# remove data where elevation for samples is missing (ie the source samples that were pooled across all sampling sites)
+mod.df<-mod.data[!(mod.data$Lake=="Source"),] 
+
+Plant.nut.env<- mod.df[(mod.df$Source=="Plants"),]
+Plant.nut.env <- Plant.nut.env %>% 
+       dplyr::rename("Prop.plant" = "Mean")
+  
+
+POM.nut.env<- mod.df[(mod.df$Source=="POM"),]
+POM.nut.env <- POM.nut.env %>% 
+       dplyr::rename("Prop.pom" = "Mean")
+
+############# ############# ############# ############# 
+############# look at correlation matrix, what variables strongly correlate?
+
+# Install and load the ggcorrplot package
+install.packages("ggcorrplot")
+library(ggcorrplot)
+
+# Keep predictors for the model
+reduced_data <- Plant.nut.env %>%
+  dplyr::select(elevation..m, temp..C, pH,
+                TN..ug.L, TP..ug.L, chla..ug.L, DOC..mg.L)
+
+# Compute correlation at 2 decimal places
+corr_matrix = round(cor(reduced_data), 2)
+
+# Compute and show the  result
+ggcorrplot(corr_matrix, hc.order = TRUE, type = "lower",
+          lab = TRUE)
+
+# from here, TN, TP, DOC all correlate with >0.77 (TN and DOC at 0.94!) So only need 1 of these in a multiple linear regression
+############# ############# ############# ############# 
+library(MASS)
+
+# run a full model
+mod.mult<-lm(Prop.plant~elevation..m+temp..C+pH+TN..ug.L+TP..ug.L+chla..ug.L+DOC..mg.L,
+             data=Plant.nut.env)
+
+# model fit
+summary(mod.mult)
+
+# check distribution and residuals
+hist(mod.mult$residuals)
+{qqnorm(mod.mult$residuals)+qqline(mod.mult$residuals)}
+
+sigma(mod.mult)/mean(Plant.nut.env$Prop.plant) #70% error rate, not awesome. 
+
+# run model selection
+all.zoop.mods<-stepAIC(mod.mult, trace=TRUE)
+
+# best model is with chla (p=0.111) and TN (p=0.009), R2-adjust = 0.19, RSE= 0.099
+mod.mult.all<-lm(Prop.plant~TN..ug.L+chla..ug.L,
+             data=Plant.nut.env)
+summary(mod.mult.all)
+Anova(mod.mult.all, type=2)
+
+### if doing single models, the outcome is the same -- trend for chla and signifiance for DOC, TN, TP (which all correlate)
+
+# TN, all groups
+N.prop.plant<-ggplot(Plant.nut.env, aes(x=TN..ug.L, y=Prop.plant)) +
+  geom_smooth(method = lm, color="purple", alpha=0.2, fill="purple")+
+  geom_point(color="violet", size=2)+
+  ylab("Proportion Plant-EAA")+
+  xlab("Total N (ug/L)")+
+  ggtitle("All zoops")+
+  theme_classic()
+
+# Chloropyll, all groups
+chla.prop.plant<-ggplot(Plant.nut.env, aes(x=chla..ug.L, y=Prop.plant)) +
+  geom_smooth(method = lm, color="purple", alpha=0.2, fill="purple")+
+  geom_point(color="violet", size=2)+
+  ylab("Proportion Plant-EAA")+
+  xlab("chlorophyll a (ug/L)")+
+  ggtitle("All zoops")+
+  theme_classic()
+```
+
+Multiple regressions for Copepoda alone
+```{r Copepoda MultR2}
+### separate dataframes
+copep.plant<-Plant.nut.env[(Plant.nut.env$phy.group=="copepoda"),]
+
+#############################
+##### Copepods
+# run a full model, but 3 not defined because of singularities
+mod.mult.copepod<-lm(Prop.plant~elevation..m+temp..C+pH+TN..ug.L+TP..ug.L+chla..ug.L+DOC..mg.L,
+             data=copep.plant)
+
+# model fit
+summary(mod.mult.copepod)
+
+# check distribution and residuals
+hist(mod.mult.copepod$residuals)
+{qqnorm(mod.mult.copepod$residuals)+qqline(mod.mult.copepod$residuals)}
+
+sigma(mod.mult.copepod)/mean(copep.plant$Prop.plant) #43% error rate. 
+
+# run model selection
+copep.mods<-stepAIC(mod.mult.copepod, trace=TRUE)
+
+# best model is with temp..C (p=0.229) and TN (p=0.041), R2-adjust = 0.33, RSE= 0.096
+mod.mult.copepod<-lm(Prop.plant~TN..ug.L+temp..C,
+             data=copep.plant)
+summary(mod.mult.copepod)
+Anova(mod.mult.copepod, type=2)
+
+# copepods, N significant
+copepod.TN<-ggplot(copep.plant, aes(x=TN..ug.L, y=Prop.plant)) +
+  geom_smooth(method = lm, color="darkred", alpha=0.2, fill="darkred")+
+  geom_point(color="coral", size=2)+
+  ylab("Proportion Plant-EAA")+
+  xlab("Total N (ug/L)")+
+  ggtitle("Copepoda")+
+  theme_classic()
+
+# copepods, Temp barely a trend, nothing clear
+copepod.Temp<-ggplot(copep.plant, aes(x=temp..C, y=Prop.plant)) +
+  geom_smooth(method = lm, color="darkred", alpha=0.2, fill="darkred")+
+  geom_point(color="coral", size=2)+
+  ylab("Proportion Plant-EAA")+
+  xlab("Temperature (C)")+
+  ggtitle("Copepoda")+
+  theme_classic()
+```
+
+Multiple regressions for cladocera alone
+```{r cladocera multR2}
+#############################
+##### Cladocerans
+cladoc.plant<-Plant.nut.env[(Plant.nut.env$phy.group=="cladocera"),]
+
+# run a full model, but 3 not defined because of singularities
+mod.mult.cladoc<-lm(Prop.plant~elevation..m+temp..C+pH+TN..ug.L+TP..ug.L+chla..ug.L+DOC..mg.L,
+             data=cladoc.plant)
+
+# model fit
+summary(mod.mult.cladoc)
+
+# check distribution and residuals
+hist(mod.mult.cladoc$residuals)
+{qqnorm(mod.mult.cladoc$residuals)+qqline(mod.mult.cladoc$residuals)}
+
+sigma(mod.mult.cladoc)/mean(cladoc.plant$Prop.plant) #71% error rate 
+
+# run model selection
+cladoc.mods<-stepAIC(mod.mult.cladoc, trace=TRUE)
+
+# best model is with pH alone (p=0.081) R2-adjust = 0.25, RSE= 0.092
+mod.mult.cladoc.reduced<-lm(Prop.plant~pH,data=cladoc.plant)
+summary(mod.mult.cladoc.reduced)
+Anova(mod.mult.cladoc.reduced, type=2)
+
+
+# this is best model for mutiple regression, RSE 0.099, R2-adjust =0.186
+mod.mult<-lm(Prop.plant~elevation..m+(TN..ug.L)+chla..ug.L+DOC..mg.L,
+             data=cladoc.plant)
+summary(mod.mult)
+sigma(mod3)/mean(Plant.nut.env$Prop.plant) #63% error rate
+
+
+# Cladocera, near signif trend for pH (lower plant nutrition with increase in pH)
+clad.pH.plant<-ggplot(cladoc.plant, aes(x=pH, y=Prop.plant)) +
+  geom_smooth(method = lm, color="goldenrod4", alpha=0.2, fill="goldenrod4")+
+  geom_point(color="goldenrod2", size=2)+
+  ylab("Proportion Plant-EAA")+
+  xlab("pH")+
+  ggtitle("Cladocera")+
+  theme_classic()
+```
+
+- plots using linear regression alone, making multipanels
+```{r all regr plots}
+############################## plots
+
+# Elevation, all groups
+elev.prop.plant<-ggplot(Plant.nut.env, aes(x=elevation..m, y=Prop.plant)) +
+  geom_smooth(method = lm, color="purple", alpha=0.2, fill="purple")+
+  geom_point(color="violet", size=2)+
+  ylab("Proportion Plant-EAA")+
+  xlab("Elevation (m)")+
+  ggtitle("All zoops")+
+  theme_classic()
+
+# Cladocera
+clad.elev.plant<-ggplot(cladoc.plant, aes(x=elevation..m, y=Prop.plant)) +
+  geom_smooth(method = lm, color="goldenrod4", alpha=0.2, fill="goldenrod4")+
+  geom_point(color="goldenrod2", size=2)+
+  ylab("Proportion Plant-EAA")+
+  xlab("Elevation (m)")+
+  ggtitle("Cladocera")+
+  theme_classic()
+
+# Copepoda
+copepod.elev.plant<-ggplot(copep.plant, aes(x=elevation..m, y=Prop.plant)) +
+  geom_smooth(method = lm, color="darkred", alpha=0.2, fill="darkred")+
+  geom_point(color="coral", size=2)+
+  ylab("Proportion Plant-EAA")+
+  xlab("Elevation (m)")+
+  ggtitle("Copepoda")+
+  theme_classic()
+
+
+################ Chlorophyll 
+
+# Chloropyll, all groups
+chla.prop.plant<-ggplot(Plant.nut.env, aes(x=chla..ug.L, y=Prop.plant)) +
+  geom_smooth(method = lm, color="purple", alpha=0.2, fill="purple")+
+  geom_point(color="violet", size=2)+
+  ylab("Proportion Plant-EAA")+
+  xlab("chlorophyll a (ug/L)")+
+  ggtitle("All zoops")+
+  theme_classic()
+
+
+# cladocera, R2=0.04 and NS
+clad.chla<-ggplot(cladoc.plant, aes(x=chla..ug.L, y=Prop.plant)) +
+  geom_smooth(method = lm, color="goldenrod4", alpha=0.2, fill="goldenrod4")+
+  geom_point(color="goldenrod2", size=2)+
+  ylab("Proportion Plant-EAA")+
+  xlab("chlorophyll a (ug/L)")+
+  ggtitle("Cladocera")+
+  theme_classic()
+
+
+# copepods, R2=0.19 but NS
+copepod.chla<-ggplot(copep.plant, aes(x=chla..ug.L, y=Prop.plant)) +
+  geom_smooth(method = lm, color="darkred", alpha=0.2, fill="darkred")+
+  geom_point(color="coral", size=2)+
+  ylab("Proportion Plant-EAA")+
+  xlab("chlorophyll a (ug/L)")+
+  ggtitle("Copepoda")+
+  theme_classic()
+
+
+################ TN 
+
+# TN, all groups
+N.prop.plant<-ggplot(Plant.nut.env, aes(x=TN..ug.L, y=Prop.plant)) +
+  geom_smooth(method = lm, color="purple", alpha=0.2, fill="purple")+
+  geom_point(color="violet", size=2)+
+  ylab("Proportion Plant-EAA")+
+  xlab("Total N (ug/L)")+
+  ggtitle("All zoops")+
+  theme_classic()
+
+
+# cladocera
+clad.TN<-ggplot(cladoc.plant, aes(x=TN..ug.L, y=Prop.plant)) +
+  geom_smooth(method = lm, color="goldenrod4", alpha=0.2, fill="goldenrod4")+
+  geom_point(color="goldenrod2", size=2)+
+  ylab("Proportion Plant-EAA")+
+  xlab("Total N (ug/L)")+
+  ggtitle("Cladocera")+
+  theme_classic()
+
+
+# copepods
+copepod.TN<-ggplot(copep.plant, aes(x=TN..ug.L, y=Prop.plant)) +
+  geom_smooth(method = lm, color="darkred", alpha=0.2, fill="darkred")+
+  geom_point(color="coral", size=2)+
+  ylab("Proportion Plant-EAA")+
+  xlab("Total N (ug/L)")+
+  ggtitle("Copepoda")+
+  theme_classic()
+
+################ TP 
+
+# TP, all groups
+P.prop.plant<-ggplot(Plant.nut.env, aes(x=TP..ug.L, y=Prop.plant)) +
+  geom_smooth(method = lm, color="purple", alpha=0.2, fill="purple")+
+  geom_point(color="violet", size=2)+
+  ylab("Proportion Plant-EAA")+
+  xlab("Total P (ug/L)")+
+  ggtitle("All zoops")+
+  theme_classic()
+
+
+# cladocera
+clad.TP<-ggplot(cladoc.plant, aes(x=TP..ug.L, y=Prop.plant)) +
+  geom_smooth(method = lm, color="goldenrod4", alpha=0.2, fill="goldenrod4")+
+  geom_point(color="goldenrod2", size=2)+
+  ylab("Proportion Plant-EAA")+
+  xlab("Total P (ug/L)")+
+  ggtitle("Cladocera")+
+  theme_classic()
+
+
+# copepods
+copepod.TP<-ggplot(copep.plant, aes(x=TP..ug.L, y=Prop.plant)) +
+  geom_smooth(method = lm, color="darkred", alpha=0.2, fill="darkred")+
+  geom_point(color="coral", size=2)+
+  ylab("Proportion Plant-EAA")+
+  xlab("Total P (ug/L)")+
+  ggtitle("Copepoda")+
+  theme_classic()
+
+
+################ DOC
+
+# DOC, all groups
+C.prop.plant<-ggplot(Plant.nut.env, aes(x=DOC..mg.L, y=Prop.plant)) +
+  geom_smooth(method = lm, color="purple", alpha=0.2, fill="purple")+
+  geom_point(color="violet", size=2)+
+  ylab("Proportion Plant-EAA")+
+  xlab("DOC (mg/L)")+
+  ggtitle("All zoops")+
+  theme_classic()
+
+
+# cladocera
+clad.DOC<-ggplot(cladoc.plant, aes(x=DOC..mg.L, y=Prop.plant)) +
+  geom_smooth(method = lm, color="goldenrod4", alpha=0.2, fill="goldenrod4")+
+  geom_point(color="goldenrod2", size=2)+
+  ylab("Proportion Plant-EAA")+
+  xlab("DOC (mg/L)")+
+  ggtitle("Cladocera")+
+  theme_classic()
+
+
+# copepods
+copepod.DOC<-ggplot(copep.plant, aes(x=DOC..mg.L, y=Prop.plant)) +
+  geom_smooth(method = lm, color="darkred", alpha=0.2, fill="darkred")+
+  geom_point(color="coral", size=2)+
+  ylab("Proportion Plant-EAA")+
+  xlab("DOC (mg/L)")+
+  ggtitle("Copepoda")+
+  theme_classic()
+
+prop.plant.mod.fig<-plot_grid(elev.prop.plant, clad.elev.plant, copepod.elev.plant,
+          chla.prop.plant, clad.chla, copepod.chla,
+          N.prop.plant, clad.TN, copepod.TN,
+          P.prop.plant, clad.TP, copepod.TP,
+          C.prop.plant, clad.DOC, copepod.DOC, ncol=3, nrow=5)
+
+
+### export it
+pdf(file= "figures/Fig x.Plant.prop.mod.pdf", height=22, width=8)
+prop.plant.mod.fig
+dev.off()
+```
+
+```{r PCA}
+#NMDS df with NAs removes
+
+###########PCA
+library(devtools)
+install_github("vqv/ggbiplot")
+library(ggbiplot)
+
+# make the PCA df
+PCA.df<-mod.data %>% 
+  dplyr::select(Lake, phy.group, Ile, Leu, Phe, Thr, Val, Mean)
+PCA.df <- PCA.df %>% 
+       dplyr::rename("Prop.plant" = "Mean")
+
+# if POM, then 0 % plant, if Plant, then 100%
+#PCA.df$Prop.plant<-as.numeric(ifelse(PCA.df$phy.group=="POM", "0", 
+#                         ifelse(PCA.df$phy.group=="Plants", "1",  PCA.df$Prop.plant)))
+
+# if POM, then 0 % plant, if Plant, then 100%
+#PCA.df$Lake<-as.character(PCA.df$Lake) # need to do this to trick R into letting the character be read
+#PCA.df$Lake<-as.factor(ifelse(PCA.df$phy.group=="POM", "POM", 
+#                         ifelse(PCA.df$phy.group=="Plants", "Plants", PCA.df$Lake)))
+
+
+PCA.df<-na.omit(PCA.df)
+
+# remove sources here
+#PCA.df<-PCA.df[!(PCA.df$Lake=="POM" | PCA.df$Lake=="Plants"),]
+
+# factors
+PCA.fac<- PCA.df %>%
+  dplyr::select(Lake, phy.group)
+
+# the response variables
+PCA.dat<- PCA.df %>%
+  dplyr::select(Ile, Leu, Phe, Thr, Val)
+
+# run the PCA on scaled and centered data
+PC.plank<- prcomp(PCA.dat, center = TRUE, scale= TRUE) 
+
+PC.plank.summary<-summary(PC.plank)
+#plot(PC.plank, type="lines", main="PC.area eigenvalues")
+
+
+###### plot for PCA by Lake
+
+## PC1 and PC2
+PCA.lake.plank <- ggbiplot(PC.plank, choices = 1:2, obs.scale = 1, var.scale = 1, 
+                      groups=PCA.fac$Lake,
+                      ellipse = TRUE, circle = FALSE, alpha=0, ellipse.prob=0.90) + #alpha = zero makes points clear
+  geom_point(aes(colour=PCA.fac$Lake, 
+                 shape=PCA.fac$phy.group), size = 2) +
+  scale_x_continuous(breaks=pretty_breaks(n=5))+
+  #scale_color_manual(values=PCA.col2)+
+  #scale_shape_manual(values=c(16,1,22,2,3)) +
+  ggtitle("ESS-raw")+
+  theme_classic()+
+  theme(legend.text=element_text(size=10), 
+    panel.background = element_rect(colour = "black", linewidth=1),
+    element_blank(), aspect.ratio=0.8, axis.ticks.length=unit(-0.25, "cm"),
+    axis.text.y=element_text(margin=unit(c(0.5, 0.5, 0.5, 0.5), "cm")),
+    axis.text.x=element_text(margin=unit(c(0.5, 0.5, 0.5, 0.5), "cm")))
+
+### export it
+pdf(file= "figures/Fig x.PCA.lake plot.pdf", height=8, width=8)
+PCA.lake.plank
+dev.off()
 
 ```
 
-### MixSIAR by sample
-```{r, eval=FALSE}
-Mix.sample<-read.csv("data/MixSIAR_stats_sample.csv")
+```{r mean norm}
 
-# correct column names
-colnames(Mix.sample)<- c("Sample", "mean", "SD", "2.5..per", "5..per", "25..per", "50..per", "75..per", "95..per", "97.5..per")
+# make the PCA df
+PCA.df2<-mod.data %>% 
+  dplyr::select(Lake, phy.group, Ile, Leu, Phe, Thr, Val, Mean)
+PCA.df2 <- PCA.df2 %>% 
+       dplyr::rename("Prop.plant" = "Mean")
 
-Sample<- as.data.frame(Mix.sample$Sample)
-colnames(Sample)<-"sampl"
-Sample$sampl<-as.factor(Sample$sampl)
+# if POM, then 0 % plant, if Plant, then 100%
+PCA.df2$Prop.plant<-as.numeric(ifelse(PCA.df2$phy.group=="POM", "0", 
+                         ifelse(PCA.df2$phy.group=="Plants", "1",  PCA.df2$Prop.plant)))
 
-Sample<-separate(Sample, col=sampl, into=c("p", "Sample", "Source"), sep='.')
+# if POM, then 0 % plant, if Plant, then 100%
+PCA.df2$Lake<-as.character(PCA.df2$Lake) # do this to trick R into letting the character be read
+PCA.df2$Lake<-as.factor(ifelse(PCA.df2$phy.group=="POM", "POM", 
+                         ifelse(PCA.df2$phy.group=="Plants", "Plants", PCA.df2$Lake)))
+
+
+#mean normalize PCA
+PCA.df2.normAA<-PCA.df2[-8]
+
+#make ID column to run the normalization
+PCA.df2.normAA$ID<-1:nrow(PCA.df2.normAA)
+
+for(i in 1:length(PCA.df2.normAA$ID)){
+  PCA.df2.normAA$Ile.n[i] <- (PCA.df2.normAA$Ile[i]-mean(as.numeric(PCA.df2.normAA[i,3:7])))
+  PCA.df2.normAA$Leu.n[i] <- (PCA.df2.normAA$Leu[i]-mean(as.numeric(PCA.df2.normAA[i,3:7])))
+  PCA.df2.normAA$Phe.n[i] <- (PCA.df2.normAA$Phe[i]-mean(as.numeric(PCA.df2.normAA[i,3:7])))
+  PCA.df2.normAA$Thr.n[i] <- (PCA.df2.normAA$Thr[i]-mean(as.numeric(PCA.df2.normAA[i,3:7])))
+  PCA.df2.normAA$Val.n[i] <- (PCA.df2.normAA$Val[i]-mean(as.numeric(PCA.df2.normAA[i,3:7])))
+}
+
+
+# the response variables
+PCA.dat2.norm<- PCA.df2.normAA %>%
+  dplyr::select(Ile.n, Leu.n, Phe.n, Thr.n, Val.n)
+
+# the factors 
+PCA.fac2.norm<- PCA.df2.normAA %>%
+  dplyr::select(Lake, phy.group)
+
+# run the PCA on scaled and centered data
+PC.plank.norm2<- prcomp(PCA.dat2.norm, center = TRUE, scale= TRUE) 
+
+PC.plank.norm.summ2<-summary(PC.plank.norm2)
+#plot(PC.plank, type="lines", main="PC.area eigenvalues")
+
+
+###### plot for PCA by Lake
+#LDA box plot by phy.group
+phy.5.colors<-c("dodgerblue", "gray65", "orange","firebrick2", "springgreen4")
+
+PCA.fac2.norm$phy.group<-factor(PCA.fac2.norm$phy.group, levels=c("POM", ">350um", "cladocera", 
+                                                            "copepoda","Plants"))
+
+## PC1 and PC2
+PCA.norm.plank <- ggbiplot(PC.plank.norm2, choices = 1:2, obs.scale = 1, var.scale = 1, 
+                      groups=PCA.fac2.norm$phy.group,
+                      ellipse = TRUE, circle = FALSE, alpha=0, ellipse.prob=0.70) + #alpha = zero makes points clear
+  geom_point(aes(colour=PCA.fac2.norm$phy.group), size = 2) +
+  scale_x_continuous(breaks=pretty_breaks(n=5))+
+  scale_color_manual(values=phy.5.colors)+
+  #scale_shape_manual(values=c(16,1,22,2,3))+
+  theme(axis.ticks.length=unit(-0.25, "cm"), axis.text.y=element_text(margin=unit(c(0.5, 0.5, 0.5, 0.5), "cm")), axis.text.x=element_text(margin=unit(c(0.5, 0.5, 0.5, 0.5), "cm"))) +
+  ggtitle("ESS-normalized")+
+   theme_classic()+
+   theme(legend.text=element_text(size=10), 
+    panel.background = element_rect(colour = "black", linewidth=1),
+    element_blank(), aspect.ratio=0.8, axis.ticks.length=unit(-0.25, "cm"),
+    axis.text.y=element_text(margin=unit(c(0.5, 0.5, 0.5, 0.5), "cm")),
+    axis.text.x=element_text(margin=unit(c(0.5, 0.5, 0.5, 0.5), "cm")))
+
+### export it
+pdf(file= "figures/Fig x.PCA.norm.lake plot2.pdf", height=7, width=12)
+plot_grid(PCA.lake.plank, PCA.norm.plank)
+dev.off()
 
 ```
 

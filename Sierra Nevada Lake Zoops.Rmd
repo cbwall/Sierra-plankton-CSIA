@@ -271,6 +271,58 @@ dev.off()
 
 ```
 
+```{r linear models raw EAA}
+# test differences in EAA among groups
+
+ESS.mods<-ESS.df.long
+
+# make factors for columns
+make.fac<-c("Group", "Type", "Lake")
+ESS.mods[make.fac] <- lapply(ESS.mods[make.fac], factor)
+str(ESS.mods)
+
+# look at assumptions
+for(i in c(2:6)){
+  Y<-ESS.mods[,i]
+  full<-lm(Y~Group, data=ESS.mods, na.action=na.exclude)
+  R <- resid(full) #save glm residuals
+  
+  op<-par(mfrow = c(2,2), mar=c(5,4,1,2), pty="sq")
+  plot(full, add.smooth = FALSE, which=1)
+  QQ <- qqnorm(R, main = colnames(ESS.mods)[i]) 
+  QQline <- qqline(R)
+  hist(R, xlab="Residuals", main = colnames(ESS.mods)[i])
+}
+
+#### run models to see where the groups differ from each other
+
+# Isoleucine: no Group diff
+Ile.mod<-lm(Ile~Group, data=ESS.mods)
+anova(Ile.mod) # p=0.296
+
+# Leucine: no Group diff
+Leu.mod<-lm(Leu~Group, data=ESS.mods)
+anova(Leu.mod) # p=0.223
+
+# Phenylalanine: Group signif
+Phe.mod<-lm(Phe~Group, data=ESS.mods)
+anova(Phe.mod) # p=0.0005
+posthoc.Phe<-emmeans(Phe.mod, ~Group)
+multcomp::cld(posthoc.Phe, Letters=letters) # POM (A), Zoop (A), Plant (B)
+
+# Threonine: Group signif
+Thr.mod<-lm(Thr~Group, data=ESS.mods)
+anova(Thr.mod) # p=0.002
+posthoc.Thr<-emmeans(Thr.mod, ~Group)
+multcomp::cld(posthoc.Thr, Letters=letters) # POM (A), Zoop (AB), Plant (B)
+
+###### Valine: 
+# No group diff
+Val.mod<-lm(Val~Group, data=ESS.mods)
+anova(Val.mod) # p=0.275
+
+```
+
 
 ### LDA - Primary Producers
 ```{r LDA PP}
@@ -1432,5 +1484,55 @@ pdf(file= "figures/Fig x.PCA.norm.lake plot2.pdf", height=7, width=12)
 plot_grid(PCA.lake.plank, PCA.norm.plank)
 dev.off()
 
+```
+
+```{r}
+
+PCA.df3.raw<-PCA.df2.normAA
+
+# the response variables
+PCA.dat3.raw<- PCA.df3.raw %>%
+  dplyr::select(Ile, Leu, Phe, Thr, Val)
+
+# the factors 
+PCA.fac3.raw<- PCA.df3.raw %>%
+  dplyr::select(Lake, phy.group)
+
+# run the PCA on scaled and centered data
+PC.plank.raw3<- prcomp(PCA.dat3.raw, center = TRUE, scale= TRUE) 
+
+PC.plank.raw.summ3<-summary(PC.plank.raw3)
+#plot(PC.plank, type="lines", main="PC.area eigenvalues")
+
+
+
+###### plot for PCA by Lake
+#LDA box plot by phy.group
+phy.5.colors<-c("dodgerblue", "gray65", "orange","firebrick2", "springgreen4")
+
+PCA.fac3.raw$phy.group<-factor(PCA.fac3.raw$phy.group, levels=c("POM", ">350um", "cladocera", 
+                                                            "copepoda","Plants"))
+
+## PC1 and PC2
+PCA.raw.plank <- ggbiplot(PC.plank.raw3, choices = 1:2, obs.scale = 1, var.scale = 1, 
+                      groups=PCA.fac3.raw$phy.group,
+                      ellipse = TRUE, circle = FALSE, alpha=0, ellipse.prob=0.70) + #alpha = zero makes points clear
+  geom_point(aes(colour=PCA.fac3.raw$phy.group), size = 2) +
+  scale_x_continuous(breaks=pretty_breaks(n=5))+
+  scale_color_manual(values=phy.5.colors)+
+  #scale_shape_manual(values=c(16,1,22,2,3))+
+  theme(axis.ticks.length=unit(-0.25, "cm"), axis.text.y=element_text(margin=unit(c(0.5, 0.5, 0.5, 0.5), "cm")), axis.text.x=element_text(margin=unit(c(0.5, 0.5, 0.5, 0.5), "cm"))) +
+  ggtitle("ESS-RAW")+
+   theme_classic()+
+   theme(legend.text=element_text(size=10), 
+    panel.background = element_rect(colour = "black", linewidth=1),
+    element_blank(), aspect.ratio=0.8, axis.ticks.length=unit(-0.25, "cm"),
+    axis.text.y=element_text(margin=unit(c(0.5, 0.5, 0.5, 0.5), "cm")),
+    axis.text.x=element_text(margin=unit(c(0.5, 0.5, 0.5, 0.5), "cm")))
+
+### export it
+pdf(file= "figures/Fig x.PCA.raw.zoops.pdf", height=7, width=12)
+plot_grid(PCA.lake.plank, PCA.raw.plank)
+dev.off()
 ```
 

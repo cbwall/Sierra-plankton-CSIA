@@ -469,7 +469,7 @@ LDA.spp.lake<-ggplot(LDA.df, aes(x=LD1, y=Lake,
   theme_classic()
 
 LDA.spp.lake
-dev.copy(pdf, "figures/LDA.spp.lake.pdf", width = 8, height = 6)
+dev.copy(pdf, "figures/Fig.S2.LDA.spp.lake.pdf", width = 8, height = 6)
 dev.off()
 
 ####################
@@ -494,7 +494,7 @@ LDA.phy.boxplot<-ggplot(LDA.df, aes(x=LD1, y=phy.group,
   theme_classic()
 
 LDA.phy.boxplot
-dev.copy(pdf, "figures/LDA.phy.boxplot.pdf", width = 4, height = 6)
+dev.copy(pdf, "figures/Fig 3.LDA.phy.boxplot.pdf", width = 6, height = 6)
 dev.off()
 
 ```
@@ -901,7 +901,7 @@ mod3.phy.fig<-ggplot(data=mod3.phy, aes(x=phy.group, y=Mean, fill=Source))+
   theme_classic()
 
 ### export it
-pdf(file= "figures/Fig x.Phy.mixsiar.pdf", height=5, width=5)
+pdf(file= "figures/Fig 4.Phy.mixsiar.pdf", height=5, width=5)
 mod3.phy.fig
 dev.off()
 
@@ -937,7 +937,7 @@ mod3.lake.fig<-ggplot(data=mod3.lake, aes(x=Lake, y=Mean, fill=Source))+
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
 
 ### export it
-pdf(file= "figures/Fig x.Lake.mixsiar.pdf", height=7, width=12)
+pdf(file= "figures/Fig.S3.Lake.mixsiar.pdf", height=7, width=12)
 mod3.lake.fig
 dev.off()
 ```
@@ -1480,7 +1480,7 @@ PCA.norm.plank <- ggbiplot(PC.plank.norm2, choices = 1:2, obs.scale = 1, var.sca
     axis.text.x=element_text(margin=unit(c(0.5, 0.5, 0.5, 0.5), "cm")))
 
 ### export it
-pdf(file= "figures/Fig x.PCA.norm.lake plot2.pdf", height=7, width=12)
+pdf(file= "figures/Fig 5.PCA.norm.lake plot2.pdf", height=7, width=12)
 plot_grid(PCA.lake.plank, PCA.norm.plank)
 dev.off()
 

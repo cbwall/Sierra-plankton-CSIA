@@ -253,6 +253,7 @@ ESS.df.long<- bind_rows(prod, zoop.sub)
 
 ESS.df.long["Type"][is.na(ESS.df.long["Type"])] <- "Source"
 
+  
 #simple boxplot
 colors<-c("springgreen3", "dodgerblue", "coral")
 par(mar = c(4.1, 4.5, 2, 2))
@@ -266,10 +267,78 @@ legend("bottomright", c("Plants", "POM", "Zooplankton"), inset=c(-0.15, 0),
 axis(1, at = seq(2, 15, by = 3), las=1,
                                         labels =c("Ile","Leu","Phe","Thr","Val"))
 }
-dev.copy(pdf, "figures/Fig2.Sierra Nevada Lakes Ess AA Boxplot.pdf", width = 6, height = 6)
+dev.copy(pdf, "figures/Fig2.Ess AA Boxplot_baseR.pdf", width = 6, height = 6)
 dev.off()
 
+
+######### figure in ggplot
+
+# plants
+Ile.plants<-as.data.frame(cbind(plants$Group, "Isoleucine", plants$Ile))
+Leu.plants<-as.data.frame(cbind(plants$Group, "Leucine", plants$Leu))
+Phe.plants<-as.data.frame(cbind(plants$Group, "Phenylalanine", plants$Phe))
+Thr.plants<-as.data.frame(cbind(plants$Group, "Threonine", plants$Thr))
+Val.plants<-as.data.frame(cbind(plants$Group, "Valine", plants$Val))
+
+plants.reshape.df<- rbind(Ile.plants, Leu.plants, Phe.plants, Thr.plants, Val.plants)
+colnames(plants.reshape.df)<-c("Group", "EAA", "d13C")
+
+#POM
+Ile.pom<-as.data.frame(cbind(pom$Group, "Isoleucine", pom$Ile))
+Leu.pom<-as.data.frame(cbind(pom$Group, "Leucine", pom$Leu))
+Phe.pom<-as.data.frame(cbind(pom$Group, "Phenylalanine", pom$Phe))
+Thr.pom<-as.data.frame(cbind(pom$Group, "Threonine", pom$Thr))
+Val.pom<-as.data.frame(cbind(pom$Group, "Valine", pom$Val))
+
+pom.reshape.df<- rbind(Ile.pom, Leu.pom, Phe.pom, Thr.pom, Val.pom)
+colnames(pom.reshape.df)<-c("Group", "EAA", "d13C")
+
+#zoops
+Ile.zoops<-as.data.frame(cbind(zoops$Group, "Isoleucine", zoops$Ile))
+Leu.zoops<-as.data.frame(cbind(zoops$Group, "Leucine", zoops$Leu))
+Phe.zoops<-as.data.frame(cbind(zoops$Group, "Phenylalanine", zoops$Phe))
+Thr.zoops<-as.data.frame(cbind(zoops$Group, "Threonine", zoops$Thr))
+Val.zoops<-as.data.frame(cbind(zoops$Group, "Valine", zoops$Val))
+
+zoops.reshape.df<- rbind(Ile.zoops, Leu.zoops, Phe.zoops, Thr.zoops, Val.zoops)
+colnames(zoops.reshape.df)<-c("Group", "EAA", "d13C")
+
+#compiled df
+raw.EAA.reshape<-rbind(plants.reshape.df, pom.reshape.df, zoops.reshape.df)
+
+raw.EAA.reshape$EAA<-recode_factor(raw.EAA.reshape$EAA,
+                Isoleucine = "Ile",
+                Leucine = "Leu",
+                Phenylalanine = "Phe",
+                Threonine = "Thr",
+                Valine = "Val")
+
+raw.EAA.reshape$Group<-recode_factor(raw.EAA.reshape$Group, Plants = "Terrestrial Plants")
+
+#restructure
+raw.EAA.reshape$Group<-as.factor(raw.EAA.reshape$Group)
+raw.EAA.reshape$EAA<-as.factor(raw.EAA.reshape$EAA)
+raw.EAA.reshape$d13C<-as.numeric(raw.EAA.reshape$d13C)
+
+colors2<-c("springgreen3", "dodgerblue", "coral")
+
+# plot it
+ggplot(raw.EAA.reshape, aes(x=EAA, y=d13C, fill=Group))+
+  geom_boxplot(alpha=0.8)+
+  #geom_jitter(aes(fill=Group), colour="black",pch=21, size=1)+
+  scale_fill_manual(values=colors2)+ 
+  ylab(expression(paste(delta^{13}, C[EAA], " (\u2030)"))) +
+  xlab("Essential Amino Acids") +
+  theme_classic()+
+  annotate('text', x = 4, y = -8, label='*', size=6)+
+  annotate('text', x = 3, y = -23, label='*', size=6)
+
+dev.copy(pdf, "figures/Fig2.Sierra Nevada Lakes Ess AA Boxplot.pdf", width = 6.5, height = 6, encod="MacRoman")
+dev.off()
 ```
+
+
+- test for differences in EAAs among the three groups (producers [POM, plants], zooplankton)
 
 ```{r linear models raw EAA}
 # test differences in EAA among groups
@@ -499,46 +568,6 @@ dev.off()
 
 ```
 
-```{r, eval=FALSE}
-### LDA Ridgeline
-
-library(viridis)
-library(ggridges)
-library(hrbrthemes)
-
-# reorder factors 
-LDA.df$orig.class<-factor(LDA.df$orig.class, levels=c("POM", "Plants", ">350um", "calanoid", 
-                                                            "copepods", "Ceriodaphnia", "Daphnia",
-                                                            "Holopedium"))
-
-
-density_LDA<-ggplot(data=LDA.df, aes(x=LD1, group=phy.group, fill=phy.group)) +
-    geom_density(adjust=1.5, alpha=.5) +
-    scale_fill_manual(values=c("dodgerblue", "gray85", "orange","coral", "springgreen4"))+ 
-  theme_classic()
-
-density_LDA
-dev.copy(pdf, "figures/LDA_density.pdf", width = 8, height = 5)
-dev.off()
-
-
-####### Ridgeline plot
-
-density.ridge<-ggplot(LDA.df, aes(x = LD1, y = phy.group, fill = after_stat(x))) +
-  geom_density_ridges_gradient(jittered_points = TRUE, scale = 0.9, rel_min_height = .01,
-    point_shape = "o", point_size = 3, size = 0.25,
-    position = position_points_jitter(height = 0)) +
-  scale_y_discrete(expand = c(0, 0.1), name = "Source or consumer") +
-  scale_x_continuous(expand = c(0, 0.2), name = "LD1")+
-  scale_fill_gradient(low = "dodgerblue4", high = "darkseagreen2")+
-  theme_classic()+
-  theme(legend.position = "none")
-
-density.ridge
-dev.copy(pdf, "figures/LDA_ridge.pdf", width = 5, height = 6)
-dev.off()
-```
-
 ### MixSIAR
 
 #### Export Zooplankton and Source Data
@@ -560,6 +589,8 @@ Mix.df <- Mix.df[!(Mix.df$orig.class=="POM"),]
 
 #Remove TB-tanks from the data frame
 Mix.df <- Mix.df[!(Mix.df$Lake=="TB-tanks"),]
+
+Mix.df.summary<-aggregate(LD1~Lake+phy.group, data=Mix.df, FUN=length)
 
 #Write and export a csv of the zooplankton data frame
 write.csv(Mix.df, "output/Mix.df.csv", row.names=FALSE)
@@ -1031,7 +1062,7 @@ ggcorrplot(corr_matrix, hc.order = TRUE, type = "lower",
 library(MASS)
 
 # run a full model
-mod.mult<-lm(Prop.plant~elevation..m+temp..C+pH+TN..ug.L+TP..ug.L+chla..ug.L+DOC..mg.L,
+mod.mult<-lm(Prop.plant~temp..C+ pH+TN..ug.L+chla..ug.L,
              data=Plant.nut.env)
 
 # model fit
@@ -1073,6 +1104,52 @@ chla.prop.plant<-ggplot(Plant.nut.env, aes(x=chla..ug.L, y=Prop.plant)) +
   theme_classic()
 ```
 
+
+Multiple regressions for cladocera alone
+```{r cladocera multR2}
+#############################
+##### Cladocerans
+cladoc.plant<-Plant.nut.env[(Plant.nut.env$phy.group=="cladocera"),]
+
+# run a full model, but 3 not defined because of singularities
+mod.mult.cladoc<-lm(Prop.plant~temp..C+ pH+TN..ug.L+chla..ug.L,
+             data=cladoc.plant)
+
+# model fit
+summary(mod.mult.cladoc)
+
+# check distribution and residuals
+hist(mod.mult.cladoc$residuals)
+{qqnorm(mod.mult.cladoc$residuals)+qqline(mod.mult.cladoc$residuals)}
+
+sigma(mod.mult.cladoc)/mean(cladoc.plant$Prop.plant) #71% error rate 
+
+# run model selection
+cladoc.mods<-stepAIC(mod.mult.cladoc, trace=TRUE)
+
+# best model is with TN and chla (p = >0.111), Multiple R2 = 0.36, RSE= 0.096
+mod.mult.cladoc.reduced<-lm(Prop.plant~pH, data=cladoc.plant)
+summary(mod.mult.cladoc.reduced)
+Anova(mod.mult.cladoc.reduced, type=2)
+
+
+# this is best model for mutiple regression, RSE 0.104, Multiple-R2 =0.465
+mod.mult<-lm(Prop.plant~TN..ug.L+chla..ug.L,
+             data=cladoc.plant)
+summary(mod.mult)
+sigma(mod3)/mean(Plant.nut.env$Prop.plant) #63% error rate
+
+
+# Cladocera, near signif trend for pH (lower plant nutrition with increase in pH)
+clad.pH.plant<-ggplot(cladoc.plant, aes(x=pH, y=Prop.plant)) +
+  geom_smooth(method = lm, color="goldenrod4", alpha=0.2, fill="goldenrod4")+
+  geom_point(color="goldenrod2", size=2)+
+  ylab("Proportion Plant-EAA")+
+  xlab("pH")+
+  ggtitle("Cladocera")+
+  theme_classic()
+```
+
 Multiple regressions for Copepoda alone
 ```{r Copepoda MultR2}
 ### separate dataframes
@@ -1081,7 +1158,7 @@ copep.plant<-Plant.nut.env[(Plant.nut.env$phy.group=="copepoda"),]
 #############################
 ##### Copepods
 # run a full model, but 3 not defined because of singularities
-mod.mult.copepod<-lm(Prop.plant~elevation..m+temp..C+pH+TN..ug.L+TP..ug.L+chla..ug.L+DOC..mg.L,
+mod.mult.copepod<-lm(Prop.plant~temp..C+pH+TN..ug.L+chla..ug.L,
              data=copep.plant)
 
 # model fit
@@ -1096,7 +1173,7 @@ sigma(mod.mult.copepod)/mean(copep.plant$Prop.plant) #43% error rate.
 # run model selection
 copep.mods<-stepAIC(mod.mult.copepod, trace=TRUE)
 
-# best model is with temp..C (p=0.229) and TN (p=0.041), R2-adjust = 0.33, RSE= 0.096
+# best model is with TN (p=0.041) and temp (0.229) R2-adjust = 0.328, RSE= 0.096
 mod.mult.copepod<-lm(Prop.plant~TN..ug.L+temp..C,
              data=copep.plant)
 summary(mod.mult.copepod)
@@ -1118,51 +1195,6 @@ copepod.Temp<-ggplot(copep.plant, aes(x=temp..C, y=Prop.plant)) +
   ylab("Proportion Plant-EAA")+
   xlab("Temperature (C)")+
   ggtitle("Copepoda")+
-  theme_classic()
-```
-
-Multiple regressions for cladocera alone
-```{r cladocera multR2}
-#############################
-##### Cladocerans
-cladoc.plant<-Plant.nut.env[(Plant.nut.env$phy.group=="cladocera"),]
-
-# run a full model, but 3 not defined because of singularities
-mod.mult.cladoc<-lm(Prop.plant~elevation..m+temp..C+pH+TN..ug.L+TP..ug.L+chla..ug.L+DOC..mg.L,
-             data=cladoc.plant)
-
-# model fit
-summary(mod.mult.cladoc)
-
-# check distribution and residuals
-hist(mod.mult.cladoc$residuals)
-{qqnorm(mod.mult.cladoc$residuals)+qqline(mod.mult.cladoc$residuals)}
-
-sigma(mod.mult.cladoc)/mean(cladoc.plant$Prop.plant) #71% error rate 
-
-# run model selection
-cladoc.mods<-stepAIC(mod.mult.cladoc, trace=TRUE)
-
-# best model is with pH alone (p=0.081) R2-adjust = 0.25, RSE= 0.092
-mod.mult.cladoc.reduced<-lm(Prop.plant~pH,data=cladoc.plant)
-summary(mod.mult.cladoc.reduced)
-Anova(mod.mult.cladoc.reduced, type=2)
-
-
-# this is best model for mutiple regression, RSE 0.099, R2-adjust =0.186
-mod.mult<-lm(Prop.plant~elevation..m+(TN..ug.L)+chla..ug.L+DOC..mg.L,
-             data=cladoc.plant)
-summary(mod.mult)
-sigma(mod3)/mean(Plant.nut.env$Prop.plant) #63% error rate
-
-
-# Cladocera, near signif trend for pH (lower plant nutrition with increase in pH)
-clad.pH.plant<-ggplot(cladoc.plant, aes(x=pH, y=Prop.plant)) +
-  geom_smooth(method = lm, color="goldenrod4", alpha=0.2, fill="goldenrod4")+
-  geom_point(color="goldenrod2", size=2)+
-  ylab("Proportion Plant-EAA")+
-  xlab("pH")+
-  ggtitle("Cladocera")+
   theme_classic()
 ```
 

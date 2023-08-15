@@ -38,7 +38,7 @@ knitr::opts_chunk$set(warning=FALSE, message=FALSE, fig.align='center')
 if (!require("pacman")) install.packages("pacman") # for rapid install if not in library
 
 # use pacman to load all the packages you are missing!
-pacman::p_load('knitr', 'lme4', 'lmerTest', 'tidyverse', 'effects', 'plyr', 'dplyr', 'plotrix', 'car',"gridExtra", "cowplot", "tools", "mgcv", "gratia", "MASS", "stats", "tidymv", "sjstats", "coin", "emmeans", "ggplot2", "mda", "nortest", "reshape2", "gmm", "propagate","ggmap", "RgoogleMaps", "MixSIAR","GGally", "ggbiplot")
+pacman::p_load('knitr', 'lme4', 'lmerTest', 'tidyverse', 'effects', 'plyr', 'dplyr', 'plotrix', 'car',"gridExtra", "cowplot", "tools", "mgcv", "gratia", "MASS", "stats", "tidymv", "sjstats", "coin", "emmeans", "ggplot2", "mda", "nortest", "reshape2", "gmm", "propagate","ggmap", "RgoogleMaps", "MixSIAR","GGally", "ggbiplot", "ggcorrplot")
 
 
 ### general formatting for figures 
@@ -133,7 +133,7 @@ site.plots<-plot_grid(CA.map_for_man, SNL.sites,
 
 
 ### export it
-pdf(file= "figures/Fig 1.sites.pdf", height=4, width=8)
+pdf(file= "figures/Fig1.sites_AB.pdf", height=4, width=8)
 site.plots
 dev.off()
 ```
@@ -171,7 +171,7 @@ d13C.d15N<-ggplot(bulk.iso, aes(x=d13C, y=d15N, color=type)) +
   geom_point() +
   stat_ellipse()+
   theme_classic()
-ggsave("figures/Fig.S1x.Bulk_13C.15N.pdf", encod="MacRoman", height=6, width=7)
+ggsave("figures/Fig.S1.Bulk_13C.15N.pdf", encod="MacRoman", height=6, width=7)
 ```
 
 
@@ -267,8 +267,7 @@ legend("bottomright", c("Plants", "POM", "Zooplankton"), inset=c(-0.15, 0),
 axis(1, at = seq(2, 15, by = 3), las=1,
                                         labels =c("Ile","Leu","Phe","Thr","Val"))
 }
-dev.copy(pdf, "figures/Fig2.Ess AA Boxplot_baseR.pdf", width = 6, height = 6)
-dev.off()
+
 
 
 ######### figure in ggplot
@@ -529,16 +528,16 @@ LDA.spp.lake<-ggplot(LDA.df, aes(x=LD1, y=Lake,
                                  fill = orig.class, shape= orig.class))+
   geom_point(size=3)+
   geom_vline(xintercept=0.4, linetype="dashed", color = "gray60")+
-  annotate(geom="text", label="Plant-Supported", x=-3.5, y=9.5, color="gray30", size=3) +
-  annotate(geom="text", label="POM-Supported", x=2.5, y=9.5, color="gray30", size=3) +
+  annotate(geom="text", label="Plant-Supported", x=-3.5, y=9.5, color="springgreen4", size=3) +
+  annotate(geom="text", label="POM-Supported", x=2.5, y=9.5, color="dodgerblue", size=3) +
   scale_fill_manual(values=phy.lda.col)+
   scale_shape_manual(values=phy.lda.pts)+
-  ylab("Lake (high to low elevation)") +
+  ylab("Site: low-to-high elevation") +
   xlab("LD1") +
   theme_classic()
 
 LDA.spp.lake
-dev.copy(pdf, "figures/Fig.S2.LDA.spp.lake.pdf", width = 8, height = 6)
+dev.copy(pdf, "figures/Fig.S3.LDA.spp.lake.pdf", width = 8, height = 6)
 dev.off()
 
 ####################
@@ -554,8 +553,8 @@ LDA.phy.boxplot<-ggplot(LDA.df, aes(x=LD1, y=phy.group,
   geom_boxplot(alpha=0.5)+
   geom_jitter(aes(fill=phy.group), colour="black",pch=21, size=2) +
   geom_vline(xintercept=0.4, linetype="dashed", color = "gray60")+
-  annotate(geom="text", label="Plant-Supported", x=-3.5, y=5.5, color="gray30", size=3) +
-  annotate(geom="text", label="POM-Supported", x=2.5, y=5.5, color="gray30", size=3) +
+  annotate(geom="text", label="Plant-Supported", x=-3.5, y=5.5, color="springgreen4", size=3) +
+  annotate(geom="text", label="POM-Supported", x=2.5, y=5.5, color="dodgerblue", size=3) +
   scale_fill_manual(values=phy.5.colors)+
   scale_color_manual(values=phy.5.colors)+
   ylab("Consumer or Source") +
@@ -563,7 +562,7 @@ LDA.phy.boxplot<-ggplot(LDA.df, aes(x=LD1, y=phy.group,
   theme_classic()
 
 LDA.phy.boxplot
-dev.copy(pdf, "figures/Fig 3.LDA.phy.boxplot.pdf", width = 6, height = 6)
+dev.copy(pdf, "figures/Fig3.LDA.phy.boxplot.pdf", width = 6, height = 6)
 dev.off()
 
 ```
@@ -590,7 +589,9 @@ Mix.df <- Mix.df[!(Mix.df$orig.class=="POM"),]
 #Remove TB-tanks from the data frame
 Mix.df <- Mix.df[!(Mix.df$Lake=="TB-tanks"),]
 
-Mix.df.summary<-aggregate(LD1~Lake+phy.group, data=Mix.df, FUN=length)
+Mix.df.summary.Lake<-aggregate(LD1~Lake, data=Mix.df, FUN=length)
+Mix.df.summary.phy<-aggregate(LD1~phy.group, data=Mix.df, FUN=length)
+Mix.df.summary.phy.lake<-aggregate(LD1~Lake+phy.group, data=Mix.df, FUN=length)
 
 #Write and export a csv of the zooplankton data frame
 write.csv(Mix.df, "output/Mix.df.csv", row.names=FALSE)
@@ -932,7 +933,7 @@ mod3.phy.fig<-ggplot(data=mod3.phy, aes(x=phy.group, y=Mean, fill=Source))+
   theme_classic()
 
 ### export it
-pdf(file= "figures/Fig 4.Phy.mixsiar.pdf", height=5, width=5)
+pdf(file= "figures/Fig4.Phy.mixsiar.pdf", height=5, width=5)
 mod3.phy.fig
 dev.off()
 
@@ -968,12 +969,12 @@ mod3.lake.fig<-ggplot(data=mod3.lake, aes(x=Lake, y=Mean, fill=Source))+
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
 
 ### export it
-pdf(file= "figures/Fig.S3.Lake.mixsiar.pdf", height=7, width=12)
+pdf(file= "figures/Fig.S4.Lake.mixsiar.pdf", height=7, width=12)
 mod3.lake.fig
 dev.off()
 ```
 
-```{r generate ful data}
+```{r generate full data}
 #### by sample
 #check.names=FALSE prevents an "X" being added to the columns that start with a number
 samp.mix.df<-read.csv("output/MixSIAR_Samp.df.csv", check.names=FALSE) 
@@ -1042,8 +1043,6 @@ POM.nut.env <- POM.nut.env %>%
 ############# look at correlation matrix, what variables strongly correlate?
 
 # Install and load the ggcorrplot package
-install.packages("ggcorrplot")
-library(ggcorrplot)
 
 # Keep predictors for the model
 reduced_data <- Plant.nut.env %>%
@@ -1057,9 +1056,13 @@ corr_matrix = round(cor(reduced_data), 2)
 ggcorrplot(corr_matrix, hc.order = TRUE, type = "lower",
           lab = TRUE)
 
+### export it
+dev.copy(pdf, "figures/Fig.S2.correl.matrix.pdf", height=6, width=8)
+dev.off()
+
 # from here, TN, TP, DOC all correlate with >0.77 (TN and DOC at 0.94!) So only need 1 of these in a multiple linear regression
 ############# ############# ############# ############# 
-library(MASS)
+# library(MASS)
 
 # run a full model
 mod.mult<-lm(Prop.plant~temp..C+ pH+TN..ug.L+chla..ug.L,
@@ -1070,7 +1073,8 @@ summary(mod.mult)
 
 # check distribution and residuals
 hist(mod.mult$residuals)
-{qqnorm(mod.mult$residuals)+qqline(mod.mult$residuals)}
+qqnorm(mod.mult$residuals)
+qqline(mod.mult$residuals)
 
 sigma(mod.mult)/mean(Plant.nut.env$Prop.plant) #70% error rate, not awesome. 
 
@@ -1120,7 +1124,8 @@ summary(mod.mult.cladoc)
 
 # check distribution and residuals
 hist(mod.mult.cladoc$residuals)
-{qqnorm(mod.mult.cladoc$residuals)+qqline(mod.mult.cladoc$residuals)}
+qqnorm(mod.mult.cladoc$residuals)
+qqline(mod.mult.cladoc$residuals)
 
 sigma(mod.mult.cladoc)/mean(cladoc.plant$Prop.plant) #71% error rate 
 
@@ -1166,7 +1171,8 @@ summary(mod.mult.copepod)
 
 # check distribution and residuals
 hist(mod.mult.copepod$residuals)
-{qqnorm(mod.mult.copepod$residuals)+qqline(mod.mult.copepod$residuals)}
+qqnorm(mod.mult.copepod$residuals)
+qqline(mod.mult.copepod$residuals)
 
 sigma(mod.mult.copepod)/mean(copep.plant$Prop.plant) #43% error rate. 
 
@@ -1364,7 +1370,7 @@ prop.plant.mod.fig<-plot_grid(elev.prop.plant, clad.elev.plant, copepod.elev.pla
 
 
 ### export it
-pdf(file= "figures/Fig x.Plant.prop.mod.pdf", height=22, width=8)
+pdf(file= "figures/Figx.Plant.prop.mod.pdf", height=22, width=8)
 prop.plant.mod.fig
 dev.off()
 ```
@@ -1433,7 +1439,7 @@ PCA.lake.plank <- ggbiplot(PC.plank, choices = 1:2, obs.scale = 1, var.scale = 1
     axis.text.x=element_text(margin=unit(c(0.5, 0.5, 0.5, 0.5), "cm")))
 
 ### export it
-pdf(file= "figures/Fig x.PCA.lake plot.pdf", height=8, width=8)
+pdf(file= "figures/Figx.PCA.lake plot.pdf", height=8, width=8)
 PCA.lake.plank
 dev.off()
 
@@ -1512,7 +1518,7 @@ PCA.norm.plank <- ggbiplot(PC.plank.norm2, choices = 1:2, obs.scale = 1, var.sca
     axis.text.x=element_text(margin=unit(c(0.5, 0.5, 0.5, 0.5), "cm")))
 
 ### export it
-pdf(file= "figures/Fig 5.PCA.norm.lake plot2.pdf", height=7, width=12)
+pdf(file= "figures/Fig5.PCA.norm.lake plot2.pdf", height=7, width=12)
 plot_grid(PCA.lake.plank, PCA.norm.plank)
 dev.off()
 
@@ -1563,7 +1569,7 @@ PCA.raw.plank <- ggbiplot(PC.plank.raw3, choices = 1:2, obs.scale = 1, var.scale
     axis.text.x=element_text(margin=unit(c(0.5, 0.5, 0.5, 0.5), "cm")))
 
 ### export it
-pdf(file= "figures/Fig x.PCA.raw.zoops.pdf", height=7, width=12)
+pdf(file= "figures/Figx.PCA.raw.zoops.pdf", height=7, width=12)
 plot_grid(PCA.lake.plank, PCA.raw.plank)
 dev.off()
 ```

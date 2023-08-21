@@ -906,7 +906,7 @@ Mod3.out.cleaned<-Mod3.out.cleaned %>%
 write.csv(Mod3.out.cleaned, "output/MixSIAR_Mod3.df.csv", row.names=FALSE)
 ```
 
-### Figs mixSIAR models and plots
+#### Figs mixSIAR models and plots
 ```{r mixSIAR plots}
 ############### now makes some plots and run models
 
@@ -1016,7 +1016,7 @@ MSiar.data.env<- MSiar.data.env %>%
 write.csv(MSiar.data.env, "output/SNL.CSIA.fulldata.csv")
 ```
   
-#### Run linear models for %plant
+### Multiple linear regressions 
 ```{r models for env mixsiar}
 # use 'MSiar.data.env' to run models
 
@@ -1108,8 +1108,7 @@ chla.prop.plant<-ggplot(Plant.nut.env, aes(x=chla..ug.L, y=Prop.plant)) +
   theme_classic()
 ```
 
-
-Multiple regressions for cladocera alone
+*Multiple regressions for Cladocera alone*
 ```{r cladocera multR2}
 #############################
 ##### Cladocerans
@@ -1142,7 +1141,7 @@ Anova(mod.mult.cladoc.reduced, type=2)
 mod.mult<-lm(Prop.plant~TN..ug.L+chla..ug.L,
              data=cladoc.plant)
 summary(mod.mult)
-sigma(mod3)/mean(Plant.nut.env$Prop.plant) #63% error rate
+sigma(mod.mult)/mean(Plant.nut.env$Prop.plant) #63% error rate
 
 
 # Cladocera, near signif trend for pH (lower plant nutrition with increase in pH)
@@ -1155,7 +1154,7 @@ clad.pH.plant<-ggplot(cladoc.plant, aes(x=pH, y=Prop.plant)) +
   theme_classic()
 ```
 
-Multiple regressions for Copepoda alone
+*Multiple regressions for Copepoda alone*
 ```{r Copepoda MultR2}
 ### separate dataframes
 copep.plant<-Plant.nut.env[(Plant.nut.env$phy.group=="copepoda"),]
@@ -1204,179 +1203,20 @@ copepod.Temp<-ggplot(copep.plant, aes(x=temp..C, y=Prop.plant)) +
   theme_classic()
 ```
 
-- plots using linear regression alone, making multipanels
-```{r all regr plots}
-############################## plots
+*Plots for multiple regression output*
+```{r regression plots}
+multregres.plots<-plot_grid(N.prop.plant, clad.pH.plant, copepod.TN,
+                            ncol=3, nrow=1)
 
-# Elevation, all groups
-elev.prop.plant<-ggplot(Plant.nut.env, aes(x=elevation..m, y=Prop.plant)) +
-  geom_smooth(method = lm, color="purple", alpha=0.2, fill="purple")+
-  geom_point(color="violet", size=2)+
-  ylab("Proportion Plant-EAA")+
-  xlab("Elevation (m)")+
-  ggtitle("All zoops")+
-  theme_classic()
-
-# Cladocera
-clad.elev.plant<-ggplot(cladoc.plant, aes(x=elevation..m, y=Prop.plant)) +
-  geom_smooth(method = lm, color="goldenrod4", alpha=0.2, fill="goldenrod4")+
-  geom_point(color="goldenrod2", size=2)+
-  ylab("Proportion Plant-EAA")+
-  xlab("Elevation (m)")+
-  ggtitle("Cladocera")+
-  theme_classic()
-
-# Copepoda
-copepod.elev.plant<-ggplot(copep.plant, aes(x=elevation..m, y=Prop.plant)) +
-  geom_smooth(method = lm, color="darkred", alpha=0.2, fill="darkred")+
-  geom_point(color="coral", size=2)+
-  ylab("Proportion Plant-EAA")+
-  xlab("Elevation (m)")+
-  ggtitle("Copepoda")+
-  theme_classic()
-
-
-################ Chlorophyll 
-
-# Chloropyll, all groups
-chla.prop.plant<-ggplot(Plant.nut.env, aes(x=chla..ug.L, y=Prop.plant)) +
-  geom_smooth(method = lm, color="purple", alpha=0.2, fill="purple")+
-  geom_point(color="violet", size=2)+
-  ylab("Proportion Plant-EAA")+
-  xlab("chlorophyll a (ug/L)")+
-  ggtitle("All zoops")+
-  theme_classic()
-
-
-# cladocera, R2=0.04 and NS
-clad.chla<-ggplot(cladoc.plant, aes(x=chla..ug.L, y=Prop.plant)) +
-  geom_smooth(method = lm, color="goldenrod4", alpha=0.2, fill="goldenrod4")+
-  geom_point(color="goldenrod2", size=2)+
-  ylab("Proportion Plant-EAA")+
-  xlab("chlorophyll a (ug/L)")+
-  ggtitle("Cladocera")+
-  theme_classic()
-
-
-# copepods, R2=0.19 but NS
-copepod.chla<-ggplot(copep.plant, aes(x=chla..ug.L, y=Prop.plant)) +
-  geom_smooth(method = lm, color="darkred", alpha=0.2, fill="darkred")+
-  geom_point(color="coral", size=2)+
-  ylab("Proportion Plant-EAA")+
-  xlab("chlorophyll a (ug/L)")+
-  ggtitle("Copepoda")+
-  theme_classic()
-
-
-################ TN 
-
-# TN, all groups
-N.prop.plant<-ggplot(Plant.nut.env, aes(x=TN..ug.L, y=Prop.plant)) +
-  geom_smooth(method = lm, color="purple", alpha=0.2, fill="purple")+
-  geom_point(color="violet", size=2)+
-  ylab("Proportion Plant-EAA")+
-  xlab("Total N (ug/L)")+
-  ggtitle("All zoops")+
-  theme_classic()
-
-
-# cladocera
-clad.TN<-ggplot(cladoc.plant, aes(x=TN..ug.L, y=Prop.plant)) +
-  geom_smooth(method = lm, color="goldenrod4", alpha=0.2, fill="goldenrod4")+
-  geom_point(color="goldenrod2", size=2)+
-  ylab("Proportion Plant-EAA")+
-  xlab("Total N (ug/L)")+
-  ggtitle("Cladocera")+
-  theme_classic()
-
-
-# copepods
-copepod.TN<-ggplot(copep.plant, aes(x=TN..ug.L, y=Prop.plant)) +
-  geom_smooth(method = lm, color="darkred", alpha=0.2, fill="darkred")+
-  geom_point(color="coral", size=2)+
-  ylab("Proportion Plant-EAA")+
-  xlab("Total N (ug/L)")+
-  ggtitle("Copepoda")+
-  theme_classic()
-
-################ TP 
-
-# TP, all groups
-P.prop.plant<-ggplot(Plant.nut.env, aes(x=TP..ug.L, y=Prop.plant)) +
-  geom_smooth(method = lm, color="purple", alpha=0.2, fill="purple")+
-  geom_point(color="violet", size=2)+
-  ylab("Proportion Plant-EAA")+
-  xlab("Total P (ug/L)")+
-  ggtitle("All zoops")+
-  theme_classic()
-
-
-# cladocera
-clad.TP<-ggplot(cladoc.plant, aes(x=TP..ug.L, y=Prop.plant)) +
-  geom_smooth(method = lm, color="goldenrod4", alpha=0.2, fill="goldenrod4")+
-  geom_point(color="goldenrod2", size=2)+
-  ylab("Proportion Plant-EAA")+
-  xlab("Total P (ug/L)")+
-  ggtitle("Cladocera")+
-  theme_classic()
-
-
-# copepods
-copepod.TP<-ggplot(copep.plant, aes(x=TP..ug.L, y=Prop.plant)) +
-  geom_smooth(method = lm, color="darkred", alpha=0.2, fill="darkred")+
-  geom_point(color="coral", size=2)+
-  ylab("Proportion Plant-EAA")+
-  xlab("Total P (ug/L)")+
-  ggtitle("Copepoda")+
-  theme_classic()
-
-
-################ DOC
-
-# DOC, all groups
-C.prop.plant<-ggplot(Plant.nut.env, aes(x=DOC..mg.L, y=Prop.plant)) +
-  geom_smooth(method = lm, color="purple", alpha=0.2, fill="purple")+
-  geom_point(color="violet", size=2)+
-  ylab("Proportion Plant-EAA")+
-  xlab("DOC (mg/L)")+
-  ggtitle("All zoops")+
-  theme_classic()
-
-
-# cladocera
-clad.DOC<-ggplot(cladoc.plant, aes(x=DOC..mg.L, y=Prop.plant)) +
-  geom_smooth(method = lm, color="goldenrod4", alpha=0.2, fill="goldenrod4")+
-  geom_point(color="goldenrod2", size=2)+
-  ylab("Proportion Plant-EAA")+
-  xlab("DOC (mg/L)")+
-  ggtitle("Cladocera")+
-  theme_classic()
-
-
-# copepods
-copepod.DOC<-ggplot(copep.plant, aes(x=DOC..mg.L, y=Prop.plant)) +
-  geom_smooth(method = lm, color="darkred", alpha=0.2, fill="darkred")+
-  geom_point(color="coral", size=2)+
-  ylab("Proportion Plant-EAA")+
-  xlab("DOC (mg/L)")+
-  ggtitle("Copepoda")+
-  theme_classic()
-
-prop.plant.mod.fig<-plot_grid(elev.prop.plant, clad.elev.plant, copepod.elev.plant,
-          chla.prop.plant, clad.chla, copepod.chla,
-          N.prop.plant, clad.TN, copepod.TN,
-          P.prop.plant, clad.TP, copepod.TP,
-          C.prop.plant, clad.DOC, copepod.DOC, ncol=3, nrow=5)
-
-
-### export it
-pdf(file= "figures/Figx.Plant.prop.mod.pdf", height=22, width=8)
-prop.plant.mod.fig
+multregres.plots
+dev.copy(pdf, "figures/Fig5.Multregrss.pdf", height=3.5, width=9)
 dev.off()
 ```
 
-```{r PCA}
-#NMDS df with NAs removes
+### PCA-EAA
+Make a raw-value PCA with values to explore the differnces at the base of the food web in d13C values.
+```{r PCA lake rawEAA}
+#PCA df with NAs removes
 
 ###########PCA
 library(devtools)
@@ -1427,6 +1267,8 @@ PCA.lake.plank <- ggbiplot(PC.plank, choices = 1:2, obs.scale = 1, var.scale = 1
                       ellipse = TRUE, circle = FALSE, alpha=0, ellipse.prob=0.90) + #alpha = zero makes points clear
   geom_point(aes(colour=PCA.fac$Lake, 
                  shape=PCA.fac$phy.group), size = 2) +
+  geom_vline(xintercept=0, linetype="dashed", color = "gray60")+
+  geom_hline(yintercept=0, linetype="dashed", color = "gray60")+
   scale_x_continuous(breaks=pretty_breaks(n=5))+
   #scale_color_manual(values=PCA.col2)+
   #scale_shape_manual(values=c(16,1,22,2,3)) +
@@ -1434,18 +1276,18 @@ PCA.lake.plank <- ggbiplot(PC.plank, choices = 1:2, obs.scale = 1, var.scale = 1
   theme_classic()+
   theme(legend.text=element_text(size=10), 
     panel.background = element_rect(colour = "black", linewidth=1),
-    element_blank(), aspect.ratio=0.8, axis.ticks.length=unit(-0.25, "cm"),
+    aspect.ratio=0.8, axis.ticks.length=unit(0.2, "cm"),
     axis.text.y=element_text(margin=unit(c(0.5, 0.5, 0.5, 0.5), "cm")),
     axis.text.x=element_text(margin=unit(c(0.5, 0.5, 0.5, 0.5), "cm")))
 
 ### export it
-pdf(file= "figures/Figx.PCA.lake plot.pdf", height=8, width=8)
+pdf(file= "figures/Fig6A.PCA.lake.pdf", height=8, width=8)
 PCA.lake.plank
 dev.off()
-
 ```
 
-```{r mean norm}
+Make a PCA for plankton, mean-normalizing EAAs
+```{r PCA zoops normEAA}
 
 # make the PCA df
 PCA.df2<-mod.data %>% 
@@ -1505,26 +1347,28 @@ PCA.norm.plank <- ggbiplot(PC.plank.norm2, choices = 1:2, obs.scale = 1, var.sca
                       groups=PCA.fac2.norm$phy.group,
                       ellipse = TRUE, circle = FALSE, alpha=0, ellipse.prob=0.70) + #alpha = zero makes points clear
   geom_point(aes(colour=PCA.fac2.norm$phy.group), size = 2) +
+  geom_vline(xintercept=0, linetype="dashed", color = "gray60")+
+  geom_hline(yintercept=0, linetype="dashed", color = "gray60")+
   scale_x_continuous(breaks=pretty_breaks(n=5))+
   scale_color_manual(values=phy.5.colors)+
   #scale_shape_manual(values=c(16,1,22,2,3))+
-  theme(axis.ticks.length=unit(-0.25, "cm"), axis.text.y=element_text(margin=unit(c(0.5, 0.5, 0.5, 0.5), "cm")), axis.text.x=element_text(margin=unit(c(0.5, 0.5, 0.5, 0.5), "cm"))) +
   ggtitle("ESS-normalized")+
    theme_classic()+
    theme(legend.text=element_text(size=10), 
     panel.background = element_rect(colour = "black", linewidth=1),
-    element_blank(), aspect.ratio=0.8, axis.ticks.length=unit(-0.25, "cm"),
+    aspect.ratio=0.8, 
+    axis.ticks.length=unit(0.2, "cm"), 
     axis.text.y=element_text(margin=unit(c(0.5, 0.5, 0.5, 0.5), "cm")),
     axis.text.x=element_text(margin=unit(c(0.5, 0.5, 0.5, 0.5), "cm")))
 
 ### export it
-pdf(file= "figures/Fig5.PCA.norm.lake plot2.pdf", height=7, width=12)
+pdf(file= "figures/Fig6.PCA.norm.zoop.pdf", height=7, width=12)
 plot_grid(PCA.lake.plank, PCA.norm.plank)
 dev.off()
 
 ```
 
-```{r}
+```{r, eval=FALSE}
 
 PCA.df3.raw<-PCA.df2.normAA
 

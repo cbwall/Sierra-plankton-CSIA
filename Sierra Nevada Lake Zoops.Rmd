@@ -11,6 +11,8 @@ output:
   pdf_document:
     toc: yes
     toc_depth: '4'
+editor_options: 
+  chunk_output_type: console
 ---
 
 # Project Overview
@@ -148,20 +150,7 @@ bulk.iso<-read.csv("data/Symons iso data/Symons_Yos_bulkSIA.csv")
 
 str(bulk.iso)
 
-# elevation
-d13C.elevation<-ggplot(bulk.iso, aes(x=d13C, y=elevation..m, color=type)) +
-  scale_color_manual(values=c("orchid", "lightgoldenrod3", "mediumseagreen", "royalblue2", "coral")) +
-  xlab(expression(paste(delta^{13}, C, " (\u2030, V-PDB)")))+
-  ylab("Elevation (m)")+
-  labs(color = "")+
-  coord_cartesian(xlim=c(-45, -5), ylim=c(2400, 3500)) +
-  geom_point() +
-  stat_ellipse()+
-  theme_classic()
-ggsave("figures/Symons data plots/Bulk_13C.elevation.pdf", encod="MacRoman", height=6, width=7)
-
-#C vs N
-
+#d13C vs d15N
 d13C.d15N<-ggplot(bulk.iso, aes(x=d13C, y=d15N, color=type)) +
   scale_color_manual(values=c("orchid", "lightgoldenrod3", "mediumseagreen", "royalblue2", "coral")) +
   xlab(expression(paste(delta^{13}, C, " (\u2030, V-PDB)")))+
@@ -391,6 +380,195 @@ anova(Val.mod) # p=0.275
 
 ```
 
+### PCA-EAA
+Make a raw-value PCA with values to explore the differnces at the base of the food web in d13C values.
+```{r PCA lake rawEAA}
+#PCA df with NAs removes
+
+###########PCA
+library(devtools)
+install_github("vqv/ggbiplot")
+library(ggbiplot)
+
+# make the PCA df
+PCA.df<-mod.data %>% 
+  dplyr::select(Lake, phy.group, Ile, Leu, Phe, Thr, Val, Mean)
+PCA.df <- PCA.df %>% 
+       dplyr::rename("Prop.plant" = "Mean")
+
+# remove the sources (POM and Plants)
+PCA.df.trim<-PCA.df[!(PCA.df$Lake=="Source"),]
+
+# factors
+PCA.fac<- PCA.df.trim %>%
+  dplyr::select(Lake, phy.group)
+
+# the response variables
+PCA.dat<- PCA.df.trim %>%
+  dplyr::select(Ile, Leu, Phe, Thr, Val)
+
+####### Run a PERMANOVA on absolute values for Lake, no sources
+# make absolute values for permanova
+PCA.dat.abs<-abs(PCA.dat)
+
+# run PERMANOVA for Lake, NO SOURCE
+set.seed(213)
+EAA.perm.LAKE<-adonis2(PCA.dat.abs~Lake, data=PCA.fac, permutations=999, method="bray")
+EAA.perm.LAKE # different at p=0.001
+
+pairwise.adonis(PCA.dat.abs, factors=c(PCA.fac$Lake), p.adjust.m = "hochberg")
+# below significant at 0.020
+# Granite 2, Lukens, May Pond all pretty unique
+
+# EasternBrook vs Granite2
+# Cascade vs Granite2
+# Blue vs Granite2
+# MayPond vs Granite2
+
+# MayPond vs EasternBrook
+# MayPond vs EasternBrook
+# MayPond vs Cascade
+# MayPond vs Blue
+
+# Lukens vs Blue
+# Lukens vs Cascade
+# Lukens vs EasternBrook
+# Lukens vs Granite2
+
+
+###############
+
+### PCA
+# run the PCA on scaled and centered data
+set.seed(138)
+PC.plank<- prcomp(PCA.dat, center = TRUE, scale= TRUE) 
+
+PC.plank.summary<-summary(PC.plank)
+#plot(PC.plank, type="lines", main="PC.area eigenvalues")
+
+
+###### plot for PCA by Lake
+## PC1 and PC2
+PCA.lake.plank <- ggbiplot(PC.plank, choices = 1:2, obs.scale = 1, var.scale = 1, 
+                      groups=PCA.fac$Lake,
+                      ellipse = TRUE, circle = FALSE, alpha=0, ellipse.prob=0.90) +
+  geom_point(aes(colour=PCA.fac$Lake, 
+                 shape=PCA.fac$phy.group), size = 2) +
+  geom_vline(xintercept=0, linetype="dashed", color = "gray60")+
+  geom_hline(yintercept=0, linetype="dashed", color = "gray60")+
+  scale_x_continuous(breaks=pretty_breaks(n=5))+
+  #scale_color_manual(values=PCA.col2)+
+  #scale_shape_manual(values=c(16,1,22,2,3)) +
+  ggtitle("ESS-raw")+
+  theme_classic()+
+  theme(legend.text=element_text(size=10), 
+    panel.background = element_rect(colour = "black", linewidth=1),
+    aspect.ratio=0.8, axis.ticks.length=unit(0.2, "cm"),
+    axis.text.y=element_text(margin=unit(c(0.5, 0.5, 0.5, 0.5), "cm")),
+    axis.text.x=element_text(margin=unit(c(0.5, 0.5, 0.5, 0.5), "cm")))
+
+```
+
+Make a PCA for plankton, mean-normalizing EAAs
+```{r PCA zoops normEAA}
+
+# make the PCA df, remove proportion plant, keeping sources
+PCA.df.normAA<-PCA.df %>% 
+  dplyr::select(-Prop.plant)
+
+#make ID column to run the normalization
+PCA.df.normAA$ID<-1:nrow(PCA.df.normAA)
+for(i in 1:length(PCA.df.normAA$ID)){
+  PCA.df.normAA$Ile.n[i] <- (PCA.df.normAA$Ile[i]-mean(as.numeric(PCA.df.normAA[i,3:7])))
+  PCA.df.normAA$Leu.n[i] <- (PCA.df.normAA$Leu[i]-mean(as.numeric(PCA.df.normAA[i,3:7])))
+  PCA.df.normAA$Phe.n[i] <- (PCA.df.normAA$Phe[i]-mean(as.numeric(PCA.df.normAA[i,3:7])))
+  PCA.df.normAA$Thr.n[i] <- (PCA.df.normAA$Thr[i]-mean(as.numeric(PCA.df.normAA[i,3:7])))
+  PCA.df.normAA$Val.n[i] <- (PCA.df.normAA$Val[i]-mean(as.numeric(PCA.df.normAA[i,3:7])))
+}
+
+
+# the response variables
+PCA.dat.norm<- PCA.df.normAA %>%
+  dplyr::select(Ile.n, Leu.n, Phe.n, Thr.n, Val.n)
+
+# the factors 
+PCA.fac.norm<- PCA.df.normAA %>%
+  dplyr::select(Lake, phy.group)
+
+# run the PCA on scaled and centered data
+set.seed(808)
+PC.plank.norm<- prcomp(PCA.dat.norm, center = TRUE, scale= TRUE) 
+
+PC.plank.norm.summ<-summary(PC.plank.norm)
+#plot(PC.plank.norm, type="lines", main="PC.area eigenvalues")
+
+
+###### plot for PCA by Lake
+#LDA box plot by phy.group
+phy.5.colors<-c("dodgerblue", "gray65", "orange","firebrick2", "springgreen4")
+
+PCA.fac.norm$phy.group<-factor(PCA.fac.norm$phy.group, levels=c("POM", ">350um", "cladocera", 
+                                                            "copepoda","Plants"))
+
+## PC1 and PC2
+PCA.norm.plank <- ggbiplot(PC.plank.norm, choices = 1:2, obs.scale = 1, var.scale = 1, 
+                      groups=PCA.fac.norm$phy.group,
+                      ellipse = TRUE, circle = FALSE, alpha=0, ellipse.prob=0.70) +
+  geom_point(aes(colour=PCA.fac.norm$phy.group), size = 2) +
+  geom_vline(xintercept=0, linetype="dashed", color = "gray60")+
+  geom_hline(yintercept=0, linetype="dashed", color = "gray60")+
+  scale_x_continuous(breaks=pretty_breaks(n=5))+
+  scale_color_manual(values=phy.5.colors)+
+  #scale_shape_manual(values=c(16,1,22,2,3))+
+  ggtitle("ESS-normalized")+
+   theme_classic()+
+   theme(legend.text=element_text(size=10), 
+    panel.background = element_rect(colour = "black", linewidth=1),
+    aspect.ratio=0.8, 
+    axis.ticks.length=unit(0.2, "cm"), 
+    axis.text.y=element_text(margin=unit(c(0.5, 0.5, 0.5, 0.5), "cm")),
+    axis.text.x=element_text(margin=unit(c(0.5, 0.5, 0.5, 0.5), "cm")))
+
+### export it
+pdf(file= "figures/Fig3AB.PCA.norm.zoop.pdf", height=7, width=12)
+plot_grid(PCA.lake.plank, PCA.norm.plank)
+dev.off()
+
+```
+
+### PERMANOVA
+```{r permanova}
+
+# non-normalized EAAs for sources and plankton
+# test hypotheses that these groups differ
+
+Perm.df<- PCA.df %>% 
+  dplyr::select(-Prop.plant)
+
+# just AAs
+Perm.df.AAs<-Perm.df  %>% 
+  dplyr::select(Ile, Leu, Phe, Thr, Val)
+
+# make absolute values for permanova
+Perm.df.AA.abs<-abs(Perm.df.AAs)
+
+# from above, rename the factors
+Perm.fac<-Perm.df  %>% 
+  dplyr::select(Lake, phy.group)
+
+# run PERMANOVA for phy.group
+set.seed(513)
+EAA.perm<-adonis2(Perm.df.AA.abs~phy.group, data=Perm.fac, permutations=999, method="bray")
+EAA.perm # different at p=0.026
+
+pairwise.adonis(Perm.df.AA.abs, factors=c(Perm.fac$phy.group), p.adjust.m = "none")
+# POM vs Plants: p=0.007
+# POM vs cladocera: p=0.056
+# Plants vs copepod: p=0.008
+# cladocera vs. copepod: p=0.006
+
+```
+
 
 ### LDA - Primary Producers
 ```{r LDA PP}
@@ -562,7 +740,7 @@ LDA.phy.boxplot<-ggplot(LDA.df, aes(x=LD1, y=phy.group,
   theme_classic()
 
 LDA.phy.boxplot
-dev.copy(pdf, "figures/Fig3.LDA.phy.boxplot.pdf", width = 6, height = 6)
+dev.copy(pdf, "figures/Fig4.LDA.phy.boxplot.pdf", width = 6, height = 6)
 dev.off()
 
 ```
@@ -933,7 +1111,7 @@ mod3.phy.fig<-ggplot(data=mod3.phy, aes(x=phy.group, y=Mean, fill=Source))+
   theme_classic()
 
 ### export it
-pdf(file= "figures/Fig4.Phy.mixsiar.pdf", height=5, width=5)
+pdf(file= "figures/Fig5.Phy.mixsiar.pdf", height=5, width=5)
 mod3.phy.fig
 dev.off()
 
@@ -1209,168 +1387,14 @@ multregres.plots<-plot_grid(N.prop.plant, clad.pH.plant, copepod.TN,
                             ncol=3, nrow=1)
 
 multregres.plots
-dev.copy(pdf, "figures/Fig5.Multregrss.pdf", height=3.5, width=9)
+dev.copy(pdf, "figures/Fig6.Multregrss.pdf", height=3.5, width=9)
 dev.off()
 ```
 
-### PCA-EAA
-Make a raw-value PCA with values to explore the differnces at the base of the food web in d13C values.
-```{r PCA lake rawEAA}
-#PCA df with NAs removes
-
-###########PCA
-library(devtools)
-install_github("vqv/ggbiplot")
-library(ggbiplot)
-
-# make the PCA df
-PCA.df<-mod.data %>% 
-  dplyr::select(Lake, phy.group, Ile, Leu, Phe, Thr, Val, Mean)
-PCA.df <- PCA.df %>% 
-       dplyr::rename("Prop.plant" = "Mean")
-
-# if POM, then 0 % plant, if Plant, then 100%
-#PCA.df$Prop.plant<-as.numeric(ifelse(PCA.df$phy.group=="POM", "0", 
-#                         ifelse(PCA.df$phy.group=="Plants", "1",  PCA.df$Prop.plant)))
-
-# if POM, then 0 % plant, if Plant, then 100%
-#PCA.df$Lake<-as.character(PCA.df$Lake) # need to do this to trick R into letting the character be read
-#PCA.df$Lake<-as.factor(ifelse(PCA.df$phy.group=="POM", "POM", 
-#                         ifelse(PCA.df$phy.group=="Plants", "Plants", PCA.df$Lake)))
-
-
-PCA.df<-na.omit(PCA.df)
-
-# remove sources here
-#PCA.df<-PCA.df[!(PCA.df$Lake=="POM" | PCA.df$Lake=="Plants"),]
-
-# factors
-PCA.fac<- PCA.df %>%
-  dplyr::select(Lake, phy.group)
-
-# the response variables
-PCA.dat<- PCA.df %>%
-  dplyr::select(Ile, Leu, Phe, Thr, Val)
-
-# run the PCA on scaled and centered data
-PC.plank<- prcomp(PCA.dat, center = TRUE, scale= TRUE) 
-
-PC.plank.summary<-summary(PC.plank)
-#plot(PC.plank, type="lines", main="PC.area eigenvalues")
-
-
-###### plot for PCA by Lake
-
-## PC1 and PC2
-PCA.lake.plank <- ggbiplot(PC.plank, choices = 1:2, obs.scale = 1, var.scale = 1, 
-                      groups=PCA.fac$Lake,
-                      ellipse = TRUE, circle = FALSE, alpha=0, ellipse.prob=0.90) + #alpha = zero makes points clear
-  geom_point(aes(colour=PCA.fac$Lake, 
-                 shape=PCA.fac$phy.group), size = 2) +
-  geom_vline(xintercept=0, linetype="dashed", color = "gray60")+
-  geom_hline(yintercept=0, linetype="dashed", color = "gray60")+
-  scale_x_continuous(breaks=pretty_breaks(n=5))+
-  #scale_color_manual(values=PCA.col2)+
-  #scale_shape_manual(values=c(16,1,22,2,3)) +
-  ggtitle("ESS-raw")+
-  theme_classic()+
-  theme(legend.text=element_text(size=10), 
-    panel.background = element_rect(colour = "black", linewidth=1),
-    aspect.ratio=0.8, axis.ticks.length=unit(0.2, "cm"),
-    axis.text.y=element_text(margin=unit(c(0.5, 0.5, 0.5, 0.5), "cm")),
-    axis.text.x=element_text(margin=unit(c(0.5, 0.5, 0.5, 0.5), "cm")))
-
-### export it
-pdf(file= "figures/Fig6A.PCA.lake.pdf", height=8, width=8)
-PCA.lake.plank
-dev.off()
-```
-
-Make a PCA for plankton, mean-normalizing EAAs
-```{r PCA zoops normEAA}
-
-# make the PCA df
-PCA.df2<-mod.data %>% 
-  dplyr::select(Lake, phy.group, Ile, Leu, Phe, Thr, Val, Mean)
-PCA.df2 <- PCA.df2 %>% 
-       dplyr::rename("Prop.plant" = "Mean")
-
-# if POM, then 0 % plant, if Plant, then 100%
-PCA.df2$Prop.plant<-as.numeric(ifelse(PCA.df2$phy.group=="POM", "0", 
-                         ifelse(PCA.df2$phy.group=="Plants", "1",  PCA.df2$Prop.plant)))
-
-# if POM, then 0 % plant, if Plant, then 100%
-PCA.df2$Lake<-as.character(PCA.df2$Lake) # do this to trick R into letting the character be read
-PCA.df2$Lake<-as.factor(ifelse(PCA.df2$phy.group=="POM", "POM", 
-                         ifelse(PCA.df2$phy.group=="Plants", "Plants", PCA.df2$Lake)))
-
-
-#mean normalize PCA
-PCA.df2.normAA<-PCA.df2[-8]
-
-#make ID column to run the normalization
-PCA.df2.normAA$ID<-1:nrow(PCA.df2.normAA)
-
-for(i in 1:length(PCA.df2.normAA$ID)){
-  PCA.df2.normAA$Ile.n[i] <- (PCA.df2.normAA$Ile[i]-mean(as.numeric(PCA.df2.normAA[i,3:7])))
-  PCA.df2.normAA$Leu.n[i] <- (PCA.df2.normAA$Leu[i]-mean(as.numeric(PCA.df2.normAA[i,3:7])))
-  PCA.df2.normAA$Phe.n[i] <- (PCA.df2.normAA$Phe[i]-mean(as.numeric(PCA.df2.normAA[i,3:7])))
-  PCA.df2.normAA$Thr.n[i] <- (PCA.df2.normAA$Thr[i]-mean(as.numeric(PCA.df2.normAA[i,3:7])))
-  PCA.df2.normAA$Val.n[i] <- (PCA.df2.normAA$Val[i]-mean(as.numeric(PCA.df2.normAA[i,3:7])))
-}
-
-
-# the response variables
-PCA.dat2.norm<- PCA.df2.normAA %>%
-  dplyr::select(Ile.n, Leu.n, Phe.n, Thr.n, Val.n)
-
-# the factors 
-PCA.fac2.norm<- PCA.df2.normAA %>%
-  dplyr::select(Lake, phy.group)
-
-# run the PCA on scaled and centered data
-PC.plank.norm2<- prcomp(PCA.dat2.norm, center = TRUE, scale= TRUE) 
-
-PC.plank.norm.summ2<-summary(PC.plank.norm2)
-#plot(PC.plank, type="lines", main="PC.area eigenvalues")
-
-
-###### plot for PCA by Lake
-#LDA box plot by phy.group
-phy.5.colors<-c("dodgerblue", "gray65", "orange","firebrick2", "springgreen4")
-
-PCA.fac2.norm$phy.group<-factor(PCA.fac2.norm$phy.group, levels=c("POM", ">350um", "cladocera", 
-                                                            "copepoda","Plants"))
-
-## PC1 and PC2
-PCA.norm.plank <- ggbiplot(PC.plank.norm2, choices = 1:2, obs.scale = 1, var.scale = 1, 
-                      groups=PCA.fac2.norm$phy.group,
-                      ellipse = TRUE, circle = FALSE, alpha=0, ellipse.prob=0.70) + #alpha = zero makes points clear
-  geom_point(aes(colour=PCA.fac2.norm$phy.group), size = 2) +
-  geom_vline(xintercept=0, linetype="dashed", color = "gray60")+
-  geom_hline(yintercept=0, linetype="dashed", color = "gray60")+
-  scale_x_continuous(breaks=pretty_breaks(n=5))+
-  scale_color_manual(values=phy.5.colors)+
-  #scale_shape_manual(values=c(16,1,22,2,3))+
-  ggtitle("ESS-normalized")+
-   theme_classic()+
-   theme(legend.text=element_text(size=10), 
-    panel.background = element_rect(colour = "black", linewidth=1),
-    aspect.ratio=0.8, 
-    axis.ticks.length=unit(0.2, "cm"), 
-    axis.text.y=element_text(margin=unit(c(0.5, 0.5, 0.5, 0.5), "cm")),
-    axis.text.x=element_text(margin=unit(c(0.5, 0.5, 0.5, 0.5), "cm")))
-
-### export it
-pdf(file= "figures/Fig6.PCA.norm.zoop.pdf", height=7, width=12)
-plot_grid(PCA.lake.plank, PCA.norm.plank)
-dev.off()
-
-```
 
 ```{r, eval=FALSE}
 
-PCA.df3.raw<-PCA.df2.normAA
+PCA.df3.raw<-PCA.df.normAA
 
 # the response variables
 PCA.dat3.raw<- PCA.df3.raw %>%

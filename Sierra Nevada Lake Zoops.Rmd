@@ -240,25 +240,19 @@ prod$Lake<-"NA"
 
 ESS.df.long<- bind_rows(prod, zoop.sub)
 
-ESS.df.long["Type"][is.na(ESS.df.long["Type"])] <- "Source"
+ESS.df.long$Lake[ESS.df.long$Lake == "NA"] <- "Source"
 
+# make new level for "phy.group" based on taxonomy
+ESS.df.long$phy.group<- ifelse(ESS.df.long$Type == "calanoid", "copepoda",
+                             ifelse(ESS.df.long$Type == "calanoid_cyclopoid", "copepoda",
+                             ifelse(ESS.df.long$Type == "Ceriodaphnia", "cladocera",
+                             ifelse(ESS.df.long$Type == "Daphnia", "cladocera",
+                             ifelse(ESS.df.long$Type == "Holopedium", "cladocera",
+                             ifelse(ESS.df.long$Type == "Ceriodaphnia", "cladocera",
+                             ifelse(ESS.df.long$Type == ">350um", ">350um",
+                             ifelse(ESS.df.long$Group == "Plants", "Plants",
+                                    "POM"))))))))
   
-#simple boxplot
-colors<-c("springgreen3", "dodgerblue", "coral")
-par(mar = c(4.1, 4.5, 2, 2))
-
-{boxplot(plants$Ile, pom$Ile, zoops$Ile, plants$Leu, pom$Leu, zoops$Leu, plants$Phe, pom$Phe, zoops$Phe, plants$Thr, pom$Thr, zoops$Thr, plants$Val, pom$Val, zoops$Val, 
-        xaxt="n", xlab="Essential Amino Acids", ylim=c(-45, -10),
-        ylab=(expression(paste(delta^{13}, C[ESS-AA]))),
-        col=c(colors, colors, colors, colors, colors))
-legend("bottomright", c("Plants", "POM", "Zooplankton"), inset=c(-0.15, 0),
-        fill=colors, cex=0.8, bty="n", x.intersp = 0.3)
-axis(1, at = seq(2, 15, by = 3), las=1,
-                                        labels =c("Ile","Leu","Phe","Thr","Val"))
-}
-
-
-
 ######### figure in ggplot
 
 # plants
@@ -325,57 +319,130 @@ dev.copy(pdf, "figures/Fig2.Sierra Nevada Lakes Ess AA Boxplot.pdf", width = 6.5
 dev.off()
 ```
 
+### Multivariate stats
+We will do a series of PERMANOVA and PCAs. 
 
-- test for differences in EAAs among the three groups (producers [POM, plants], zooplankton)
+(1) Using the non-normalized data, test for differences among all the data at two levels using a PERMANOVA
 
-```{r linear models raw EAA}
+```{r permanova prep}
+# non-normalized EAAs for sources and plankton
 # test differences in EAA among groups
 
 ESS.mods<-ESS.df.long
 
+write.csv(ESS.df.long, "ESS.df.long.csv")
+# rename factors
+ESS.mods <- ESS.mods %>% 
+       dplyr::rename("orig.class" = "Type")
+
 # make factors for columns
-make.fac<-c("Group", "Type", "Lake")
+make.fac<-c("Group", "orig.class", "phy.group", "Lake")
 ESS.mods[make.fac] <- lapply(ESS.mods[make.fac], factor)
 str(ESS.mods)
 
+# select what we want JUST the 'groups' (3 levels)
+ESS.mods.df<-ESS.mods %>% 
+  dplyr::select(SampleID,Lake, Group, orig.class, phy.group, Ile, Leu, Phe, Thr, Val)
+```
+
+- test using the 3 groups
+```{r permanova 1}
+#### #### #### #### #### #### #### #### #### #### #### 
+#### df just for the "Groups", which drops lake and phy.group
+ESS.groups<- ESS.mods.df %>% dplyr::select(-c(Lake, orig.class, phy.group))
+
+# just AAs data
+ESS.groups.dat<-ESS.groups  %>% 
+  dplyr::select(Ile, Leu, Phe, Thr, Val)
+
+# make absolute values for permanova (requires + values)
+ESS.groups.dat.abs<-abs(ESS.groups.dat)
+
+# factors
+Group.fac<-ESS.groups  %>% 
+  dplyr::select(Group)
+
+# run PERMANOVA for 3 groups
+set.seed(513)
+EAA.perm.GROUP<-adonis2(ESS.groups.dat.abs~ Group, data=Group.fac, permutations=999, method="bray")
+EAA.perm.GROUP # not-different, p=0.073
+
+pairwise.adonis(ESS.groups.dat.abs, factors=c(Group.fac$Group), p.adjust.m = "none")
+# Plants differ from POM (p=0.003), plants almost significant from Zooplankton (p=0.091)
+```
+
+- compare sources to plankton phy groups (5 levels) 
+```{r permanova 2}
+#### #### #### #### #### #### #### #### #### #### #### 
+#### df just for the "Phy.group", which drops lake and phy.group
+ESS.phy<- ESS.mods.df %>% dplyr::select(-c(Lake, Group, orig.class))
+
+# just AAs data
+ESS.phy.dat<-ESS.phy  %>% 
+  dplyr::select(Ile, Leu, Phe, Thr, Val)
+
+# make absolute values for permanova (requires + values)
+ESS.phy.dat.abs<-abs(ESS.phy.dat)
+
+# factors
+Phy.fac<-ESS.phy  %>% 
+  dplyr::select(phy.group)
+
+# run PERMANOVA for phy.groups and the sources
+set.seed(138)
+EAA.perm.PHY<-adonis2(ESS.phy.dat.abs~ phy.group, data=Phy.fac, permutations=999, method="bray")
+EAA.perm.PHY # p = 0.057
+
+pairwise.adonis(ESS.phy.dat.abs, factors=c(Phy.fac$phy.group), p.adjust.m = "none")
+# plants differ from POM (p=0.002)
+# plants vs copepods (p=0.013)
+```
+
+- test for differences in individual EAAs among the three groups (producers [POM, plants], zooplankton)
+```{r linear models raw EAA}
+# use df 'ESS.mod' defined above
+# test differences in EAA among groups
+
 # look at assumptions
-for(i in c(2:6)){
-  Y<-ESS.mods[,i]
-  full<-lm(Y~Group, data=ESS.mods, na.action=na.exclude)
+for(i in c(6:10)){
+  Y<-ESS.mods.df[,i]
+  full<-lm(Y~Group, data=ESS.mods.df, na.action=na.exclude)
   R <- resid(full) #save glm residuals
   
   op<-par(mfrow = c(2,2), mar=c(5,4,1,2), pty="sq")
   plot(full, add.smooth = FALSE, which=1)
-  QQ <- qqnorm(R, main = colnames(ESS.mods)[i]) 
+  QQ <- qqnorm(R, main = colnames(ESS.mods.df)[i]) 
   QQline <- qqline(R)
-  hist(R, xlab="Residuals", main = colnames(ESS.mods)[i])
+  hist(R, xlab="Residuals", main = colnames(ESS.mods.df)[i])
 }
 
 #### run models to see where the groups differ from each other
 
 # Isoleucine: no Group diff
-Ile.mod<-lm(Ile~Group, data=ESS.mods)
+Ile.mod<-lm(Ile~Group, data=ESS.mods.df)
 anova(Ile.mod) # p=0.296
 
 # Leucine: no Group diff
-Leu.mod<-lm(Leu~Group, data=ESS.mods)
+Leu.mod<-lm(Leu~Group, data=ESS.mods.df)
 anova(Leu.mod) # p=0.223
 
 # Phenylalanine: Group signif
-Phe.mod<-lm(Phe~Group, data=ESS.mods)
+Phe.mod<-lm(Phe~Group, data=ESS.mods.df)
 anova(Phe.mod) # p=0.0005
+
 posthoc.Phe<-emmeans(Phe.mod, ~Group)
 multcomp::cld(posthoc.Phe, Letters=letters) # POM (A), Zoop (A), Plant (B)
 
+
 # Threonine: Group signif
-Thr.mod<-lm(Thr~Group, data=ESS.mods)
+Thr.mod<-lm(Thr~Group, data=ESS.mods.df)
 anova(Thr.mod) # p=0.002
 posthoc.Thr<-emmeans(Thr.mod, ~Group)
 multcomp::cld(posthoc.Thr, Letters=letters) # POM (A), Zoop (AB), Plant (B)
 
 ###### Valine: 
 # No group diff
-Val.mod<-lm(Val~Group, data=ESS.mods)
+Val.mod<-lm(Val~Group, data=ESS.mods.df)
 anova(Val.mod) # p=0.275
 
 ```
@@ -383,18 +450,20 @@ anova(Val.mod) # p=0.275
 ### PCA-EAA
 Make a raw-value PCA with values to explore the differnces at the base of the food web in d13C values.
 ```{r PCA lake rawEAA}
-#PCA df with NAs removes
 
 ###########PCA
 library(devtools)
 install_github("vqv/ggbiplot")
 library(ggbiplot)
 
+
 # make the PCA df
-PCA.df<-mod.data %>% 
-  dplyr::select(Lake, phy.group, Ile, Leu, Phe, Thr, Val, Mean)
-PCA.df <- PCA.df %>% 
-       dplyr::rename("Prop.plant" = "Mean")
+PCA.df<-ESS.mods.df %>% 
+  dplyr::select(Lake, phy.group, Ile, Leu, Phe, Thr, Val)
+
+# make new level for "Elevation" (in m), "0" for ordering, but actually is "NA"
+PCA.df$Lake<- factor(PCA.df$Lake, levels=c("Lukens", "MayPond", "Sunrise2", "Blue", "Greenstone", 
+                                           "Cascade", "EasternBrook", "Granite2", "Source"))
 
 # remove the sources (POM and Plants)
 PCA.df.trim<-PCA.df[!(PCA.df$Lake=="Source"),]
@@ -404,44 +473,34 @@ PCA.fac<- PCA.df.trim %>%
   dplyr::select(Lake, phy.group)
 
 # the response variables
-PCA.dat<- PCA.df.trim %>%
+PCA.dat.raw<- PCA.df.trim %>%
   dplyr::select(Ile, Leu, Phe, Thr, Val)
 
+
+####### ####### ####### ####### ####### 
 ####### Run a PERMANOVA on absolute values for Lake, no sources
 # make absolute values for permanova
-PCA.dat.abs<-abs(PCA.dat)
+PCA.dat.raw.abs<-abs(PCA.dat.raw)
 
-# run PERMANOVA for Lake, NO SOURCE
+# run PERMANOVA for Lake, NO SOURCE, non-norm
 set.seed(213)
-EAA.perm.LAKE<-adonis2(PCA.dat.abs~Lake, data=PCA.fac, permutations=999, method="bray")
+EAA.perm.LAKE<-adonis2(PCA.dat.raw.abs~Lake, data=PCA.fac, permutations=999, method="bray")
 EAA.perm.LAKE # different at p=0.001
 
-pairwise.adonis(PCA.dat.abs, factors=c(PCA.fac$Lake), p.adjust.m = "hochberg")
-# below significant at 0.020
-# Granite 2, Lukens, May Pond all pretty unique
+pairwise.adonis(PCA.dat.raw.abs, factors=c(PCA.fac$Lake), p.adjust.m = "none")
+# Sunrise and Greenstone low rep, not able to make good comparisons
 
-# EasternBrook vs Granite2
-# Cascade vs Granite2
-# Blue vs Granite2
-# MayPond vs Granite2
+# below significant 
+# Lukens vs all others (Blue, Cascade, EasternBrook, Granite 2) (not diff from May)
+# May Pond vs. others (Blue, Cascade, EasternBrook, Granite 2) (not diff from Lukens)
+# Granite2 vs. others (EasternBrook, Cascade, Blue, MayPond, Lukens)
 
-# MayPond vs EasternBrook
-# MayPond vs EasternBrook
-# MayPond vs Cascade
-# MayPond vs Blue
-
-# Lukens vs Blue
-# Lukens vs Cascade
-# Lukens vs EasternBrook
-# Lukens vs Granite2
-
-
-###############
+############### ####### ####### ####### 
 
 ### PCA
 # run the PCA on scaled and centered data
 set.seed(138)
-PC.plank<- prcomp(PCA.dat, center = TRUE, scale= TRUE) 
+PC.plank<- prcomp(PCA.dat.raw, center = TRUE, scale= TRUE) 
 
 PC.plank.summary<-summary(PC.plank)
 #plot(PC.plank, type="lines", main="PC.area eigenvalues")
@@ -469,12 +528,14 @@ PCA.lake.plank <- ggbiplot(PC.plank, choices = 1:2, obs.scale = 1, var.scale = 1
 
 ```
 
-Make a PCA for plankton, mean-normalizing EAAs
+- Make a PCA for plankton, mean-normalizing EAAs
+- this compared the sources relative to zooplankton phy.groups
 ```{r PCA zoops normEAA}
+# make the PCA df-normalized, remove proportion plant, keeping sources
+# PCA.df above has sources in, removed later in 'PCA.df.trim'
+# make ID column to run the normalization
 
-# make the PCA df, remove proportion plant, keeping sources
-PCA.df.normAA<-PCA.df %>% 
-  dplyr::select(-Prop.plant)
+PCA.df.normAA<-PCA.df
 
 #make ID column to run the normalization
 PCA.df.normAA$ID<-1:nrow(PCA.df.normAA)
@@ -486,7 +547,6 @@ for(i in 1:length(PCA.df.normAA$ID)){
   PCA.df.normAA$Val.n[i] <- (PCA.df.normAA$Val[i]-mean(as.numeric(PCA.df.normAA[i,3:7])))
 }
 
-
 # the response variables
 PCA.dat.norm<- PCA.df.normAA %>%
   dplyr::select(Ile.n, Leu.n, Phe.n, Thr.n, Val.n)
@@ -496,11 +556,11 @@ PCA.fac.norm<- PCA.df.normAA %>%
   dplyr::select(Lake, phy.group)
 
 # run the PCA on scaled and centered data
-set.seed(808)
+set.seed(508)
 PC.plank.norm<- prcomp(PCA.dat.norm, center = TRUE, scale= TRUE) 
 
 PC.plank.norm.summ<-summary(PC.plank.norm)
-#plot(PC.plank.norm, type="lines", main="PC.area eigenvalues")
+#plot(PC.plank.norm.summ, type="lines", main="PC.area eigenvalues")
 
 
 ###### plot for PCA by Lake
@@ -533,39 +593,6 @@ PCA.norm.plank <- ggbiplot(PC.plank.norm, choices = 1:2, obs.scale = 1, var.scal
 pdf(file= "figures/Fig3AB.PCA.norm.zoop.pdf", height=7, width=12)
 plot_grid(PCA.lake.plank, PCA.norm.plank)
 dev.off()
-
-```
-
-### PERMANOVA
-```{r permanova}
-
-# non-normalized EAAs for sources and plankton
-# test hypotheses that these groups differ
-
-Perm.df<- PCA.df %>% 
-  dplyr::select(-Prop.plant)
-
-# just AAs
-Perm.df.AAs<-Perm.df  %>% 
-  dplyr::select(Ile, Leu, Phe, Thr, Val)
-
-# make absolute values for permanova
-Perm.df.AA.abs<-abs(Perm.df.AAs)
-
-# from above, rename the factors
-Perm.fac<-Perm.df  %>% 
-  dplyr::select(Lake, phy.group)
-
-# run PERMANOVA for phy.group
-set.seed(513)
-EAA.perm<-adonis2(Perm.df.AA.abs~phy.group, data=Perm.fac, permutations=999, method="bray")
-EAA.perm # different at p=0.026
-
-pairwise.adonis(Perm.df.AA.abs, factors=c(Perm.fac$phy.group), p.adjust.m = "none")
-# POM vs Plants: p=0.007
-# POM vs cladocera: p=0.056
-# Plants vs copepod: p=0.008
-# cladocera vs. copepod: p=0.006
 
 ```
 
@@ -905,6 +932,7 @@ Samp.out.cleaned<-Samp.out.cleaned %>%
 write.csv(Samp.out.cleaned, "output/MixSIAR_Samp.df.csv", row.names=FALSE)
 ```
 
+
 #### MixSIAR complete models
 
 ##### Import Data and Create Models
@@ -1152,6 +1180,7 @@ mod3.lake.fig
 dev.off()
 ```
 
+### Combine all data
 ```{r generate full data}
 #### by sample
 #check.names=FALSE prevents an "X" being added to the columns that start with a number
@@ -1161,7 +1190,7 @@ samp.mix.df<-read.csv("output/MixSIAR_Samp.df.csv", check.names=FALSE)
 #### merge data from mixsiar with other data
 # read in the EAA values for zoops (loaded above, "output/SNL_zooplankton_ess_AA_data.csv", and reorganized in "zoop.sub")
 
-# combine zoops and producers, calle in from 'ESS.df.long'
+# combine zoops and producers, called in from 'ESS.df.long'
 head(ESS.df.long)
 
 MSiar.LD.meta <- merge.data.frame(samp.mix.df, LDA.df, by.x = "SampleID", by.y = "SampleID", all=TRUE)
@@ -1172,11 +1201,11 @@ MSiar.LD.meta.EAA <- merge.data.frame(MSiar.LD.meta, ESS.df.long,
 # select useful columns
 MSiar.LD.meta.EAA<- MSiar.LD.meta.EAA %>%
   dplyr::select("SampleID", "Source", "Mean", "SD", "Lake.x", 
-                "orig.class", "phy.group", "LD.class", "LD1", "Group", 
+                "orig.class", "phy.group.y", "LD.class", "LD1", "Group", 
                 "Ile", "Leu", "Phe", "Thr", "Val")
 
 MSiar.LD.meta.EAA<- MSiar.LD.meta.EAA %>% 
-  dplyr::rename("Lake" = "Lake.x")
+  dplyr::rename("Lake" = "Lake.x", "phy.group" = "phy.group.y")
 
 
 # read in environmental data (loaded above, <-read.csv("data/SNL.envdata.csv"), "SNL.env"
@@ -1190,32 +1219,73 @@ MSiar.data.env<- MSiar.data.env %>%
                 "Ile", "Leu", "Phe", "Thr", "Val",
                 "LD.class", "LD1", "LD.class", "Source", "Mean", "SD")
 
+# (can't subset data easily above with the NAs for 'Lake Source'
+# separate the 3 types of data -- a bit messy because of column "mean", which is the proportion of source 1 vs 2
+MSiar.data.env.plant.prop<-na.omit(MSiar.data.env[(MSiar.data.env$Source=="Plants"),])
+MSiar.data.env.POM.prop<-na.omit(MSiar.data.env[(MSiar.data.env$Source=="POM"),])
+MSiar.data.env.Source<-MSiar.data.env[(MSiar.data.env$LD.class=="Source"),]
+
+# rename PLANT prop mean
+MSiar.data.env.plant.prop<- MSiar.data.env.plant.prop %>% 
+       dplyr::rename("prop.plant.mean" = "Mean")
+MSiar.data.env.plant.prop<- MSiar.data.env.plant.prop %>% 
+       dplyr::rename("prop.plant.SD" = "SD")
+
+# rename POM prop mean
+MSiar.data.env.POM.prop<- MSiar.data.env.POM.prop %>% 
+       dplyr::rename("prop.POM.mean" = "Mean")
+MSiar.data.env.POM.prop<- MSiar.data.env.POM.prop %>% 
+       dplyr::rename("prop.POM.SD" = "SD")
+
+
+#### add the Sources back in
+# make dumpy NA columns so the headers match
+
+MSiar.data.env.Source1<-  MSiar.data.env.Source %>% 
+       dplyr::rename("prop.plant.mean" = "Mean")
+MSiar.data.env.Source1<-  MSiar.data.env.Source1 %>% 
+       dplyr::rename("prop.plant.SD" = "SD")
+
+# merge data, has plants and sources
+Pooled1.plant.df <- rbind(MSiar.data.env.Source1, MSiar.data.env.plant.prop)
+
+### do the same for POM to bring in the sources
+# add the Sources back in
+MSiar.data.env.Source2<-  MSiar.data.env.Source %>% 
+       dplyr::rename("prop.POM.mean" = "Mean")
+MSiar.data.env.Source2<-  MSiar.data.env.Source2 %>% 
+       dplyr::rename("prop.POM.SD" = "SD")
+
+# merge data, has POM and sources
+Pooled2.POM.df <- rbind(MSiar.data.env.Source2, MSiar.data.env.POM.prop)
+
+#reduce columns needed for merged data
+Pooled2.POM.select.df<- Pooled2.POM.df %>% dplyr::select (SampleID,  prop.POM.mean, prop.POM.SD)
+
+# merge data, this is all the data, merged by ID, with the new columns for prop POM or plant
+final.df <- merge.data.frame(Pooled1.plant.df, Pooled2.POM.select.df, by.x = "SampleID", by.y = "SampleID")
+
+#remove Source column, which is relic of output from MixSIAR
+final.df<- final.df %>% dplyr::select (-Source)
+
 #### export full data for project
-write.csv(MSiar.data.env, "output/SNL.CSIA.fulldata.csv")
+write.csv(final.df, "output/SNL.CSIA.fulldata.csv")
 ```
+  
   
 ### Multiple linear regressions 
 ```{r models for env mixsiar}
-# use 'MSiar.data.env' to run models
+# use 'ESS.mods' to run models
 
 # look at % plant contributions by environmental data
-mod.data<- MSiar.data.env %>%
+mod.data<- final.df %>%
   dplyr::select(SampleID, Lake, elevation..m, depth..m, temp..C, DO..perc, pH, DOC..mg.L,
                 TN..ug.L, TP..ug.L, chla..ug.L, phy.group, Ile, Leu, Phe, Thr, Val, LD.class, 
-                LD1, Source, Mean, SD)
+                LD1, prop.plant.mean, prop.plant.SD)
 
 
 # remove data where elevation for samples is missing (ie the source samples that were pooled across all sampling sites)
-mod.df<-mod.data[!(mod.data$Lake=="Source"),] 
-
-Plant.nut.env<- mod.df[(mod.df$Source=="Plants"),]
-Plant.nut.env <- Plant.nut.env %>% 
-       dplyr::rename("Prop.plant" = "Mean")
-  
-
-POM.nut.env<- mod.df[(mod.df$Source=="POM"),]
-POM.nut.env <- POM.nut.env %>% 
-       dplyr::rename("Prop.pom" = "Mean")
+Plant.nut.env<-mod.data[!(mod.data$Lake=="Source"),] 
 
 ############# ############# ############# ############# 
 ############# look at correlation matrix, what variables strongly correlate?
@@ -1243,7 +1313,7 @@ dev.off()
 # library(MASS)
 
 # run a full model
-mod.mult<-lm(Prop.plant~temp..C+ pH+TN..ug.L+chla..ug.L,
+mod.mult<-lm(prop.plant.mean~temp..C+ pH+TN..ug.L+chla..ug.L,
              data=Plant.nut.env)
 
 # model fit
@@ -1254,13 +1324,13 @@ hist(mod.mult$residuals)
 qqnorm(mod.mult$residuals)
 qqline(mod.mult$residuals)
 
-sigma(mod.mult)/mean(Plant.nut.env$Prop.plant) #70% error rate, not awesome. 
+sigma(mod.mult)/mean(Plant.nut.env$prop.plant.mean) #70% error rate, not awesome. 
 
 # run model selection
 all.zoop.mods<-stepAIC(mod.mult, trace=TRUE)
 
-# best model is with chla (p=0.111) and TN (p=0.009), R2-adjust = 0.19, RSE= 0.099
-mod.mult.all<-lm(Prop.plant~TN..ug.L+chla..ug.L,
+# best model is with chla (p=0.111) and TN (p=0.009), R2-adjust = 0.186, RSE= 0.099
+mod.mult.all<-lm(prop.plant.mean~TN..ug.L+chla..ug.L,
              data=Plant.nut.env)
 summary(mod.mult.all)
 Anova(mod.mult.all, type=2)
@@ -1268,7 +1338,7 @@ Anova(mod.mult.all, type=2)
 ### if doing single models, the outcome is the same -- trend for chla and signifiance for DOC, TN, TP (which all correlate)
 
 # TN, all groups
-N.prop.plant<-ggplot(Plant.nut.env, aes(x=TN..ug.L, y=Prop.plant)) +
+N.prop.plant<-ggplot(Plant.nut.env, aes(x=TN..ug.L, y=prop.plant.mean)) +
   geom_smooth(method = lm, color="purple", alpha=0.2, fill="purple")+
   geom_point(color="violet", size=2)+
   ylab("Proportion Plant-EAA")+
@@ -1277,7 +1347,7 @@ N.prop.plant<-ggplot(Plant.nut.env, aes(x=TN..ug.L, y=Prop.plant)) +
   theme_classic()
 
 # Chloropyll, all groups
-chla.prop.plant<-ggplot(Plant.nut.env, aes(x=chla..ug.L, y=Prop.plant)) +
+chla.prop.plant<-ggplot(Plant.nut.env, aes(x=chla..ug.L, y=prop.plant.mean)) +
   geom_smooth(method = lm, color="purple", alpha=0.2, fill="purple")+
   geom_point(color="violet", size=2)+
   ylab("Proportion Plant-EAA")+
@@ -1293,7 +1363,7 @@ chla.prop.plant<-ggplot(Plant.nut.env, aes(x=chla..ug.L, y=Prop.plant)) +
 cladoc.plant<-Plant.nut.env[(Plant.nut.env$phy.group=="cladocera"),]
 
 # run a full model, but 3 not defined because of singularities
-mod.mult.cladoc<-lm(Prop.plant~temp..C+ pH+TN..ug.L+chla..ug.L,
+mod.mult.cladoc<-lm(prop.plant.mean~temp..C+ pH+TN..ug.L+chla..ug.L,
              data=cladoc.plant)
 
 # model fit
@@ -1304,26 +1374,26 @@ hist(mod.mult.cladoc$residuals)
 qqnorm(mod.mult.cladoc$residuals)
 qqline(mod.mult.cladoc$residuals)
 
-sigma(mod.mult.cladoc)/mean(cladoc.plant$Prop.plant) #71% error rate 
+sigma(mod.mult.cladoc)/mean(cladoc.plant$prop.plant.mean) #71% error rate 
 
 # run model selection
 cladoc.mods<-stepAIC(mod.mult.cladoc, trace=TRUE)
 
-# best model is with TN and chla (p = >0.111), Multiple R2 = 0.36, RSE= 0.096
-mod.mult.cladoc.reduced<-lm(Prop.plant~pH, data=cladoc.plant)
+# best model is with pH (p=0.081), Multiple R2 = 0.333, RSE= 0.092
+mod.mult.cladoc.reduced<-lm(prop.plant.mean~pH, data=cladoc.plant)
 summary(mod.mult.cladoc.reduced)
 Anova(mod.mult.cladoc.reduced, type=2)
 
 
-# this is best model for mutiple regression, RSE 0.104, Multiple-R2 =0.465
-mod.mult<-lm(Prop.plant~TN..ug.L+chla..ug.L,
+# this is best model for mutiple regression, RSE 0.104, R2-adjust =0.176
+mod.mult<-lm(prop.plant.mean~TN..ug.L+chla..ug.L,
              data=cladoc.plant)
 summary(mod.mult)
-sigma(mod.mult)/mean(Plant.nut.env$Prop.plant) #63% error rate
+sigma(mod.mult)/mean(Plant.nut.env$prop.plant.mean) #62% error rate
 
 
 # Cladocera, near signif trend for pH (lower plant nutrition with increase in pH)
-clad.pH.plant<-ggplot(cladoc.plant, aes(x=pH, y=Prop.plant)) +
+clad.pH.plant<-ggplot(cladoc.plant, aes(x=pH, y=prop.plant.mean)) +
   geom_smooth(method = lm, color="goldenrod4", alpha=0.2, fill="goldenrod4")+
   geom_point(color="goldenrod2", size=2)+
   ylab("Proportion Plant-EAA")+
@@ -1340,7 +1410,7 @@ copep.plant<-Plant.nut.env[(Plant.nut.env$phy.group=="copepoda"),]
 #############################
 ##### Copepods
 # run a full model, but 3 not defined because of singularities
-mod.mult.copepod<-lm(Prop.plant~temp..C+pH+TN..ug.L+chla..ug.L,
+mod.mult.copepod<-lm(prop.plant.mean~temp..C+pH+TN..ug.L+chla..ug.L,
              data=copep.plant)
 
 # model fit
@@ -1351,19 +1421,19 @@ hist(mod.mult.copepod$residuals)
 qqnorm(mod.mult.copepod$residuals)
 qqline(mod.mult.copepod$residuals)
 
-sigma(mod.mult.copepod)/mean(copep.plant$Prop.plant) #43% error rate. 
+sigma(mod.mult.copepod)/mean(copep.plant$prop.plant.mean) #49% error rate. 
 
 # run model selection
 copep.mods<-stepAIC(mod.mult.copepod, trace=TRUE)
 
-# best model is with TN (p=0.041) and temp (0.229) R2-adjust = 0.328, RSE= 0.096
-mod.mult.copepod<-lm(Prop.plant~TN..ug.L+temp..C,
+# best model is with TN (p=0.041) and temp (0.229), R2-adjust = 0.328, RSE= 0.096
+mod.mult.copepod<-lm(prop.plant.mean~TN..ug.L+temp..C,
              data=copep.plant)
 summary(mod.mult.copepod)
 Anova(mod.mult.copepod, type=2)
 
 # copepods, N significant
-copepod.TN<-ggplot(copep.plant, aes(x=TN..ug.L, y=Prop.plant)) +
+copepod.TN<-ggplot(copep.plant, aes(x=TN..ug.L, y=prop.plant.mean)) +
   geom_smooth(method = lm, color="darkred", alpha=0.2, fill="darkred")+
   geom_point(color="coral", size=2)+
   ylab("Proportion Plant-EAA")+
@@ -1372,7 +1442,7 @@ copepod.TN<-ggplot(copep.plant, aes(x=TN..ug.L, y=Prop.plant)) +
   theme_classic()
 
 # copepods, Temp barely a trend, nothing clear
-copepod.Temp<-ggplot(copep.plant, aes(x=temp..C, y=Prop.plant)) +
+copepod.Temp<-ggplot(copep.plant, aes(x=temp..C, y=prop.plant.mean)) +
   geom_smooth(method = lm, color="darkred", alpha=0.2, fill="darkred")+
   geom_point(color="coral", size=2)+
   ylab("Proportion Plant-EAA")+

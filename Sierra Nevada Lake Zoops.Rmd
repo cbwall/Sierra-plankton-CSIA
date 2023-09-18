@@ -40,7 +40,7 @@ knitr::opts_chunk$set(warning=FALSE, message=FALSE, fig.align='center')
 if (!require("pacman")) install.packages("pacman") # for rapid install if not in library
 
 # use pacman to load all the packages you are missing!
-pacman::p_load('knitr', 'lme4', 'lmerTest', 'tidyverse', 'effects', 'plyr', 'dplyr', 'plotrix', 'car',"gridExtra", "cowplot", "tools", "mgcv", "gratia", "MASS", "stats", "tidymv", "sjstats", "coin", "emmeans", "ggplot2", "mda", "nortest", "reshape2", "gmm", "propagate","ggmap", "RgoogleMaps", "MixSIAR","GGally", "ggbiplot", "ggcorrplot")
+pacman::p_load('knitr', 'lme4', 'lmerTest', 'tidyverse', 'effects', 'plyr', 'dplyr', 'plotrix', 'car',"gridExtra", "cowplot", "tools", "mgcv", "gratia", "MASS", "stats", "tidymv", "sjstats", "coin", "emmeans", "ggplot2", "mda", "nortest", "reshape2", "gmm", "propagate","ggmap", "RgoogleMaps", "MixSIAR","GGally", "ggbiplot", "ggcorrplot", "vegan", "pairwiseAdonis")
 
 
 ### general formatting for figures 
@@ -323,14 +323,12 @@ dev.off()
 We will do a series of PERMANOVA and PCAs. 
 
 (1) Using the non-normalized data, test for differences among all the data at two levels using a PERMANOVA
-
 ```{r permanova prep}
 # non-normalized EAAs for sources and plankton
 # test differences in EAA among groups
 
 ESS.mods<-ESS.df.long
 
-write.csv(ESS.df.long, "ESS.df.long.csv")
 # rename factors
 ESS.mods <- ESS.mods %>% 
        dplyr::rename("orig.class" = "Type")
@@ -363,12 +361,35 @@ Group.fac<-ESS.groups  %>%
   dplyr::select(Group)
 
 # run PERMANOVA for 3 groups
-set.seed(513)
+set.seed(51)
 EAA.perm.GROUP<-adonis2(ESS.groups.dat.abs~ Group, data=Group.fac, permutations=999, method="bray")
-EAA.perm.GROUP # not-different, p=0.073
+EAA.perm.GROUP # not-different, p=0.064
 
 pairwise.adonis(ESS.groups.dat.abs, factors=c(Group.fac$Group), p.adjust.m = "none")
 # Plants differ from POM (p=0.003), plants almost significant from Zooplankton (p=0.091)
+
+####################
+#### drop the zooplankton and just look at the sources
+ESS.sources<- ESS.mods.df %>% dplyr::select(-c(orig.class, phy.group))
+ESS.sources<- ESS.sources[(ESS.sources$Lake=="Source"),]
+
+# just AAs data
+ESS.sources.dat<-ESS.sources  %>% 
+  dplyr::select(Ile, Leu, Phe, Thr, Val)
+
+# make absolute values for permanova (requires + values)
+ESS.sources.dat.abs<-abs(ESS.sources.dat)
+
+# factors
+Source.fac<-ESS.sources  %>% 
+  dplyr::select(Group)
+
+# run PERMANOVA for 2 groups: JUST SOURCES
+set.seed(500)
+EAA.perm.SOURCE<-adonis2(ESS.sources.dat.abs~ Group, data=Source.fac, permutations=999, method="bray")
+EAA.perm.SOURCE # not-different, p=0.0004
+
+
 ```
 
 - compare sources to plankton phy groups (5 levels) 
@@ -389,13 +410,14 @@ Phy.fac<-ESS.phy  %>%
   dplyr::select(phy.group)
 
 # run PERMANOVA for phy.groups and the sources
-set.seed(138)
+set.seed(13)
 EAA.perm.PHY<-adonis2(ESS.phy.dat.abs~ phy.group, data=Phy.fac, permutations=999, method="bray")
-EAA.perm.PHY # p = 0.057
+EAA.perm.PHY # p = 0.049
 
 pairwise.adonis(ESS.phy.dat.abs, factors=c(Phy.fac$phy.group), p.adjust.m = "none")
 # plants differ from POM (p=0.002)
 # plants vs copepods (p=0.013)
+
 ```
 
 - test for differences in individual EAAs among the three groups (producers [POM, plants], zooplankton)
@@ -555,6 +577,18 @@ PCA.dat.norm<- PCA.df.normAA %>%
 PCA.fac.norm<- PCA.df.normAA %>%
   dplyr::select(Lake, phy.group)
 
+####### ####### ####### ####### ####### 
+####### Run a PERMANOVA on NORMALIZED values for plankton, no sources
+PCA.dat.norm.abs<-(PCA.dat.norm+12)
+
+# run PERMANOVA
+set.seed(213)
+EAA.perm.norm.plank<-adonis2(PCA.dat.norm.abs~ phy.group, data=PCA.fac.norm, permutations=999, method="bray")
+EAA.perm.norm.plank # different at p=0.001
+
+pairwise.adonis(PCA.dat.norm.abs, factors=c(PCA.fac.norm$phy.group), p.adjust.m = "none")
+
+####### ####### ####### ####### ####### 
 # run the PCA on scaled and centered data
 set.seed(508)
 PC.plank.norm<- prcomp(PCA.dat.norm, center = TRUE, scale= TRUE) 

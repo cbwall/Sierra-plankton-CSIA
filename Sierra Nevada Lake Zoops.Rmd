@@ -341,6 +341,7 @@ str(ESS.mods)
 # select what we want JUST the 'groups' (3 levels)
 ESS.mods.df<-ESS.mods %>% 
   dplyr::select(SampleID,Lake, Group, orig.class, phy.group, Ile, Leu, Phe, Thr, Val)
+
 ```
 
 - test using the 3 groups
@@ -362,8 +363,8 @@ Group.fac<-ESS.groups  %>%
 
 # run PERMANOVA for 3 groups
 set.seed(51)
-EAA.perm.GROUP<-adonis2(ESS.groups.dat.abs~ Group, data=Group.fac, permutations=999, method="bray")
-EAA.perm.GROUP # not-different, p=0.064
+EAA.perm.GROUP<-adonis2(ESS.groups.dat.abs~ Group, data=Group.fac, permutations=999, method="euclidian")
+EAA.perm.GROUP # different, p=0.008
 
 pairwise.adonis(ESS.groups.dat.abs, factors=c(Group.fac$Group), p.adjust.m = "none")
 # Plants differ from POM (p=0.003), plants almost significant from Zooplankton (p=0.091)
@@ -386,8 +387,8 @@ Source.fac<-ESS.sources  %>%
 
 # run PERMANOVA for 2 groups: JUST SOURCES
 set.seed(500)
-EAA.perm.SOURCE<-adonis2(ESS.sources.dat.abs~ Group, data=Source.fac, permutations=999, method="bray")
-EAA.perm.SOURCE # not-different, p=0.0004
+EAA.perm.SOURCE<-adonis2(ESS.sources.dat.abs~ Group, data=Source.fac, permutations=999, method="euclidian")
+EAA.perm.SOURCE # not-different, p=0.002
 
 
 ```
@@ -411,8 +412,8 @@ Phy.fac<-ESS.phy  %>%
 
 # run PERMANOVA for phy.groups and the sources
 set.seed(13)
-EAA.perm.PHY<-adonis2(ESS.phy.dat.abs~ phy.group, data=Phy.fac, permutations=999, method="bray")
-EAA.perm.PHY # p = 0.049
+EAA.perm.PHY<-adonis2(ESS.phy.dat.abs~ phy.group, data=Phy.fac, permutations=999, method="euclidian")
+EAA.perm.PHY # p = 0.015
 
 pairwise.adonis(ESS.phy.dat.abs, factors=c(Phy.fac$phy.group), p.adjust.m = "none")
 # plants differ from POM (p=0.002)
@@ -424,6 +425,12 @@ pairwise.adonis(ESS.phy.dat.abs, factors=c(Phy.fac$phy.group), p.adjust.m = "non
 ```{r linear models raw EAA}
 # use df 'ESS.mod' defined above
 # test differences in EAA among groups
+
+ESS.mods.df$Source.Location<-ESS.mods.df$Lake
+ESS.mods.df$Source.Location<-ifelse(ESS.mods.df$Group=="POM", "Pooled.POM", 
+                                    ifelse(ESS.mods.df$Group=="Plants", "Pooled.Plants", 
+                                           as.character(ESS.mods.df$Source.Location)))
+ESS.mods.df$Source.Location<-as.factor(ESS.mods.df$Source.Location)
 
 # look at assumptions
 for(i in c(6:10)){
@@ -443,14 +450,17 @@ for(i in c(6:10)){
 # Isoleucine: no Group diff
 Ile.mod<-lm(Ile~Group, data=ESS.mods.df)
 anova(Ile.mod) # p=0.296
+plot(allEffects(Ile.mod), ylab="Ile", par.strip.text=list(cex=0.7))
 
 # Leucine: no Group diff
-Leu.mod<-lm(Leu~Group, data=ESS.mods.df)
-anova(Leu.mod) # p=0.223
+Leu.mod<-lm(Leu~ Group, data=ESS.mods.df)
+anova(Leu.mod) # p=0.226
+plot(allEffects(Leu.mod), ylab="Leu", par.strip.text=list(cex=0.7))
 
 # Phenylalanine: Group signif
 Phe.mod<-lm(Phe~Group, data=ESS.mods.df)
 anova(Phe.mod) # p=0.0005
+plot(allEffects(Phe.mod), ylab="Phe", par.strip.text=list(cex=0.7))
 
 posthoc.Phe<-emmeans(Phe.mod, ~Group)
 multcomp::cld(posthoc.Phe, Letters=letters) # POM (A), Zoop (A), Plant (B)
@@ -459,6 +469,8 @@ multcomp::cld(posthoc.Phe, Letters=letters) # POM (A), Zoop (A), Plant (B)
 # Threonine: Group signif
 Thr.mod<-lm(Thr~Group, data=ESS.mods.df)
 anova(Thr.mod) # p=0.002
+plot(allEffects(Thr.mod), ylab="Thr", par.strip.text=list(cex=0.7))
+
 posthoc.Thr<-emmeans(Thr.mod, ~Group)
 multcomp::cld(posthoc.Thr, Letters=letters) # POM (A), Zoop (AB), Plant (B)
 
@@ -466,6 +478,7 @@ multcomp::cld(posthoc.Thr, Letters=letters) # POM (A), Zoop (AB), Plant (B)
 # No group diff
 Val.mod<-lm(Val~Group, data=ESS.mods.df)
 anova(Val.mod) # p=0.275
+plot(allEffects(Val.mod), ylab="Val", par.strip.text=list(cex=0.7))
 
 ```
 
@@ -506,8 +519,8 @@ PCA.dat.raw.abs<-abs(PCA.dat.raw)
 
 # run PERMANOVA for Lake, NO SOURCE, non-norm
 set.seed(213)
-EAA.perm.LAKE<-adonis2(PCA.dat.raw.abs~Lake, data=PCA.fac, permutations=999, method="bray")
-EAA.perm.LAKE # different at p=0.001
+EAA.perm.LAKE<-adonis2(PCA.dat.raw.abs~Lake, data=PCA.fac, permutations=999, method="euclidian")
+EAA.perm.LAKE # different at p=0.001, R2=0.87 at Lake level
 
 pairwise.adonis(PCA.dat.raw.abs, factors=c(PCA.fac$Lake), p.adjust.m = "none")
 # Sunrise and Greenstone low rep, not able to make good comparisons
@@ -526,6 +539,7 @@ PC.plank<- prcomp(PCA.dat.raw, center = TRUE, scale= TRUE)
 
 PC.plank.summary<-summary(PC.plank)
 #plot(PC.plank, type="lines", main="PC.area eigenvalues")
+# 2 PCs explaiin 96% of variation, most in 1 axis (93%)
 
 
 ###### plot for PCA by Lake
@@ -583,7 +597,7 @@ PCA.dat.norm.abs<-(PCA.dat.norm+12)
 
 # run PERMANOVA
 set.seed(213)
-EAA.perm.norm.plank<-adonis2(PCA.dat.norm.abs~ phy.group, data=PCA.fac.norm, permutations=999, method="bray")
+EAA.perm.norm.plank<-adonis2(PCA.dat.norm.abs~ phy.group, data=PCA.fac.norm, permutations=999, method="euclidian")
 EAA.perm.norm.plank # different at p=0.001
 
 pairwise.adonis(PCA.dat.norm.abs, factors=c(PCA.fac.norm$phy.group), p.adjust.m = "none")

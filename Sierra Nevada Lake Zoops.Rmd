@@ -256,34 +256,34 @@ ESS.df.long$phy.group<- ifelse(ESS.df.long$Type == "calanoid", "copepoda",
 ######### figure in ggplot
 
 # plants
-Ile.plants<-as.data.frame(cbind(plants$Group, "Isoleucine", plants$Ile))
-Leu.plants<-as.data.frame(cbind(plants$Group, "Leucine", plants$Leu))
-Phe.plants<-as.data.frame(cbind(plants$Group, "Phenylalanine", plants$Phe))
-Thr.plants<-as.data.frame(cbind(plants$Group, "Threonine", plants$Thr))
-Val.plants<-as.data.frame(cbind(plants$Group, "Valine", plants$Val))
+Ile.plants<-as.data.frame(cbind(plants$Group, "Source", "Isoleucine", plants$Ile))
+Leu.plants<-as.data.frame(cbind(plants$Group, "Source", "Leucine", plants$Leu))
+Phe.plants<-as.data.frame(cbind(plants$Group, "Source", "Phenylalanine", plants$Phe))
+Thr.plants<-as.data.frame(cbind(plants$Group, "Source", "Threonine", plants$Thr))
+Val.plants<-as.data.frame(cbind(plants$Group, "Source", "Valine", plants$Val))
 
 plants.reshape.df<- rbind(Ile.plants, Leu.plants, Phe.plants, Thr.plants, Val.plants)
-colnames(plants.reshape.df)<-c("Group", "EAA", "d13C")
+colnames(plants.reshape.df)<-c("Group", "Lake", "EAA", "d13C")
 
 #POM
-Ile.pom<-as.data.frame(cbind(pom$Group, "Isoleucine", pom$Ile))
-Leu.pom<-as.data.frame(cbind(pom$Group, "Leucine", pom$Leu))
-Phe.pom<-as.data.frame(cbind(pom$Group, "Phenylalanine", pom$Phe))
-Thr.pom<-as.data.frame(cbind(pom$Group, "Threonine", pom$Thr))
-Val.pom<-as.data.frame(cbind(pom$Group, "Valine", pom$Val))
+Ile.pom<-as.data.frame(cbind(pom$Group, "Source", "Isoleucine", pom$Ile))
+Leu.pom<-as.data.frame(cbind(pom$Group, "Source", "Leucine", pom$Leu))
+Phe.pom<-as.data.frame(cbind(pom$Group, "Source", "Phenylalanine", pom$Phe))
+Thr.pom<-as.data.frame(cbind(pom$Group, "Source", "Threonine", pom$Thr))
+Val.pom<-as.data.frame(cbind(pom$Group, "Source", "Valine", pom$Val))
 
 pom.reshape.df<- rbind(Ile.pom, Leu.pom, Phe.pom, Thr.pom, Val.pom)
-colnames(pom.reshape.df)<-c("Group", "EAA", "d13C")
+colnames(pom.reshape.df)<-c("Group", "Lake", "EAA", "d13C")
 
 #zoops
-Ile.zoops<-as.data.frame(cbind(zoops$Group, "Isoleucine", zoops$Ile))
-Leu.zoops<-as.data.frame(cbind(zoops$Group, "Leucine", zoops$Leu))
-Phe.zoops<-as.data.frame(cbind(zoops$Group, "Phenylalanine", zoops$Phe))
-Thr.zoops<-as.data.frame(cbind(zoops$Group, "Threonine", zoops$Thr))
-Val.zoops<-as.data.frame(cbind(zoops$Group, "Valine", zoops$Val))
+Ile.zoops<-as.data.frame(cbind(zoops$Group, zoops$Lake, "Isoleucine", zoops$Ile))
+Leu.zoops<-as.data.frame(cbind(zoops$Group, zoops$Lake, "Leucine", zoops$Leu))
+Phe.zoops<-as.data.frame(cbind(zoops$Group, zoops$Lake, "Phenylalanine", zoops$Phe))
+Thr.zoops<-as.data.frame(cbind(zoops$Group, zoops$Lake, "Threonine", zoops$Thr))
+Val.zoops<-as.data.frame(cbind(zoops$Group, zoops$Lake, "Valine", zoops$Val))
 
 zoops.reshape.df<- rbind(Ile.zoops, Leu.zoops, Phe.zoops, Thr.zoops, Val.zoops)
-colnames(zoops.reshape.df)<-c("Group", "EAA", "d13C")
+colnames(zoops.reshape.df)<-c("Group", "Lake", "EAA", "d13C")
 
 #compiled df
 raw.EAA.reshape<-rbind(plants.reshape.df, pom.reshape.df, zoops.reshape.df)
@@ -304,7 +304,7 @@ raw.EAA.reshape$d13C<-as.numeric(raw.EAA.reshape$d13C)
 
 colors2<-c("springgreen3", "dodgerblue", "coral")
 
-# plot it
+####### plot by EAA, with groups of sources and consumers
 ggplot(raw.EAA.reshape, aes(x=EAA, y=d13C, fill=Group))+
   geom_boxplot(alpha=0.8)+
   #geom_jitter(aes(fill=Group), colour="black",pch=21, size=1)+
@@ -317,6 +317,46 @@ ggplot(raw.EAA.reshape, aes(x=EAA, y=d13C, fill=Group))+
 
 dev.copy(pdf, "figures/Fig2.Sierra Nevada Lakes Ess AA Boxplot.pdf", width = 6.5, height = 6, encod="MacRoman")
 dev.off()
+
+
+####### plot by Lake, with groups as consumers only
+raw.EAA.reshape$Lake<- factor(raw.EAA.reshape$Lake, levels=c("Lukens", "MayPond", "Sunrise2", "Blue", "Greenstone", 
+                                           "Cascade", "EasternBrook", "Granite2", "Source"))
+
+ggplot(raw.EAA.reshape, aes(x=Lake, y=d13C, fill=Group))+
+  geom_boxplot(alpha=0.8)+
+  geom_point(aes(fill=Group), colour="black",pch=21, size=1.5, alpha=0.5)+
+  scale_fill_manual(values=colors2)+ 
+  ylab(expression(paste(delta^{13}, C[EAA], " (\u2030)"))) +
+  xlab("Site: low-to-high elevation") +
+  theme_classic()
+
+dev.copy(pdf, "figures/Figx.Ess AA Boxplot.bySITE.pdf", width = 10, height = 6, encod="MacRoman")
+dev.off()
+
+# are these lakes significantly different for raw EAAs?
+lake.df<- raw.EAA.reshape[!(raw.EAA.reshape$Lake=="Source"),]
+lake.mod<-lm(d13C~ Lake, data=lake.df)
+anova(lake.mod) # significant at <0.001
+
+# make and save the plot
+plot(allEffects(lake.mod), ylab=expression(paste(delta^{13}, C[EAA], " (\u2030)")), 
+     par.strip.text=list(cex=0.7), xlab="Site: low-to-high elevation")
+dev.copy(pdf, "figures/Figx.Ess AA effect.bySITE.pdf", width = 9, height = 6, encod="MacRoman")
+dev.off()
+
+# inspect posthoc
+posthoc.lake<-emmeans(lake.mod, ~Lake)
+multcomp::cld(posthoc.lake, Letters=letters)
+# MayPond        a    
+# Sunrise2       abc  
+# Lukens         ab   
+# EasternBrook   bcd 
+# Cascade        bcd 
+# Blue           cd 
+# Greenstone     d 
+# Granite2       d 
+
 ```
 
 ### Multivariate stats
@@ -539,7 +579,7 @@ PC.plank<- prcomp(PCA.dat.raw, center = TRUE, scale= TRUE)
 
 PC.plank.summary<-summary(PC.plank)
 #plot(PC.plank, type="lines", main="PC.area eigenvalues")
-# 2 PCs explaiin 96% of variation, most in 1 axis (93%)
+# 2 PCs explaiin 96% of variation, most in 1 axis (9)
 
 
 ###### plot for PCA by Lake

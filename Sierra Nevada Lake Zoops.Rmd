@@ -334,6 +334,21 @@ ggplot(raw.EAA.reshape, aes(x=Lake, y=d13C, fill=Group))+
 dev.copy(pdf, "figures/Figx.Ess AA Boxplot.bySITE.pdf", width = 10, height = 6, encod="MacRoman")
 dev.off()
 
+### facet grid it by EAA
+ggplot(raw.EAA.reshape, aes(x=Lake, y=d13C, fill=Group))+
+  geom_boxplot(alpha=0.8)+
+  facet_grid(.~EAA,scales ="free",space="free")+
+  geom_point(aes(fill=Group), colour="black",pch=21, size=1.5, alpha=0.5)+
+  scale_fill_manual(values=colors2)+ 
+  ylab(expression(paste(delta^{13}, C[EAA], " (\u2030)"))) +
+  xlab("Site: low-to-high elevation") +
+  theme_bw()+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+dev.copy(pdf, "figures/Figx.Ess AA Boxplot.bySITE.EAA.pdf", width = 15, height = 6, encod="MacRoman")
+dev.off()
+####
+
 # are these lakes significantly different for raw EAAs?
 lake.df<- raw.EAA.reshape[!(raw.EAA.reshape$Lake=="Source"),]
 lake.mod<-lm(d13C~ Lake, data=lake.df)

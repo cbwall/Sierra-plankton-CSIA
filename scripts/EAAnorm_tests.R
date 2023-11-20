@@ -1,4 +1,6 @@
-## normalization tests SNL-plankton CSIA
+#########################################################
+#### normalization tests SNL-plankton CSIA
+#########################################################
 
 # make the PCA df-normalized, remove proportion plant, keeping sources
 # PCA.df above has sources in, removed later in 'PCA.df.trim'
@@ -190,4 +192,103 @@ LDA.phy.boxplot.n<-ggplot(LDA.df.n, aes(x=LD1, y=phy.group,
 
 LDA.phy.boxplot.n
 dev.copy(pdf, "figures/Figx.LDA.phy.boxplotNORM.pdf", width = 6, height = 6)
+dev.off()
+
+
+############################################################################
+############################################################################
+# Larsen 2013 data for microbes, plants, fungi, Daphnia
+############################################################################
+############################################################################
+lars.df<-read.csv("data/Larsen data/Larsen_EAAs.csv")
+
+
+#make ID column to run the normalization
+lars.df$SampleID<-1:nrow(lars.df)
+for(i in 1:length(lars.df$Sample.type)){
+  lars.df$Ile.n[i] <- (lars.df$Ile[i]-mean(as.numeric(lars.df[i,4:8])))
+  lars.df$Leu.n[i] <- (lars.df$Leu[i]-mean(as.numeric(lars.df[i,4:8])))
+  lars.df$Phe.n[i] <- (lars.df$Phe[i]-mean(as.numeric(lars.df[i,4:8])))
+  lars.df$Thr.n[i] <- (lars.df$Thr[i]-mean(as.numeric(lars.df[i,4:8])))
+  lars.df$Val.n[i] <- (lars.df$Val[i]-mean(as.numeric(lars.df[i,4:8])))
+}
+
+lars.df.norm<- lars.df %>% 
+  dplyr::select(Data.origin, Sample.type, Ile.n, Leu.n, Phe.n, Thr.n, Val.n)
+
+# rename column
+lars.df.norm<- lars.df.norm %>% 
+  dplyr::rename("phy.group" = "Sample.type")
+
+#remove Seston abnd Macroalgae
+lars.df.norm<-lars.df.norm[(!lars.df.norm$phy.group=="Seston" & !lars.df.norm$phy.group=="Macroalgae"),]
+
+# now contains mean normalized values for: Bacteria, Fungi, Microalgae, Soil, Daphnia
+# seaprate by producers and zoops
+
+lars.norm.prod<-lars.df.norm[!(lars.df.norm$phy.group=="Daphnia"),]
+lars.norm.Daph<-lars.df.norm[(lars.df.norm$phy.group=="Daphnia"),]
+
+# pull data together and merge
+head(LDA.prod.norm)
+LDA.prod.norm$Data.origin<-"Wall.Besser"
+LDA.zoop.norm$Data.origin<-"Wall.Besser"
+
+# rearrange
+LDA.prod.norm<- LDA.prod.norm %>% 
+  dplyr::select(Data.origin, phy.group, Ile.n, Leu.n, Phe.n, Thr.n, Val.n)
+
+LDA.zoop.norm<- LDA.zoop.norm %>% 
+  dplyr::select(Data.origin, phy.group, Ile.n, Leu.n, Phe.n, Thr.n, Val.n)
+
+# ready to merge as producers and zoops as separate dfs
+Pooled.prod.EAA.n<-rbind(LDA.prod.norm, lars.norm.prod)
+Pooled.zoop.EAA.n<-rbind(LDA.zoop.norm, lars.norm.Daph)
+
+# merge all of it in one df
+All.norm.pooled<-rbind(Pooled.prod.EAA.n,Pooled.zoop.EAA.n)
+
+
+#### #### #### #### #### #### #### #### #### 
+#### lests check out the PCA first
+# the response variables
+PCA.pool.norm<- All.norm.pooled %>%
+  dplyr::select(Ile.n, Leu.n, Phe.n, Thr.n, Val.n)
+
+# the factors 
+PCA.pool.norm.fac<- All.norm.pooled %>%
+  dplyr::select(Data.origin, phy.group)
+
+# run the PCA on scaled and centered data
+PC.pooled.norm<- prcomp(PCA.pool.norm, center = TRUE, scale= TRUE) 
+
+PC.pooled.norm.summ<-summary(PC.pooled.norm)
+#plot(PC.plank, type="lines", main="PC.area eigenvalues")
+
+
+
+###### plot for PCA by Lake
+#LDA box plot by phy.group
+phy.10.colors<-c("chartreuse4", "dodgerblue", "gold2", "pink2", "cyan3", "lightsalmon2","gray65", "darkorange",  "firebrick2", "darkgoldenrod3")
+
+## PC1 and PC2
+PCA.pooled.norm <- ggbiplot(PC.pooled.norm, choices = 1:2, obs.scale = 1, var.scale = 1, 
+                          groups=PCA.pool.norm.fac$phy.group,
+                          ellipse = TRUE, circle = FALSE, alpha=0, ellipse.prob=0.70) + #alpha = zero makes points clear
+  geom_point(aes(colour=PCA.pool.norm.fac$phy.group, shape=PCA.pool.norm.fac$Data.origin), size = 2) +
+  scale_x_continuous(breaks=pretty_breaks(n=5))+
+  scale_color_manual(values=phy.10.colors)+
+  #scale_shape_manual(values=c(16,1,22,2,3))+
+  theme(axis.ticks.length=unit(-0.25, "cm"), axis.text.y=element_text(margin=unit(c(0.5, 0.5, 0.5, 0.5), "cm")), axis.text.x=element_text(margin=unit(c(0.5, 0.5, 0.5, 0.5), "cm"))) +
+  ggtitle("ESS-norm")+
+  theme_classic()+
+  theme(legend.text=element_text(size=10), 
+        panel.background = element_rect(colour = "black", linewidth=1),
+        element_blank(), aspect.ratio=0.8, axis.ticks.length=unit(-0.25, "cm"),
+        axis.text.y=element_text(margin=unit(c(0.5, 0.5, 0.5, 0.5), "cm")),
+        axis.text.x=element_text(margin=unit(c(0.5, 0.5, 0.5, 0.5), "cm")))
+
+### export it
+pdf(file= "figures/Figx.PCA.norm.POOL.pdf", height=7, width=8)
+plot_grid(PCA.pooled.norm)
 dev.off()

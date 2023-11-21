@@ -399,6 +399,7 @@ ESS.mods.df<-ESS.mods %>%
 
 ```
 
+How are these PERMANOVA's used? should they be on a scaled and centered matrix? Should this be done after PCA?
 - test using the 3 groups
 ```{r permanova 1}
 #### #### #### #### #### #### #### #### #### #### #### 
@@ -421,9 +422,13 @@ set.seed(51)
 EAA.perm.GROUP<-adonis2(ESS.groups.dat.abs~ Group, data=Group.fac, permutations=999, method="euclidian")
 EAA.perm.GROUP # different, p=0.008
 
+set.seed(51)
 pairwise.adonis(ESS.groups.dat.abs, factors=c(Group.fac$Group), p.adjust.m = "none")
-# Plants differ from POM (p=0.003), plants almost significant from Zooplankton (p=0.091)
+# Plants differ from POM (p=0.005), plants almost significant from Zooplankton (p=0.086)
+```
 
+Just with producers only
+```{r permanova 2, eval=FALSE}
 ####################
 #### drop the zooplankton and just look at the sources
 ESS.sources<- ESS.mods.df %>% dplyr::select(-c(orig.class, phy.group))
@@ -449,7 +454,7 @@ EAA.perm.SOURCE # not-different, p=0.002
 ```
 
 - compare sources to plankton phy groups (5 levels) 
-```{r permanova 2}
+```{r permanova 3}
 #### #### #### #### #### #### #### #### #### #### #### 
 #### df just for the "Phy.group", which drops lake and phy.group
 ESS.phy<- ESS.mods.df %>% dplyr::select(-c(Lake, Group, orig.class))
@@ -470,11 +475,13 @@ set.seed(13)
 EAA.perm.PHY<-adonis2(ESS.phy.dat.abs~ phy.group, data=Phy.fac, permutations=999, method="euclidian")
 EAA.perm.PHY # p = 0.015
 
+set.seed(133)
 pairwise.adonis(ESS.phy.dat.abs, factors=c(Phy.fac$phy.group), p.adjust.m = "none")
 # plants differ from POM (p=0.002)
-# plants vs copepods (p=0.013)
+# plants vs copepods (p=0.010)
 
 ```
+
 
 - test for differences in individual EAAs among the three groups (producers [POM, plants], zooplankton)
 ```{r linear models raw EAA}
@@ -619,9 +626,10 @@ PCA.lake.plank <- ggbiplot(PC.plank, choices = 1:2, obs.scale = 1, var.scale = 1
 
 ```
 
+*NOT USED*
 - Make a PCA for plankton, mean-normalizing EAAs
 - this compared the sources relative to zooplankton phy.groups
-```{r PCA zoops normEAA}
+```{r PCA zoops normEAA, eval=FALSE}
 # make the PCA df-normalized, remove proportion plant, keeping sources
 # PCA.df above has sources in, removed later in 'PCA.df.trim'
 # make ID column to run the normalization
@@ -655,6 +663,8 @@ set.seed(213)
 EAA.perm.norm.plank<-adonis2(PCA.dat.norm.abs~ phy.group, data=PCA.fac.norm, permutations=999, method="euclidian")
 EAA.perm.norm.plank # different at p=0.001
 
+# This is table S4
+set.seed(217)
 pairwise.adonis(PCA.dat.norm.abs, factors=c(PCA.fac.norm$phy.group), p.adjust.m = "none")
 
 ####### ####### ####### ####### ####### 

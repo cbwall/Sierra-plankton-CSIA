@@ -524,7 +524,7 @@ plot(allEffects(Val.mod), ylab="Val", par.strip.text=list(cex=0.7))
 - Make a non-norm PCA with values to explore the differences at the base of the food web in d13C values across sites
 - Make a norm-PCA with values to explore differences among the groups
 - These Permanova are in Table S4, with PCA Figure S3ab
-```{r perman lake rawEAA}
+```{r rawEAA perman lake}
 # non-normalized data for the lake analysis
 
 ###########PCA
@@ -578,7 +578,7 @@ pairwise.adonis(PCA.dat.raw.abs, factors=c(PCA.fac$Lake), p.adjust.m = "none")
 - message: normalizing reduces the noise from sampling sites, as per Larsen
 - normalization gives greater resolution to *PLANKTON* effects
 - this is in Table S4
-```{r perman EAAnorm lake}
+```{r rawEAA perman zoop}
 # what is plankton effect if we don't normalize>?
 # remove the sources (POM and Plants)
 
@@ -601,12 +601,14 @@ set.seed(213)
 EAA.perm.nonnorm.zoop<-adonis2(PCA.dat.raw.abs.nonnorm.zoop~phy.group, data=PCA.fac.nonnorm.zoop, 
                        permutations=999, method="euclidian")
 EAA.perm.nonnorm.zoop # different at p=0.016, R2=0.23
+
+set.seed(211)
 pairwise.adonis(PCA.dat.raw.abs.nonnorm.zoop, factors=c(PCA.fac.nonnorm.zoop$phy.group), p.adjust.m = "none")
 
 ```
 
 - This is Figure S3a
-```{r PCA lake rawEAA}
+```{r rawEAA PCA lake}
 ### PCA
 # run the PCA on scaled and centered data
 set.seed(138)
@@ -641,7 +643,7 @@ PCA.lake.plank <- ggbiplot(PC.plank, choices = 1:2, obs.scale = 1, var.scale = 1
 
 - Run a permanova and PCA for mean-normalized EAAs for zooplankton and sources
 - this is in Table S4
-```{r perman zoops normEAA}
+```{r normEAA perman zoops}
 # make the PCA df-normalized, remove proportion plant, keeping sources
 # PCA.df above has sources in, removed later in 'PCA.df.trim'
 # make ID column to run the normalization
@@ -683,7 +685,7 @@ pairwise.adonis(PCA.dat.norm.abs, factors=c(PCA.fac.norm$phy.group), p.adjust.m 
 - test effect of normalization on interpretation of lake effects
 - message: normalizing reduces the noise from sampling sites, as per Larsen
 - this is in Table S4
-```{r perman EAAnorm lake}
+```{r EAAnorm perman lake}
 # what is effect of lake if we normalize>?
 # subet the PCA.df.normAA df to remove the source, only look at the plankton
 PCA.df.normAA.noSource<-PCA.df.normAA[!(PCA.df.normAA$Lake=="Source"),]

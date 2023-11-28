@@ -159,8 +159,8 @@ LDA.spp.lake.n<-ggplot(LDA.df.n, aes(x=LD1, y=Lake,
   geom_vline(xintercept=0.4, linetype="dashed", color = "gray60")+
   annotate(geom="text", label="Plant-Supported", x=-3.5, y=9.5, color="springgreen4", size=3) +
   annotate(geom="text", label="POM-Supported", x=2.5, y=9.5, color="dodgerblue", size=3) +
-  scale_fill_manual(values=phy.lda.col)+
-  scale_shape_manual(values=phy.lda.pts)+
+  scale_fill_manual(values=phy.lda.col.n)+
+  scale_shape_manual(values=phy.lda.pts.n)+
   ylab("Site: low-to-high elevation") +
   xlab("LD1") +
   theme_classic()
@@ -184,8 +184,8 @@ LDA.phy.boxplot.n<-ggplot(LDA.df.n, aes(x=LD1, y=phy.group,
   geom_vline(xintercept=0.4, linetype="dashed", color = "gray60")+
   annotate(geom="text", label="Plant-Supported", x=-3.5, y=5.5, color="springgreen4", size=3) +
   annotate(geom="text", label="POM-Supported", x=2.5, y=5.5, color="dodgerblue", size=3) +
-  scale_fill_manual(values=phy.5.colors)+
-  scale_color_manual(values=phy.5.colors)+
+  scale_fill_manual(values=phy.5.colors.n)+
+  scale_color_manual(values=phy.5.colors.n)+
   ylab("Consumer or Source") +
   xlab("LD1") +
   theme_classic()

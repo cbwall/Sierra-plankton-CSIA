@@ -140,9 +140,9 @@ site.plots
 dev.off()
 ```
 
-### Data 
+### Bulk SIA 
 
-#### BULK SIA, Symons et al
+#### Symons et al
 ```{r, Bulk SIA Symons et al}
 
 ##### Bulk stable isotope analyses (SIA)
@@ -163,7 +163,7 @@ d13C.d15N<-ggplot(bulk.iso, aes(x=d13C, y=d15N, color=type)) +
 ggsave("figures/Fig.S1.Bulk_13C.15N.pdf", encod="MacRoman", height=6, width=7)
 ```
 
-
+### Ess-AAs
 Load in the data and pull out the essential amino acids, then subset by sample type.  
 Pull in the standardized CSIA data and the ESS-AA, excluding Lysine
 ```{r essAA}
@@ -208,8 +208,8 @@ zoops<-zoops[!(zoops$Lake=="TB-tanks"),]
 write.csv(zoops, "output/SNL_zooplankton_ess_AA_data.csv", row.names=FALSE)
 ```
 
-### Ess AA boxplot
-```{r AAess box}
+#### Ess-AA boxplot
+```{r EssAA box}
 # function to bind the data frames together
 bind_cols_fill <- function(df_list) {
   max_rows <- map_int(df_list, nrow) %>% max()
@@ -374,10 +374,10 @@ multcomp::cld(posthoc.lake, Letters=letters)
 
 ```
 
-### Multivariate stats
-We will do a series of PERMANOVA and PCAs. 
+#### Multivariate stats. 
+- We will do a PERMANOVA for the EAAs to test whether the three groups differ. 
+- First, get the df organized for the analyses.
 
-(1) Using the non-normalized data, test for differences among all the data at two levels using a PERMANOVA
 ```{r permanova prep}
 # non-normalized EAAs for sources and plankton
 # test differences in EAA among groups
@@ -399,8 +399,9 @@ ESS.mods.df<-ESS.mods %>%
 
 ```
 
-How are these PERMANOVA's used? should they be on a scaled and centered matrix? Should this be done after PCA?
-- test using the 3 groups
+(1) Using the non-normalized data, test for differences among all the data at three levels using a PERMANOVA. 
+- test using the 3 groups. 
+- are there differences between zoops, POM, terrestrial plants. 
 ```{r permanova 1}
 #### #### #### #### #### #### #### #### #### #### #### 
 #### df just for the "Groups", which drops lake and phy.group
@@ -424,37 +425,12 @@ EAA.perm.GROUP # different, p=0.008
 
 set.seed(51)
 pairwise.adonis(ESS.groups.dat.abs, factors=c(Group.fac$Group), p.adjust.m = "none")
-# Plants differ from POM (p=0.005), plants almost significant from Zooplankton (p=0.086)
+# Plants differ from POM (p=0.003), plants almost significant from Zooplankton (p=0.093)
 ```
 
-Just with producers only
-```{r permanova 2, eval=FALSE}
-####################
-#### drop the zooplankton and just look at the sources
-ESS.sources<- ESS.mods.df %>% dplyr::select(-c(orig.class, phy.group))
-ESS.sources<- ESS.sources[(ESS.sources$Lake=="Source"),]
 
-# just AAs data
-ESS.sources.dat<-ESS.sources  %>% 
-  dplyr::select(Ile, Leu, Phe, Thr, Val)
-
-# make absolute values for permanova (requires + values)
-ESS.sources.dat.abs<-abs(ESS.sources.dat)
-
-# factors
-Source.fac<-ESS.sources  %>% 
-  dplyr::select(Group)
-
-# run PERMANOVA for 2 groups: JUST SOURCES
-set.seed(500)
-EAA.perm.SOURCE<-adonis2(ESS.sources.dat.abs~ Group, data=Source.fac, permutations=999, method="euclidian")
-EAA.perm.SOURCE # not-different, p=0.002
-
-
-```
-
-- compare sources to plankton phy groups (5 levels) 
-```{r permanova 3}
+```{r permanova 3, eval=FALSE}
+# not necessary to do it this way here
 #### #### #### #### #### #### #### #### #### #### #### 
 #### df just for the "Phy.group", which drops lake and phy.group
 ESS.phy<- ESS.mods.df %>% dplyr::select(-c(Lake, Group, orig.class))
@@ -544,13 +520,16 @@ plot(allEffects(Val.mod), ylab="Val", par.strip.text=list(cex=0.7))
 
 ```
 
-### PCA-EAA
-Make a raw-value PCA with values to explore the differnces at the base of the food web in d13C values.
-```{r PCA lake rawEAA}
+### PCA-EAA  
+- Make a non-norm PCA with values to explore the differences at the base of the food web in d13C values across sites
+- Make a norm-PCA with values to explore differences among the groups
+- These Permanova are in Table S4, with PCA Figure S3ab
+```{r perman lake rawEAA}
+# non-normalized data for the lake analysis
 
 ###########PCA
 library(devtools)
-install_github("vqv/ggbiplot")
+install_github("vqv/ggbiplot")AB
 library(ggbiplot)
 
 
@@ -566,7 +545,7 @@ PCA.df$Lake<- factor(PCA.df$Lake, levels=c("Lukens", "MayPond", "Sunrise2", "Blu
 PCA.df.trim<-PCA.df[!(PCA.df$Lake=="Source"),]
 
 # factors
-PCA.fac<- PCA.df.trim %>%
+PCA.df.trim<- PCA.df.trim %>%
   dplyr::select(Lake, phy.group)
 
 # the response variables
@@ -592,8 +571,42 @@ pairwise.adonis(PCA.dat.raw.abs, factors=c(PCA.fac$Lake), p.adjust.m = "none")
 # May Pond vs. others (Blue, Cascade, EasternBrook, Granite 2) (not diff from Lukens)
 # Granite2 vs. others (EasternBrook, Cascade, Blue, MayPond, Lukens)
 
-############### ####### ####### ####### 
+############### ####### ####### #######
+```
 
+- test effect of normalization on interpretation of plankton effects
+- message: normalizing reduces the noise from sampling sites, as per Larsen
+- normalization gives greater resolution to *PLANKTON* effects
+- this is in Table S4
+```{r perman EAAnorm lake}
+# what is plankton effect if we don't normalize>?
+# remove the sources (POM and Plants)
+
+# factors
+PCA.fac.nonnorm.zoop<- PCA.df %>%
+  dplyr::select(Lake, phy.group)
+
+# the response variables
+PCA.dat.nonnorm.zoop<- PCA.df %>%
+  dplyr::select(Ile, Leu, Phe, Thr, Val)
+
+
+####### ####### ####### ####### ####### 
+####### Run a PERMANOVA on absolute values for Lake, no sources
+# make absolute values for permanova
+PCA.dat.raw.abs.nonnorm.zoop<-abs(PCA.dat.nonnorm.zoop)
+
+# run PERMANOVA for Lake, NO SOURCE, non-norm
+set.seed(213)
+EAA.perm.nonnorm.zoop<-adonis2(PCA.dat.raw.abs.nonnorm.zoop~phy.group, data=PCA.fac.nonnorm.zoop, 
+                       permutations=999, method="euclidian")
+EAA.perm.nonnorm.zoop # different at p=0.016, R2=0.23
+pairwise.adonis(PCA.dat.raw.abs.nonnorm.zoop, factors=c(PCA.fac.nonnorm.zoop$phy.group), p.adjust.m = "none")
+
+```
+
+- This is Figure S3a
+```{r PCA lake rawEAA}
 ### PCA
 # run the PCA on scaled and centered data
 set.seed(138)
@@ -626,10 +639,9 @@ PCA.lake.plank <- ggbiplot(PC.plank, choices = 1:2, obs.scale = 1, var.scale = 1
 
 ```
 
-*NOT USED*
-- Make a PCA for plankton, mean-normalizing EAAs
-- this compared the sources relative to zooplankton phy.groups
-```{r PCA zoops normEAA, eval=FALSE}
+- Run a permanova and PCA for mean-normalized EAAs for zooplankton and sources
+- this is in Table S4
+```{r perman zoops normEAA}
 # make the PCA df-normalized, remove proportion plant, keeping sources
 # PCA.df above has sources in, removed later in 'PCA.df.trim'
 # make ID column to run the normalization
@@ -658,15 +670,43 @@ PCA.fac.norm<- PCA.df.normAA %>%
 ####### Run a PERMANOVA on NORMALIZED values for plankton, no sources
 PCA.dat.norm.abs<-(PCA.dat.norm+12)
 
-# run PERMANOVA
+# run PERMANOVA: This is table S4b
 set.seed(213)
 EAA.perm.norm.plank<-adonis2(PCA.dat.norm.abs~ phy.group, data=PCA.fac.norm, permutations=999, method="euclidian")
 EAA.perm.norm.plank # different at p=0.001
 
-# This is table S4
+# This is table S4b
 set.seed(217)
 pairwise.adonis(PCA.dat.norm.abs, factors=c(PCA.fac.norm$phy.group), p.adjust.m = "none")
+```
 
+- test effect of normalization on interpretation of lake effects
+- message: normalizing reduces the noise from sampling sites, as per Larsen
+- this is in Table S4
+```{r perman EAAnorm lake}
+# what is effect of lake if we normalize>?
+# subet the PCA.df.normAA df to remove the source, only look at the plankton
+PCA.df.normAA.noSource<-PCA.df.normAA[!(PCA.df.normAA$Lake=="Source"),]
+
+# the response variables
+PCA.dat.norm.noSource<- PCA.df.normAA.noSource %>%
+  dplyr::select(Ile.n, Leu.n, Phe.n, Thr.n, Val.n)
+
+# the factors 
+PCA.fac.norm.noSource<- PCA.df.normAA.noSource %>%
+  dplyr::select(Lake, phy.group)
+
+# add a factor
+PCA.dat.norm.abs.noSource<-(PCA.dat.norm.noSource+12)
+
+set.seed(213)
+EAA.perm.norm.lake<-adonis2(PCA.dat.norm.abs.noSource~ Lake, data=PCA.fac.norm.noSource, 
+                            permutations=999, method="euclidian")
+EAA.perm.norm.lake # NOT DIFFERENT at p=0.069
+```
+
+- This is Figure S3b
+```{r PCA zoops}
 ####### ####### ####### ####### ####### 
 # run the PCA on scaled and centered data
 set.seed(508)

@@ -529,7 +529,7 @@ plot(allEffects(Val.mod), ylab="Val", par.strip.text=list(cex=0.7))
 
 ###########PCA
 library(devtools)
-install_github("vqv/ggbiplot")AB
+install_github("vqv/ggbiplot")
 library(ggbiplot)
 
 
@@ -545,7 +545,7 @@ PCA.df$Lake<- factor(PCA.df$Lake, levels=c("Lukens", "MayPond", "Sunrise2", "Blu
 PCA.df.trim<-PCA.df[!(PCA.df$Lake=="Source"),]
 
 # factors
-PCA.df.trim<- PCA.df.trim %>%
+PCA.fac<- PCA.df.trim %>%
   dplyr::select(Lake, phy.group)
 
 # the response variables
@@ -633,6 +633,7 @@ PCA.lake.plank <- ggbiplot(PC.plank, choices = 1:2, obs.scale = 1, var.scale = 1
   #scale_shape_manual(values=c(16,1,22,2,3)) +
   ggtitle("ESS-raw")+
   theme_classic()+
+  guides(color = guide_legend(reverse=TRUE))+
   theme(legend.text=element_text(size=10), 
     panel.background = element_rect(colour = "black", linewidth=1),
     aspect.ratio=0.8, axis.ticks.length=unit(0.2, "cm"),
@@ -728,7 +729,7 @@ PCA.fac.norm$phy.group<-factor(PCA.fac.norm$phy.group, levels=c("POM", ">350um",
 ## PC1 and PC2
 PCA.norm.plank <- ggbiplot(PC.plank.norm, choices = 1:2, obs.scale = 1, var.scale = 1, 
                       groups=PCA.fac.norm$phy.group,
-                      ellipse = TRUE, circle = FALSE, alpha=0, ellipse.prob=0.70) +
+                      ellipse = TRUE, circle = FALSE, alpha=0, ellipse.prob=0.90) +
   geom_point(aes(colour=PCA.fac.norm$phy.group), size = 2) +
   geom_vline(xintercept=0, linetype="dashed", color = "gray60")+
   geom_hline(yintercept=0, linetype="dashed", color = "gray60")+

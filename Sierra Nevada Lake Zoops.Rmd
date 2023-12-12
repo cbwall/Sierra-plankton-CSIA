@@ -374,6 +374,37 @@ multcomp::cld(posthoc.lake, Letters=letters)
 
 ```
 
+
+#### Plotting Ess-AA d13C Fingerprints
+- Raw data to see baseline differences across sites - ZOOPLANKTON ONLY
+```{r}
+# group by sample type, lake, and EAA, then calculate the mean d13C for EAA for each group
+raw.EAA.reshape.grouped <- raw.EAA.reshape %>%
+  group_by(Group) %>%
+  group_by(Lake, .add = TRUE) %>%
+  group_by(EAA, .add = TRUE) %>%
+  dplyr::summarize(Mean = mean(d13C, na.rm = TRUE))
+
+# remove sources because we are only looking at differences across sites for zooplankton (larger sample sizes)
+raw.EAA.reshape.grouped <- raw.EAA.reshape.grouped[!(raw.EAA.reshape.grouped$Lake=="Source"),]
+
+# plot
+ggplot(raw.EAA.reshape.grouped, aes(x = EAA, y = Mean, fill = Lake)) +
+  theme_classic() +
+  geom_point(size = 5, aes(color = Lake)) +
+  ylab(expression("δ" ^"13" *"C (‰)")) +
+  theme(axis.text = element_text(size = 12, color = "black"), axis.title = element_text(size = 14, color = "black")) +
+  geom_line(data = raw.EAA.reshape.grouped, aes(x = EAA, y = Mean, color = Lake, group = Lake)) +
+  theme(aspect.ratio = 0.8) +
+  guides(color = guide_legend(reverse = TRUE)) +
+  guides(fill = FALSE)
+
+# save plot
+ggsave("figures/AA_d13C_Fingerprint_Lines.pdf", plot = last_plot())
+
+```
+
+
 #### Multivariate stats. 
 - We will do a PERMANOVA for the EAAs to test whether the three groups differ. 
 - First, get the df organized for the analyses.

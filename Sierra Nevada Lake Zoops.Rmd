@@ -387,8 +387,8 @@ raw.EAA.reshape.grouped <- raw.EAA.reshape.grouped[!(raw.EAA.reshape.grouped$Lak
 # plot
 ggplot(raw.EAA.reshape.grouped, aes(x = EAA, y = Mean, fill = Lake)) +
   theme_classic() +
-  geom_point(size = 5, aes(color = Lake)) +
-  geom_errorbar(aes(ymin = Mean-SE, ymax = Mean+SE, color = Lake), width = 0.2) +
+  geom_point(size = 3, aes(color = Lake)) +
+  geom_errorbar(aes(ymin = Mean-SE, ymax = Mean+SE, color = Lake), width = 0.0) +
   ylab(expression(paste(delta^{13},C, " (\u2030)"))) +
   theme(axis.text = element_text(size = 12, color = "black"), axis.title = element_text(size = 14, color = "black")) +
   geom_line(data = raw.EAA.reshape.grouped, aes(x = EAA, y = Mean, color = Lake, group = Lake)) +
@@ -397,7 +397,7 @@ ggplot(raw.EAA.reshape.grouped, aes(x = EAA, y = Mean, fill = Lake)) +
   guides(fill = FALSE)
 
 # save plot
-ggsave("figures/AA_d13C_Fingerprint_Lines.pdf", plot = last_plot())
+ggsave("figures/AA_d13C_Fingerprint_Lines.pdf", encod="MacRoman", plot = last_plot())
 
 ```
 

@@ -379,7 +379,7 @@ raw.EAA.reshape.grouped <- raw.EAA.reshape %>%
   group_by(Group) %>%
   group_by(Lake, .add = TRUE) %>%
   group_by(EAA, .add = TRUE) %>%
-  dplyr::summarize(Mean = mean(d13C, na.rm = TRUE))
+  dplyr::summarize(Mean = mean(d13C, na.rm = TRUE), n = n(), SD = sd(d13C, na.rm = TRUE), SE = SD/sqrt(n)) 
 
 # remove sources because we are only looking at differences across sites for zooplankton (larger sample sizes)
 raw.EAA.reshape.grouped <- raw.EAA.reshape.grouped[!(raw.EAA.reshape.grouped$Lake=="Source"),]
@@ -388,7 +388,8 @@ raw.EAA.reshape.grouped <- raw.EAA.reshape.grouped[!(raw.EAA.reshape.grouped$Lak
 ggplot(raw.EAA.reshape.grouped, aes(x = EAA, y = Mean, fill = Lake)) +
   theme_classic() +
   geom_point(size = 5, aes(color = Lake)) +
-  ylab(expression("δ" ^"13" *"C (‰)")) +
+  geom_errorbar(aes(ymin = Mean-SE, ymax = Mean+SE, color = Lake), width = 0.2) +
+  ylab(expression(paste(delta^{13},C, " (\u2030)"))) +
   theme(axis.text = element_text(size = 12, color = "black"), axis.title = element_text(size = 14, color = "black")) +
   geom_line(data = raw.EAA.reshape.grouped, aes(x = EAA, y = Mean, color = Lake, group = Lake)) +
   theme(aspect.ratio = 0.8) +

@@ -1,7 +1,7 @@
 ---
 title: "Essential amino acid δ^13^C reveal zooplankton energy channel reliance across alpine lakes"
 author: "Wall and Besser et al in *review*"
-date: "07/22/2023"
+date: "02/22/2024"
 output:
   html_document:
     code_folding: hide
@@ -155,7 +155,7 @@ Data here is from:
 *Symons, C. C., M. A. Schulhof, H. B. Cavalheri, and J. B. Shurin. 2019. Antagonistic effects of temperature and dissolved organic carbon on fish growth in California mountain lakes. Oecologia 189: 231–241. doi:10.1007/s00442-018-4298-9*. 
 
 In this study they sampled fish, grass, pines, plankton, and POM for carbon and nitrogen isotope analyses. The figure details that there is considerable overlap and high variance in these groups, making it difficult to determine degrees of allochthony contribution to consumers.
-```{r Bulk SIA Symons, fig.dim= c(5,4), fig.cap="**Figure**. Biplot of bulk tissue stable isotope analysis for carbon (δ^13^C) and nitrogen (δ^15^N) in fish, grasses, pines, POM, and zooplankton from montane lakes in the Eastern Sierra Nevada Mountains of California (data from Symons et al. 2019)."}
+```{r Bulk SIA Symons, fig.dim= c(6,4), fig.cap="**Figure**. Biplot of bulk tissue stable isotope analysis for carbon (δ^13^C) and nitrogen (δ^15^N) in fish, grasses, pines, POM, and zooplankton from montane lakes in the Eastern Sierra Nevada Mountains of California (data from Symons et al. 2019)."}
 
 ##### Bulk stable isotope analyses (SIA)
 bulk.iso<-read.csv("data/Symons iso data/Symons_Yos_bulkSIA.csv")
@@ -340,7 +340,7 @@ dev.off()
 ```
 
 Make point-line plots (mean +/-SE) for the individual AA~ESS~ pooled across samples for each lake to test for the influence of site on baseline carbon isotope values.
-```{r ESS zoop by site, results='hide', collapse=TRUE, fig.cap="**Figure**. Mean (± standard error) δ^13^C values of individual essential amino acids at each location and averaged across zooplankton groups"}
+```{r ESS zoop by site, results='hide', fig.dim=c(5,4), collapse=TRUE, fig.cap="**Figure**. Mean (± standard error) δ^13^C values of individual essential amino acids at each location and averaged across zooplankton groups"}
 # arrange by elevation
 raw.EAA.reshape$Lake<- factor(raw.EAA.reshape$Lake, 
                               levels=c("Lukens", "MayPond", "Sunrise2", "Blue", "Greenstone", 
@@ -504,9 +504,9 @@ Using the standardized δ^13^C AA~ESS~ data, we will use a PERMANOVA to test whe
 #### Permanova (non-normalized)
 (1) Using the non-normalized data, test for differences among all the data at three levels using a PERMANOVA. 
 - Test using the 3 groups: are they distinct from each other?  
-- Are these differences between zoops, POM, or terrestrial plants?  
+- Are there differences between zoops, POM, or terrestrial plants?  
 
-**Take away**: POM not different from zoops, but POM and plants differ from each other (p=0.001)
+**Take away**: POM not different from zoops, but POM and plants differ from each other (p=0.008).This is not directly used in the manuscript as "3 groups", instead we use keep taxa separated in 3 groups and compare them to plants and POM (Tabls S4B-top)
 ```{r permanova raw across producers consumers}
 #### #### #### #### #### #### #### #### #### #### #### 
 #### df just for the "Groups", which drops lake and phy.group
@@ -555,10 +555,10 @@ PCA.df<-ESS.mods.df %>%
 PCA.df$Lake<- factor(PCA.df$Lake, levels=c("Lukens", "MayPond", "Sunrise2", "Blue", "Greenstone", 
                                            "Cascade", "EasternBrook", "Granite2", "Source"))
 
-# remove the sources (POM and Plants)
+# remove the sources (POM and Plants), just look at the zooplankton which have site-level replications
 PCA.df.trim<-PCA.df[!(PCA.df$Lake=="Source"),]
 
-# factors
+# factors: just Lake sampling sites and phy.group (cladocera or copepoda, >350um)
 PCA.fac<- PCA.df.trim %>%
   dplyr::select(Lake, phy.group)
 
@@ -568,9 +568,9 @@ PCA.dat.raw<- PCA.df.trim %>%
 
 
 ####### ####### ####### ####### ####### 
-####### Run a PERMANOVA for Lake, *no sources* to test for differences among plankton by site/lake
+####### Run a PERMANOVA for Lake, *no sources* to test for differences among zooplankton by lake
 
-# run PERMANOVA for Lake, NO SOURCE, non-norm
+# run PERMANOVA for Lake non-norm
 set.seed(213)
 EAA.perm.LAKE<-adonis2(PCA.dat.raw~Lake, data=PCA.fac, permutations=999, method="euclidian")
 EAA.perm.LAKE # different at p=0.001, R2=0.87 at Lake level
@@ -588,8 +588,8 @@ pairwise.adonis(PCA.dat.raw, factors=c(PCA.fac$Lake), sim.method = "euclidian", 
 ############### ####### ####### #######
 ```
 
-Perform a PCA on the non-normalized data, this shows the ellipses according to site, pooling across full plankton communities. Sources are excluded. 
-```{r rawEAA PCA lake, results='hide', fig.cap="**Figure**. Principal component analysis of measured AA~ESS~ δ^13^C values for zooplankton groups across sampling locations, ordered from low (Lukens) to high (Granite 2) elevation."}
+Now, perform a *PCA on the non-normalized data,* this shows the ellipses according to site, pooling across full plankton communities. Sources are excluded.
+```{r rawEAA PCA lake, results='hide', fig.dim=c(6,5), fig.cap="**Figure**. Principal component analysis of measured AA~ESS~ δ^13^C values for zooplankton groups across sampling locations, ordered from low (Lukens) to high (Granite 2) elevation."}
 ### PCA
 # run the PCA on scaled and centered data
 set.seed(138)
@@ -697,8 +697,9 @@ Now that data has been mean-normalized, test effect of normalization on interpre
 
 #### Permanova (mean-norm)
 ```{r EAAnorm perman lake}
-# what is effect of lake if we normalize>?  subet the PCA.df.normAA df to REMOVE the source
-# only look at the plankton
+# what is effect of lake if we normalize>?  subet the PCA.df.normAA df to REMOVE the sources
+# only look at the plankton -- across site effects key here
+
 PCA.df.normAA.noSource<-PCA.df.normAA[!(PCA.df.normAA$Lake=="Source"),]
 
 # the response variables
@@ -727,7 +728,7 @@ PCA.fac.norm<- PCA.df.normAA %>%
   dplyr::select(Lake, phy.group)
 
 ####### ####### ####### ####### ####### 
-####### Run a PERMANOVA on NORMALIZED values for plankton, no sources
+####### Run a PERMANOVA on NORMALIZED values for plankton and sources -- testing source and zoopl.
 # run PERMANOVA
 set.seed(213)
 EAA.perm.norm.plank<-adonis2(PCA.dat.norm~ phy.group, data=PCA.fac.norm, permutations=999, method="euclidian")
@@ -743,7 +744,7 @@ pairwise.adonis(PCA.dat.norm, factors=c(PCA.fac.norm$phy.group), sim.method="euc
 #### PCA and Permanova AA~ESS-norm~ 
 Perform a PCA on the mean-normalized data to examine patterns in PCA space across the zooplankton groups and relative to their sources (POM, terrestrial plants)
 - This is Figure S4B. 
-```{r PCA zoops, results='hide', fig.cap="**Figure**. Principal component analysis (PCA) for mean-normalized AA~ESS~ δ^13^C values (AA~ESS-norm~) for zooplankton groups and sources (POM, terrestrial plants). Ellipses represent 90% confidence intervals, where group sample sizes are n ≥ 4."}
+```{r PCA zoops, results='hide', fig.dim=c(6,5), fig.cap="**Figure**. Principal component analysis (PCA) for mean-normalized AA~ESS~ δ^13^C values (AA~ESS-norm~) for zooplankton groups and sources (POM, terrestrial plants). Ellipses represent 90% confidence intervals, where group sample sizes are n ≥ 4."}
 ####### ####### ####### ####### ####### 
 # run the PCA on scaled and centered data
 set.seed(508)
@@ -907,7 +908,7 @@ write.csv(LDA.df, "output/Producer_zoop_LDA_score.csv", row.names=FALSE)
 
 #### LDA by sample-site
 Use the LDA scores, plot each score for each sample to see the variance and site-differences. 
-```{r LDA sample plot, results='hide', fig.cap="**Figure**. Linear discriminant analysis of AAESS δ13C values, with sample assignment across LD1 (linear discriminant-axis 1) from lowest (Lukens) to highest elevation (Granite 2). Dashed vertical line shows assignment of zooplankton samples as either supported by terrestrial plants or POM."}
+```{r LDA sample plot, results='hide', fig.dim=c(7,4.5), fig.cap="**Figure**. Linear discriminant analysis of AA~ESS~ δ^13^C values, with sample assignment across LD1 (linear discriminant-axis 1) from lowest (Lukens) to highest elevation (Granite 2). Dashed vertical line shows assignment of zooplankton samples as either supported by terrestrial plants or POM."}
 ##### can load in from output '("output/Producer_zoop_LDA_score.csv")'
 
 LDA.df$Elevation<-as.numeric(LDA.df$Elevation)
@@ -944,7 +945,7 @@ dev.off()
 
 #### LDA by taxa
 Use the LDA scores to make boxplots showing the assignment for each zooplankton group. This pools across all sites and emphasizes functional groups/taxa.
-```{r LDA taxa plot, results='hide', fid.dim=c(6,5), fig.cap="**Figure**. Boxplots of linear discriminant 1 (LD1) coordinates from linear discriminant analysis of AA~EES~ δ^13^C values. Dashed vertical lines demarcates assignment of zooplankton samples with terrestrial plants (left) or POM (right). "}
+```{r LDA taxa plot, results='hide', fig.dim=c(6,5), fig.cap="**Figure**. Boxplots of linear discriminant 1 (LD1) coordinates from linear discriminant analysis of AA~EES~ δ^13^C values. Dashed vertical lines demarcates assignment of zooplankton samples with terrestrial plants (left) or POM (right). "}
 ####################
 #LDA box plot by phy.group
 phy.5.colors<-c("dodgerblue", "gray85", "orange","coral2", "springgreen4")
@@ -1681,7 +1682,7 @@ copepod.Temp<-ggplot(copep.plant, aes(x=temp..C, y=prop.plant.mean)) +
 ```
 
 **Plots for multiple regression output**
-```{r regression plots, results='hide', fig.cap="**Figure**. Best-fit terms applied to multiple linear regression models testing relationships between environmental metrics and the proportional contribution of AAESS from terrestrial plants to zooplankton"}
+```{r regression plots, results='hide', fig.dim=c(8,4),fig.cap="**Figure**. Best-fit terms applied to multiple linear regression models testing relationships between environmental metrics and the proportional contribution of AA~ESS~ from terrestrial plants to zooplankton"}
 multregres.plots<-plot_grid(N.prop.plant, clad.pH.plant, copepod.TN,
                             ncol=3, nrow=1)
 

@@ -10,4 +10,4 @@ CB Wall<sup>1,Δ</sup>, AC Besser<sup>2,3,Δ</sup>, CC Symons<sup>4</sup>, S New
 <p align="center">
   <img align="center" src="https://github.com/cbwall/Sierra-plankton-CSIA/blob/main/output//photos/Fig1.sitemap_2.png" width="65%" height="60%">
 </p>
-Here, we apply compound-specific isotope analyusis (CSIA) of individual essential amino acids (AA~ESS~) to examine autochthonous (algae) and allochthonous (terretrial-plant) energy channels to alpine lake zooplankton.
+Here, we apply compound-specific isotope analyusis (CSIA) of individual essential amino acids (AA<sub>ESS</sub>) to examine autochthonous (algae) and allochthonous (terretrial-plant) energy channels to alpine lake zooplankton.

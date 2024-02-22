@@ -371,7 +371,7 @@ indiv.EAA.plot<-ggplot(raw.EAA.reshape.grouped, aes(x = EAA, y = Mean, fill = La
 indiv.EAA.plot
 
 ###############
-pdf(file= "figures/FigS4A.indivAA_Lines.pdf", height=7, width=6)
+pdf(file= "figures/FigS4A.indivAA_Lines.pdf", height=7, width=6, encod="MacRoman")
 plot_grid(indiv.EAA.plot)
 dev.off()
 ```

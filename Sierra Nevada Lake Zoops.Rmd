@@ -1,7 +1,7 @@
 ---
 title: "Essential amino acid δ^13^C reveal zooplankton energy channel reliance across alpine lakes"
 author: "Wall and Besser et al in *review*"
-date: "02/22/2024"
+date: "02/29/2024"
 output:
   html_document:
     code_folding: hide
@@ -20,18 +20,18 @@ editor_options:
 
 <center>  
   
-![**Sierra Nevada lakes and energy channel utilzation in zooplankton using δ^13^C-AA~ESS~**](output/photos/Conness_mid_up.jpg){width=80%}
+![**Image**. Sierra Nevada lakes and energy channel utilzation in zooplankton using δ^13^C-AA~ESS~.](output/photos/Conness_mid_up.jpg){width=80%}
  
 </center>  
 
   
-Compound specific isotope analysis of individual amino acids (CSIA-AA) is a new and exciting tool in the study of trophic ecology and animal nutrition. CSIA-AA are not constrained by the same spatiotemporal variability and fractionation effects observed in stable isotope analyses (SIA) of bulk tissues (carbons + lipids + proteins). Therefore, CSIA-AA represent a sea change in our ability to understand food webs and organism trophic interactions.  
+Compound specific isotope analysis of individual amino acids (CSIA-AA) is a new and exciting tool in the study of trophic ecology and animal nutrition. CSIA-AA are not constrained by the same spatiotemporal variability and fractionation effects observed in stable isotope analyses (SIA) of bulk tissues (carbons + lipids + proteins). Therefore, CSIA-AA represent a sea change in our ability to understand food webs and  trophic interactions.  
 
-Certain amino acids can only be produced by primary producers (bacteria, algae, plants, fungi). These *de novo* synthesized amino acids, termed 'essential amino acids,' must be gained by animals through feeding/dietary means. Essential amino acids are passed from producers to consumers with limited fractionation or transamination, making them an ideal tool to examine the sources of carbon in consumers. Moreover, essential amino acids differ in their isotope signatures due to the biochemical pathways found in different groups of producers (i.e., fungi, bacteria, microalgae, C~3~/C~4~/CAM plants), allowing producers signatures to be mapped with high resolution. By using multiple essential amino acids as a multivariate trait, an essential amino acid fingerprint can be used to identify the source of amino acids in consumers and the contributions and identify of producers in diets.
+Certain amino acids can only be produced by primary producers (bacteria, algae, plants, fungi). These *de novo* synthesized amino acids, termed 'essential amino acids (AA~ESS~),' must be gained by animals through feeding/dietary means. Essential amino acids are passed from producers to consumers with limited fractionation or transamination, making them an ideal tool to examine the sources of carbon in consumers. Moreover, essential amino acids differ in their isotope signatures due to the biochemical pathways found in different groups of producers (i.e., fungi, bacteria, microalgae, C~3~/C~4~/CAM plants), allowing producers signatures to be mapped with high resolution. By using multiple essential amino acids as a multivariate trait, an essential amino acid fingerprint can be used to identify the source of amino acids in consumers and the contributions and identify of producers in diets.
 
-The role of terrestrial carbon in aquatic has been viewed as a resource, a subsidy, and a determent to aquatic consumers and ecosystems. For instance, zooplankton prefer the high fatty acid content of microalgae, which is a vital source for zooplankton nutrition. However, terrestrial carbon (leaves and detritus) into lakes leads to browning and a decrease in microalgae productivity as light is attenuated. In this case, allochthonous nutrition limits primary production but can be an important resource for consumers that are able to utilize the abundant (although low quality) nutritional source.
+Terrestrial energy channels (collevtively, "allochthony") in aquatic systems is a resource for aquatic consumers and ecosystems, although its significance has been debated. Zooplankton prefer (and require) the high fatty acid content of microalgae (or autochthonous energy channels), which is a vital nutritional source.Terrestrial materials entering lakes can leads to browning and a decrease in microalgae productivity as light is attenuated. In this case, allochthonous energy channels may limits primary production but can be an important alternative resource for consumers that are able to utilize the abundant (although low quality) nutritional source.
 
-Here, we used CSIA-AA to ask whether zooplankton in high elevation (largely oligotrophic) alpine lakes of the Sierra Nevada Mountains obtain their essential amino acids from in-water producers (particulate organic matter of microalgae origin) or from terrestrial C~3~ plants (sedges, pines, broadleaf deciduous trees). We sampled 7 lakes and 1 dystropic pond across an elevation gradient (2500-3200m) and measured environmental conditions (temperature, pH, DOC, TN, TP, chlorophyll-*a*), measuring AA-carbon isotope values in producers and plankton consumers picked to individual species as well as size-fractioned plankton (>350um). 
+Here, we used CSIA-AA to ask whether zooplankton in high elevation alpine lakes of the Sierra Nevada Mountains obtain their essential amino acids from in-water producers (particulate organic matter of microalgae origin) or from terrestrial C~3~ plants (sedges, pines, broadleaf deciduous trees). We sampled 7 lakes and 1 dystropic pond across an elevation gradient (2500-3200m) and measured environmental conditions (temperature, pH, DOC, TN, TP, chlorophyll-*a*), measuring AA-carbon isotope values in producers and plankton consumers picked to individual species as well as a community size-fraction (>350um). 
 
 ```{r setup chunk, setup, include = FALSE, cache=FALSE, message=FALSE, warning=FALSE, collapse=TRUE}
 if (!require('knitr')) install.packages('knitr'); library('knitr')
@@ -597,7 +597,7 @@ PC.plank<- prcomp(PCA.dat.raw, center = TRUE, scale= TRUE)
 
 PC.plank.summary<-summary(PC.plank)
 #plot(PC.plank, type="lines", main="PC.area eigenvalues")
-# 2 PCs explaiin 96% of variation, most in 1 axis (9)
+# 2 PCs explain 96% of variation, most in 1 axis (9)
 
 ###### plot for PCA by Lake
 ## PC1 and PC2

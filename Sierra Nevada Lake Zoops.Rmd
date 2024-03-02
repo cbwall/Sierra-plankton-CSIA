@@ -741,6 +741,73 @@ set.seed(217)
 pairwise.adonis(PCA.dat.norm, factors=c(PCA.fac.norm$phy.group), sim.method="euclidean", p.adjust.m = "none")
 ```
 
+```{r EAAn by site, results='hide', show.fig='hide'}
+# plot the EAA.n as a dot-line to illustrate why this matters compared to the previous example with measured data
+PCA.dat.norm.plot<- PCA.df.normAA %>%
+  dplyr::select(-Ile, -Leu, -Phe, -Thr, -Val)
+
+PCA.dat.norm.plot$Lake<-as.character(PCA.dat.norm.plot$Lake)
+PCA.dat.norm.plot$phy.group<-as.character(PCA.dat.norm.plot$phy.group)
+
+#zoops
+Ile.n.zoops<-as.data.frame(cbind(PCA.dat.norm.plot$Lake, 
+                                 PCA.dat.norm.plot$phy.group, "Ile.n",PCA.dat.norm.plot$Ile.n))
+Leu.n.zoops<-as.data.frame(cbind(PCA.dat.norm.plot$Lake, 
+                                 PCA.dat.norm.plot$phy.group, "Leu.n",PCA.dat.norm.plot$Leu.n))
+Phe.n.zoops<-as.data.frame(cbind(PCA.dat.norm.plot$Lake, 
+                                 PCA.dat.norm.plot$phy.group, "Phe.n",PCA.dat.norm.plot$Phe.n))
+Thr.n.zoops<-as.data.frame(cbind(PCA.dat.norm.plot$Lake, 
+                                 PCA.dat.norm.plot$phy.group, "Thr.n",PCA.dat.norm.plot$Thr.n))
+Val.n.zoops<-as.data.frame(cbind(PCA.dat.norm.plot$Lake, 
+                                 PCA.dat.norm.plot$phy.group, "Val.n",PCA.dat.norm.plot$Val.n))
+
+zoops.reshape.df.norm<- rbind(Ile.n.zoops, Leu.n.zoops, Phe.n.zoops, Thr.n.zoops, Val.n.zoops)
+colnames(zoops.reshape.df.norm)<-c("Lake", "phy.group", "EAA", "d13C.n")
+
+#compiled df
+zoops.reshape.df.norm<-zoops.reshape.df.norm[!(zoops.reshape.df.norm$Lake=="Source"),]
+
+# make factor again
+zoops.reshape.df.norm$Lake<-as.factor(zoops.reshape.df.norm$Lake)
+zoops.reshape.df.norm$phy.group<-as.factor(zoops.reshape.df.norm$phy.group)
+zoops.reshape.df.norm$d13C.n<-as.numeric(zoops.reshape.df.norm$d13C.n)
+
+zoops.reshape.df.norm<-as.data.frame(zoops.reshape.df.norm)
+# remove sources because we are only looking at differences across sites for zooplankton (larger sample sizes)
+
+# group by sample type, lake, and EAA, then calculate the mean d13C for EAA for each group
+zoops.reshape.df.norm.means <- zoops.reshape.df.norm %>%
+  group_by(Lake, .add = TRUE) %>%
+  group_by(EAA, .add = TRUE) %>%
+  dplyr::summarize(Mean = mean(d13C.n, na.rm = TRUE), 
+                   n = n(), 
+                   SD = sd(d13C.n, na.rm = TRUE), 
+                   SE = SD/sqrt(n)) 
+
+# arrange by elevation
+zoops.reshape.df.norm.means$Lake<- factor(zoops.reshape.df.norm.means$Lake, 
+                              levels=c("Lukens", "MayPond", "Sunrise2", "Blue", "Greenstone", 
+                                       "Cascade", "EasternBrook", "Granite2"))
+
+
+# plot
+indiv.EAA.plot.norm<-ggplot(zoops.reshape.df.norm.means, aes(x = EAA, y = Mean, fill = Lake)) +
+  theme_classic() +
+  geom_point(size = 3, aes(color = Lake)) +
+  geom_errorbar(aes(ymin = Mean-SE, ymax = Mean+SE, color = Lake), width = 0.0) +
+  ylab(expression(paste(delta^{13},C, " (\u2030)"))) +
+  geom_hline(yintercept=0, linetype="dashed", color = "gray60")+
+  xlab("Mean-normalized EAAs") +
+  theme(axis.text = element_text(size = 12, color = "black"), axis.title = element_text(size = 14, color = "black")) +
+  geom_line(data = zoops.reshape.df.norm.means, aes(x = EAA, y = Mean, color = Lake, group = Lake)) +
+  theme(aspect.ratio = 0.8) +
+  guides(color = guide_legend(reverse = TRUE)) +
+  guides(fill = FALSE)
+
+indiv.EAA.plot.norm
+ggsave("figures/Figx.EAAn.site.pdf", encod="MacRoman", height=6, width=7)
+```
+
 #### PCA and Permanova AA~ESS-norm~ 
 Perform a PCA on the mean-normalized data to examine patterns in PCA space across the zooplankton groups and relative to their sources (POM, terrestrial plants)
 - This is Figure S4B. 

@@ -1,4 +1,4 @@
-Year,type,Lake.ID,Lake.name,elevation..m,d13C,d15N,notes
+Year,Type,Lake.ID,Lake.name,Elevation.m,d13C,d15N,notes
 2015,fish,1,NA,3205,-16.25,5.42,"from Symons et al. 2019, Oecologia"
 2015,fish,1,NA,3205,-15.84,6.15,"from Symons et al. 2019, Oecologia"
 2015,fish,2,NA,3151,-17.99,6.93,"from Symons et al. 2019, Oecologia"

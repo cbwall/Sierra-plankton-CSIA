@@ -41,7 +41,9 @@ knitr::opts_chunk$set(warning=FALSE, message=FALSE, fig.align='center')
 if (!require("pacman")) install.packages("pacman") # for rapid install if not in library
 
 # use pacman to load all the packages you are missing!
-pacman::p_load('knitr', 'lme4', 'lmerTest', 'tidyverse', 'effects', 'plyr', 'dplyr', 'plotrix', 'car',"gridExtra", "cowplot", "tools", "mgcv", "gratia", "MASS", "stats", "tidymv", "sjstats", "coin", "emmeans", "ggplot2", "mda", "nortest", "reshape2", "gmm", "propagate","ggmap", "RgoogleMaps", "MixSIAR","GGally", "ggbiplot", "ggcorrplot", "vegan", "devtools", 'emmeans', 'multcompView', 'scales', 'pairwiseAdonis')
+pacman::p_load('knitr', 'lme4', 'lmerTest', 'tidyverse', 'effects', 'plyr', 'plotrix', 'car',"gridExtra", "cowplot", "tools", "mgcv", "gratia", "MASS", "stats", "tidymv", "sjstats", "coin", "emmeans", "ggplot2", "mda", "nortest", "reshape2", "gmm", "propagate","ggmap", "RgoogleMaps", "MixSIAR","GGally", "ggbiplot", "ggcorrplot", "vegan", "devtools", 'emmeans', 'multcompView', 'scales', 'pairwiseAdonis', "ggcorrplot", 'MASS', 'car', 'cowplot')
+
+pacman::p_load('dplyr')
 
 install_github("pmartinezarbizu/pairwiseAdonis/pairwiseAdonis")
 
@@ -1166,7 +1168,6 @@ save.image("MixSIAR_Model_Comparisons_Data.RData")
 ```{r full MixSIAR compare, eval=FALSE, echo=TRUE, fig.keep='none'}
 ##### Compare Models
 
-
 #Use 'compare_models' to get table with LOOic weights
 names(jags.mod) <- c("null", "Group_taxa","Group_Lake", "elev_Group")
 comparison.table <- compare_models(jags.mod)
@@ -1179,8 +1180,6 @@ write.csv(comparison.table, "MixSIAR_Model_Comparisons_Table.csv")
 ```{r read comp Mix summary, eval=FALSE, echo=TRUE, fig.keep='none'}
 ##### Clean and process summary stats
 #This is the data for the MixSIAR full output
-
-
 
 # read in the summary stats from mixSIAR, parse and make a dataframe, replacing spaces from .txt
 mod3.mixSIAR.output<-read.table("model_3/summary_statistics.txt", 
@@ -1328,12 +1327,12 @@ MSiar.LD.meta.EAA <- merge.data.frame(MSiar.LD.meta, EAA.df.wide,
 #### simplify data
 # select useful columns
 MSiar.LD.meta.EAA<- MSiar.LD.meta.EAA %>%
-  dplyr::select("SampleID", "Source", "Mean", "SD", "Lake.x", 
-                "orig.class", "phy.group.y", "LD.class", "LD1", "Group", 
+  dplyr::select("SampleID", "Source", "Mean", "SD", "Lake.x",
+                "orig.class.x", "phy.group.x", "LD.class", "LD1", "Group.x", 
                 "Ile", "Leu", "Phe", "Thr", "Val")
 
 MSiar.LD.meta.EAA<- MSiar.LD.meta.EAA %>% 
-  dplyr::rename("Lake" = "Lake.x", "phy.group" = "phy.group.y")
+  dplyr::rename("Lake" = "Lake.x", "orig.class" = "orig.class.x", "phy.group" = "phy.group.x", "Group" = "Group.x")
 
 
 # read in environmental data (loaded above, <-read.csv("data/SNL.envdata.csv"), "SNL.env"
@@ -1343,7 +1342,7 @@ MSiar.data.env<-merge.data.frame(MSiar.LD.meta.EAA, SNL.env, by.x = "Lake", by.y
 MSiar.data.env<- MSiar.data.env %>%
   dplyr::select("Location", "Date", "Lake", "elevation..m", "latitude", "longitude", "depth..m",
                 "secchi..m", "temp..C", "DO..perc", "cond", "pH", "DOC..mg.L",
-                "TN..ug.L", "TP..ug.L", "chla..ug.L", "SampleID", "orig.class", "phy.group", 
+                "TDN..ug.L", "TDP..ug.L", "chla..ug.L", "SampleID", "Group", "orig.class", "phy.group", 
                 "Ile", "Leu", "Phe", "Thr", "Val",
                 "LD.class", "LD1", "LD.class", "Source", "Mean", "SD")
 
@@ -1412,12 +1411,12 @@ Use the proportion of AA~ESS~ from terrestrial plants from the mixing model with
 # look at % plant contributions by environmental data
 mod.data<- final.df %>%
   dplyr::select(SampleID, Lake, elevation..m, depth..m, temp..C, DO..perc, pH, DOC..mg.L,
-                TN..ug.L, TP..ug.L, chla..ug.L, phy.group, Ile, Leu, Phe, Thr, Val, LD.class, 
+                TDN..ug.L, TDP..ug.L, chla..ug.L, phy.group, Ile, Leu, Phe, Thr, Val, LD.class, 
                 LD1, prop.plant.mean, prop.plant.SD)
 
 
 # remove data where elevation for samples is missing (ie the source samples that were pooled across all sampling sites)
-Plant.nut.env<-mod.data[!(mod.data$Lake=="Source"),] 
+Plant.nut.env<-mod.data[!(mod.data$LD.class=="Source"),] 
 
 ############# ############# ############# ############# 
 ############# look at correlation matrix, what variables strongly correlate?
@@ -1427,27 +1426,27 @@ Plant.nut.env<-mod.data[!(mod.data$Lake=="Source"),]
 # Keep predictors for the model
 reduced_data <- Plant.nut.env %>%
   dplyr::select(elevation..m, temp..C, pH,
-                TN..ug.L, TP..ug.L, chla..ug.L, DOC..mg.L)
+                TDN..ug.L, TDP..ug.L, chla..ug.L, DOC..mg.L)
 
 # Compute correlation at 2 decimal places
 corr_matrix = round(cor(reduced_data), 2)
 
 # Compute and show the  result
-ggcorrplot(corr_matrix, hc.order = TRUE, Type = "lower",
+ggcorrplot(corr_matrix, hc.order = TRUE, type = "lower",
           lab = TRUE)
 
 ### export it
 dev.copy(pdf, "figures/FigS2.correl.matrix.pdf", height=6, width=8)
 dev.off()
 
-# from here, TN, TP, DOC all correlate with >0.77 (TN and DOC at 0.94!) So only need 1 of these in a multiple linear regression
+# from here, TDN, TDP, DOC all correlate with >0.77 (TN and DOC at 0.94!) So only need 1 of these in a multiple linear regression
 ```
 
 **Multiple regressions for ALL zooplankton** = >350 um, cladocerans, copepods
 ```{r all zoop multR2, results='hide', fig.keep='none'}
 # library(MASS)
 # run a full model
-mod.mult<-lm(prop.plant.mean~temp..C+ pH+TN..ug.L+chla..ug.L,
+mod.mult<-lm(prop.plant.mean~temp..C+ pH+TDN..ug.L+chla..ug.L,
              data=Plant.nut.env)
 
 # model fit
@@ -1464,7 +1463,7 @@ sigma(mod.mult)/mean(Plant.nut.env$prop.plant.mean) #70% error rate, not awesome
 all.zoop.mods<-stepAIC(mod.mult, trace=TRUE)
 
 # best model is with chla (p=0.111) and TN (p=0.009), R2-adjust = 0.186, RSE= 0.099
-mod.mult.all<-lm(prop.plant.mean~TN..ug.L+chla..ug.L,
+mod.mult.all<-lm(prop.plant.mean~TDN..ug.L+chla..ug.L,
              data=Plant.nut.env)
 summary(mod.mult.all)
 Anova(mod.mult.all, Type=2)
@@ -1477,8 +1476,8 @@ Anova(mod.mult.all, Type=2)
 ```{r all zoop multR2 plots, results='hide', fig.keep='none'}
 ### if doing single models, the outcome is the same -- trend for chla and signifiance for DOC, TN, TP (which all correlate)
 
-# TN, all Groups
-N.prop.plant<-ggplot(Plant.nut.env, aes(x=TN..ug.L, y=prop.plant.mean)) +
+# TDN, all Groups
+N.prop.plant<-ggplot(Plant.nut.env, aes(x=TDN..ug.L, y=prop.plant.mean)) +
   geom_smooth(method = lm, color="purple", alpha=0.2, fill="purple")+
   geom_point(color="violet", size=2)+
   ylab("Proportion Plant-EAA")+
@@ -1503,7 +1502,7 @@ chla.prop.plant<-ggplot(Plant.nut.env, aes(x=chla..ug.L, y=prop.plant.mean)) +
 cladoc.plant<-Plant.nut.env[(Plant.nut.env$phy.group=="cladocera"),]
 
 # run a full model, but 3 not defined because of singularities
-mod.mult.cladoc<-lm(prop.plant.mean~temp..C+ pH+TN..ug.L+chla..ug.L,
+mod.mult.cladoc<-lm(prop.plant.mean~temp..C+ pH+TDN..ug.L+chla..ug.L,
              data=cladoc.plant)
 
 # model fit
@@ -1531,7 +1530,7 @@ Anova(mod.mult.cladoc.reduced, Type=2)
 
 ```{r cladocera multR2 plots, results='hide', fig.keep='none'}
 # this is best model for mutiple regression, RSE 0.104, R2-adjust =0.176
-mod.mult<-lm(prop.plant.mean~TN..ug.L+chla..ug.L,
+mod.mult<-lm(prop.plant.mean~TDN..ug.L+chla..ug.L,
              data=cladoc.plant)
 summary(mod.mult)
 sigma(mod.mult)/mean(Plant.nut.env$prop.plant.mean) #62% error rate
@@ -1555,7 +1554,7 @@ copep.plant<-Plant.nut.env[(Plant.nut.env$phy.group=="copepoda"),]
 #############################
 ##### Copepods
 # run a full model, but 3 not defined because of singularities
-mod.mult.copepod<-lm(prop.plant.mean~temp..C+pH+TN..ug.L+chla..ug.L,
+mod.mult.copepod<-lm(prop.plant.mean~temp..C+pH+TDN..ug.L+chla..ug.L,
              data=copep.plant)
 
 # model fit
@@ -1572,7 +1571,7 @@ sigma(mod.mult.copepod)/mean(copep.plant$prop.plant.mean) #49% error rate.
 copep.mods<-stepAIC(mod.mult.copepod, trace=TRUE)
 
 # best model is with TN (p=0.041) and temp (0.229), R2-adjust = 0.328, RSE= 0.096
-mod.mult.copepod<-lm(prop.plant.mean~TN..ug.L+temp..C,
+mod.mult.copepod<-lm(prop.plant.mean~TDN..ug.L+temp..C,
              data=copep.plant)
 summary(mod.mult.copepod)
 Anova(mod.mult.copepod, Type=2)
@@ -1583,11 +1582,11 @@ Anova(mod.mult.copepod, Type=2)
 
 ```{r Copepoda MultR2 plots, results='hide',  fig.keep='none'}
 # copepods, N significant
-copepod.TN<-ggplot(copep.plant, aes(x=TN..ug.L, y=prop.plant.mean)) +
+copepod.TN<-ggplot(copep.plant, aes(x=TDN..ug.L, y=prop.plant.mean)) +
   geom_smooth(method = lm, color="darkred", alpha=0.2, fill="darkred")+
   geom_point(color="coral", size=2)+
   ylab("Proportion Plant-EAA")+
-  xlab("Total N (ug/L)")+
+  xlab("TDN (ug/L)")+
   ggtitle("Copepoda")+
   theme_classic()
 

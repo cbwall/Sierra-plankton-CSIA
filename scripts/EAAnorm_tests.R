@@ -200,7 +200,7 @@ dev.off()
 # Larsen 2013 data for microbes, plants, fungi, Daphnia
 ############################################################################
 ############################################################################
-lars.df<-read.csv("data/Larsen data/Larsen_EAAs.csv")
+lars.df<-read.csv("data/Pooled sources/Larsen_EAAs.csv")
 
 
 #make ID column to run the normalization

@@ -1,29 +1,56 @@
-"SampleID","orig.class","phy.group","Lake","Elevation","LD1"
-"SNL-ZOOP-01A","Daphnia","cladocera","Lukens",2513,6.42415620053797
-"SNL-ZOOP-02A","Daphnia","cladocera","Lukens",2513,4.71651094539312
-"SNL-ZOOP-03A","calanoid","copepoda","Lukens",2513,3.62194776764597
-"SNL-ZOOP-04A","calanoid","copepoda","Lukens",2513,3.37356914326437
-"SNL-ZOOP-05A","calanoid","copepoda","MayPond",2714,2.33420055932612
-"SNL-ZOOP-06A","calanoid","copepoda","MayPond",2714,-0.0502543495362503
-"SNL-ZOOP-07A","calanoid","copepoda","MayPond",2714,1.13614871624204
-"SNL-ZOOP-08A","calanoid_cyclopoid","copepoda","Blue",3054,1.71347641519143
-"SNL-ZOOP-09A","calanoid_cyclopoid","copepoda","Blue",3054,1.76973795314361
-"SNL-ZOOP-10A","Daphnia","cladocera","Blue",3054,5.26790696628854
-"SNL-ZOOP-11A","Daphnia","cladocera","Blue",3054,2.41714213996558
-"SNL-ZOOP-13A","Daphnia","cladocera","Cascade",3140,0.784605948983299
-"SNL-ZOOP-14A","Daphnia","cladocera","Cascade",3140,2.47107784219812
-"SNL-ZOOP-15A","Daphnia","cladocera","EasternBrook",3155,1.23696992967776
-"SNL-ZOOP-16A","calanoid_cyclopoid","copepoda","EasternBrook",3155,3.29579081533648
-"SNL-ZOOP-17A","calanoid_cyclopoid","copepoda","EasternBrook",3155,1.48925403798932
-"SNL-ZOOP-18A","calanoid","copepoda","Granite2",3178,1.97280516191843
-"SNL-ZOOP-19A","Daphnia","cladocera","Granite2",3178,3.13087029536121
-"SNL-ZOOP-20A","Ceriodaphnia","cladocera","Granite2",3178,3.82665749023909
-"SNL-ZOOP-GFF47",">350um",">350um","Sunrise2",2830,4.36692227999861
-"SNL-ZOOP-GFF48","Holopedium","cladocera","Cascade",3140,4.74748903002668
-"SNL-ZOOP-GFF49",">350um",">350um","Blue",3054,3.75632797464172
-"SNL-ZOOP-GFF53",">350um",">350um","EasternBrook",3155,4.46943326677686
-"SNL-ZOOP-GFF65",">350um",">350um","Lukens",2513,3.69595430355491
-"SNL-ZOOP-GFF66",">350um",">350um","Greenstone",3091,4.3280512234631
-"SNL-ZOOP-GFF67",">350um",">350um","Granite2",3178,4.9528723344058
-"SNL-ZOOP-GFF69",">350um",">350um","MayPond",2714,4.48526124479589
-"SNL-ZOOP-GFF70",">350um",">350um","Cascade",3140,3.15164989175778
+"SampleID","orig.class","phy.group","Lake","Elevation.m","LD1"
+"ALR-BLUELAKE-30JUL2022-EPILITHIC-1","Algae","Algae","Blue",3054,-2.66714499571264
+"ALR-BLUELAKE-30JUL2022-EPILITHIC-2","Algae","Algae","Blue",3054,-2.37744304684868
+"ALR-BLUELAKE-30JUL2022-FILGREEN-1","Algae","Algae","Blue",3054,-3.89812660235606
+"ALR-BLUELAKE-30JUL2022-FILGREEN-2","Algae","Algae","Blue",3054,-0.764696175025131
+"ALR-BLUELAKE-30JUL2022-FILGREEN-3","Algae","Algae","Blue",3054,-3.177888490868
+"ALR-EASTBROOK-02AUG2022-EPISALMICDIATOMS-1","Algae","Algae","EasternBrook",3155,-3.92238205350774
+"ALR-EASTBROOK-02AUG2022-EPISALMICDIATOMS-2","Algae","Algae","EasternBrook",3155,-2.84774642574359
+"ALR-SUNRISE-31JUL2022-EPISALMIC-1","Algae","Algae","Sunrise2",2830,-2.4536039074614
+"ALR-SUNRISE-31JUL2022-EPISALMIC-2","Algae","Algae","Sunrise2",2830,0.147858919024577
+"SNL-POM-01","POM","POM","Cascade",3140,-3.57892191798569
+"SNL-POM-02","POM","POM","Sunrise2",2830,-1.26128157310027
+"SNL-POM-03","POM","POM","Lukens",2513,-2.64766704626806
+"SNL-POM-04","POM","POM","Blue",3054,-1.31340745437804
+"SNL-POM-05","POM","POM","MayPond",2714,-2.37907829061768
+"SNL-POM-GFF55","POM","POM","EasternBrook",3155,-2.26384922529556
+"SNL-POM-GFF62","POM","POM","Granite2",3178,-1.83399724787578
+"SNL-POM-GFF75","POM","POM","EasternBrook",3155,-2.44277525699481
+"SNL-TERPLA-01","Terrestrial Plants","Plants","Lukens",2513,4.13440775930711
+"SNL-TERPLA-07","Terrestrial Plants","Plants","Lukens",2513,5.23848162104797
+"SNL-TERPLA-08","Terrestrial Plants","Plants","MayPond",2714,3.39776998997836
+"SNL-TERPLA-10","Terrestrial Plants","Plants","MayPond",2714,4.32458519712416
+"SNL-TERPLA-13","Terrestrial Plants","Plants","Sunrise2",2830,4.21247919165543
+"SNL-TERPLA-14","Terrestrial Plants","Plants","Sunrise2",2830,3.46609944533516
+"SNL-TERPLA-15","Terrestrial Plants","Plants","Blue",3054,4.03825760238702
+"SNL-TERPLA-18","Terrestrial Plants","Plants","Blue",3054,4.94871292486137
+"SNL-TERPLA-27","Terrestrial Plants","Plants","Blue",3054,2.89700570778733
+"SNL-TERPLA-SA","Terrestrial Plants","Plants","Blue",3054,3.02435135153063
+"SNL-ZOOP-01A","Daphnia","cladocera","Lukens",2513,-3.55647933286776
+"SNL-ZOOP-02A","Daphnia","cladocera","Lukens",2513,-2.5518821255409
+"SNL-ZOOP-03A","calanoid","copepoda","Lukens",2513,-1.79294629940385
+"SNL-ZOOP-04A","calanoid","copepoda","Lukens",2513,-1.77550401199985
+"SNL-ZOOP-05A","calanoid","copepoda","MayPond",2714,-1.15899992181722
+"SNL-ZOOP-06A","calanoid","copepoda","MayPond",2714,0.96946021858708
+"SNL-ZOOP-07A","calanoid","copepoda","MayPond",2714,0.162954445652271
+"SNL-ZOOP-08A","calanoid_cyclopoid","copepoda","Blue",3054,0.15258917389344
+"SNL-ZOOP-09A","calanoid_cyclopoid","copepoda","Blue",3054,0.125517441627714
+"SNL-ZOOP-10A","Daphnia","cladocera","Blue",3054,-2.34477536044207
+"SNL-ZOOP-11A","Daphnia","cladocera","Blue",3054,-0.283172133808031
+"SNL-ZOOP-13A","Daphnia","cladocera","Cascade",3140,0.40028929521303
+"SNL-ZOOP-14A","Daphnia","cladocera","Cascade",3140,-0.878480843117249
+"SNL-ZOOP-15A","Daphnia","cladocera","EasternBrook",3155,0.379493248787145
+"SNL-ZOOP-16A","calanoid_cyclopoid","copepoda","EasternBrook",3155,-1.21761512417561
+"SNL-ZOOP-17A","calanoid_cyclopoid","copepoda","EasternBrook",3155,-0.014907127054003
+"SNL-ZOOP-18A","calanoid","copepoda","Granite2",3178,0.0891390132340317
+"SNL-ZOOP-19A","Daphnia","cladocera","Granite2",3178,-0.552787048294089
+"SNL-ZOOP-20A","Ceriodaphnia","cladocera","Granite2",3178,-0.699067993896762
+"SNL-ZOOP-GFF47",">350um",">350um","Sunrise2",2830,-2.41540559850187
+"SNL-ZOOP-GFF48","Holopedium","cladocera","Cascade",3140,-2.43209646603528
+"SNL-ZOOP-GFF49",">350um",">350um","Blue",3054,-1.82261025333872
+"SNL-ZOOP-GFF53",">350um",">350um","EasternBrook",3155,-2.08904141970294
+"SNL-ZOOP-GFF65",">350um",">350um","Lukens",2513,-2.00891569314742
+"SNL-ZOOP-GFF66",">350um",">350um","Greenstone",3091,-1.65569356255209
+"SNL-ZOOP-GFF67",">350um",">350um","Granite2",3178,-1.88290816764861
+"SNL-ZOOP-GFF69",">350um",">350um","MayPond",2714,-2.54820460179028
+"SNL-ZOOP-GFF70",">350um",">350um","Cascade",3140,-1.42052259090192

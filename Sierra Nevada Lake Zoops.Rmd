@@ -360,13 +360,13 @@ EAA.box.nrm<-ggplot(EAA.df.long, aes(x=EAA, y=d13C.n, fill=Group))+
 
 
 plot_grid(EAA.box, EAA.box.nrm, rel_widths=c(1.65,2.2), labels=c("A", "B"))
-dev.copy(pdf, "figures/FigS3.SNL.EssAA.Boxplot_rev.pdf", width = 10, height = 5)
+dev.copy(pdf, "figures/Fig2.SNL.EssAA.Boxplot_rev.pdf", width = 10, height = 5)
 dev.off()
 ```
 
 ##### Facet means: raw & norm
 Make point-line plots (mean +/-SE) for the individual AA~ESS~, both raw/measured and mean normalized. Do this for each producer group (algae, POM, terrestrial plants) and zooplankton. This will allow us to evaluate effects of normalization on different groups. *This is Figure S4A-B*.
-```{r ESS zoop by site, results='hide', fig.dim=c(5,4), collapse=TRUE, fig.cap="**Figure S4**. Mean (± standard error) δ^13^C values of individual essential amino acids in producers and plankton. Panel *(A)* is raw, non-normalized data and panel *(B)* is mean-normalized data."}
+```{r ESS zoop by site, results='hide', fig.dim=c(5,4), collapse=TRUE, fig.cap="**Figure S3**. Mean (± standard error) δ^13^C values of individual essential amino acids in producers and plankton. Panel *(A)* is raw, non-normalized data and panel *(B)* is mean-normalized data."}
 
 # Group by sample Type, Lake, and EAA, then calculate the mean d13C for EAA for each Group
 EAA.long.grouped <- EAA.df.long %>%
@@ -419,7 +419,7 @@ indiv.EAA.plot.norm<-ggplot(EAA.long.grouped, aes(x = EAA, y = Mean.d13C.n, fill
 
 
 ###############
-pdf(file= "figures/FigS4.indivAA_Lines_rev.pdf", height=9, width=12)
+pdf(file= "figures/FigS3.indivAA_Lines_rev.pdf", height=9, width=12)
 plot_grid(indiv.EAA.plot, indiv.EAA.plot.norm, rel_widths = c(1.65,2.1), labels=c("A", "B"))
 dev.off()
 ```
@@ -607,7 +607,7 @@ PCA.raw.Lake.zoop <- ggbiplot(PC.raw.zoop, choices = 1:2, obs.scale = 1, var.sca
 PCA.raw.Lake.zoop
 
 ######
-pdf(file= "figures/FigS5.PCA.location_rev.pdf", height=6, width=8)
+pdf(file= "figures/FigS4.PCA.location_rev.pdf", height=6, width=8)
 plot_grid(PCA.raw.Lake.zoop)
 dev.off()
 ```
@@ -655,9 +655,11 @@ pairwise.adonis(ESS.n.dat, factors=c(Group.n.fac$Group), sim.method = "euclidian
 # factors, reorder
 ESS.norm.perm$phy.group<-factor(ESS.norm.perm$phy.group, 
                                 levels=c("Algae", "POM", "Plants", "cladocera", "copepoda", ">350um"))
+ESS.norm.perm$category<-ifelse(ESS.norm.perm$Group == "Zooplankton", "Zooplankton", "Producer")
+ESS.norm.perm$category<-as.factor(ESS.norm.perm$category)
 
 PC.n.fac<-ESS.norm.perm  %>% 
-  dplyr::select(Lake, Group, phy.group)
+  dplyr::select(Lake, Group, phy.group, category)
 
 #run the PCA on scaled and centered data
 set.seed(508)
@@ -677,28 +679,28 @@ PCA.norm.plot <- ggbiplot(PC.norm, choices = 1:2, obs.scale = 1, var.scale = 1,
                       ellipse = TRUE, ellipse.fill = FALSE, ellipse.alpha=0.05, 
                       ellipse.prob=0.90, ellipse.linewidth =0.7,
                       circle = FALSE) +
-  geom_point(size = 3, color="black", shape=21,
-             aes(fill=PC.n.fac$phy.group)) +
+  geom_point(size = 3.5, color="black",
+             aes(fill=PC.n.fac$phy.group, shape=ESS.norm.perm$category)) +
   geom_vline(xintercept=0, linetype="dashed", color = "gray60")+
   geom_hline(yintercept=0, linetype="dashed", color = "gray60")+
   scale_x_continuous(breaks=pretty_breaks(n=5))+
   scale_color_manual(values=phy.6.colors)+
   scale_fill_manual(values=phy.6.colors)+
-  #scale_shape_manual(values=c(16,1,22,2,3))+
+  scale_shape_manual(values=c(24,21))+
   ggtitle("ESS-normalized")+
    theme_classic()+
    theme(legend.text=element_text(size=10),
     axis.ticks.length=unit(0.2, "cm"), 
     axis.text.y=element_text(margin=unit(c(0.5, 0.5, 0.5, 0.5), "cm")),
     axis.text.x=element_text(margin=unit(c(0.5, 0.5, 0.5, 0.5), "cm"))) +
-  guides(color = FALSE)
+  guides(fill = FALSE)
 
 PCA.norm.plot
 
 ### export it
-pdf(file= "figures/Figxx.PCA.norm.plank.pdf", height=6, width=8)
-plot_grid(PCA.norm.plot)
-dev.off()
+#pdf(file= "figures/Fig3A.PCA.norm.plank.pdf", height=6, width=8)
+#plot_grid(PCA.norm.plot)
+#dev.off()
 ```
 
 
@@ -709,7 +711,7 @@ Use a linear discriminant analysis (LDA) to determine separation of primary prod
 LDA has internal normalization approach, and we tested whether there is no difference in output whether data is mean-normalized or not and found no effect. Therefore, we proceed with the measured (non-mean-normalized data for subsequent analyses) of AA~ESS~ isotope fingerprinting and mixing models. In the LDA, we will use primary prodcers first, inspecting the error rate of a jackknifed - leave one out - model fit and compare classification rates. 
 
 Run training data of 3 sources to later categorized zooplankton.
-```{r LDA primary producers, results='hide'}
+```{r LDA primary producers training, results='hide'}
 # full data = 'EAA.df.wide'
 prod<- EAA.df.wide[!(EAA.df.wide$Group=="Zooplankton"),]
 
@@ -845,7 +847,7 @@ LDA.df$orig.class<-factor(LDA.df$orig.class, levels=c("Algae", "POM", "Terrestri
                                                       "Daphnia", "Holopedium"))
 
 phy.lda.col<-c("springgreen4","dodgerblue", "lightsalmon3", "gray65", "firebrick1","firebrick1", "goldenrod1", "goldenrod1","goldenrod1")
-phy.lda.pts<-c(21,21,21, 24, 22,22, 23,23,23)
+phy.lda.pts<-c(24,24,24, 21, 22,22, 23,23,23)
   
 ###
 LDA.spp.Lake<-ggplot(LDA.df, aes(x=LD1, y=Lake, fill = orig.class, shape= orig.class))+
@@ -860,8 +862,7 @@ LDA.spp.Lake<-ggplot(LDA.df, aes(x=LD1, y=Lake, fill = orig.class, shape= orig.c
   theme_classic()
 
 LDA.spp.Lake
-
-dev.copy(pdf, "figures/FigS6.LDA.spp.Lake_rev.pdf", width = 8, height = 6)
+dev.copy(pdf, "figures/FigS5.LDA.spp.Lake_rev.pdf", width = 8, height = 6)
 dev.off()
 ```
 
@@ -875,23 +876,44 @@ lda.6.colors<-c("springgreen4", "dodgerblue", "gray65", "orange", "brown1", "lig
 LDA.df$phy.group<-factor(LDA.df$phy.group, levels=c("Algae", "POM", ">350um", "cladocera", 
                                                             "copepoda",
                                                             "Plants"))
+LDA.df$category<-ifelse(LDA.df$Group == "Zooplankton", "Zooplankton", "Producer")
+LDA.df$category<-as.factor(LDA.df$category)
+
 
 LDA.phy.boxplot<-ggplot(LDA.df, aes(x=LD1, y=phy.group, 
                                  fill = phy.group))+
-  geom_boxplot(alpha=0.9)+
-  geom_jitter(aes(fill=phy.group), colour="black",pch=21, size=2) +
+  geom_boxplot(alpha=0.9, outlier.color=NA)+
+  geom_jitter(aes(fill=phy.group, shape=category), colour="black", size=2, show.legend = F) +
   geom_vline(xintercept=1.5, linetype="dashed", color = "gray60")+
   annotate(geom="text", label="Algae/POM-Classified", x=-2, y=6.5, color="dodgerblue", size=3) +
   annotate(geom="text", label="Plant-Classified", x=3.5, y=6.5, color="lightsalmon3", size=3) +
   scale_fill_manual(values=lda.6.colors)+
   scale_color_manual(values=lda.6.colors)+
+  scale_shape_manual(values=c(24,21))+
   ylab("Consumer or Source") +
   xlab("LD1") +
   theme_classic() +
-  guides(fill = guide_legend(reverse=TRUE))
+  guides(fill = guide_legend(reverse=TRUE))+
+  guides(fill = FALSE)
 
-LDA.phy.boxplot
-dev.copy(pdf, "figures/Fig2.LDA.phy.boxplot.pdf", height = 6, width = 6)
+#LDA.phy.boxplot
+#dev.copy(pdf, "figures/Fig3b.LDA.phy.boxplot.pdf", height = 6, width = 6)
+#dev.off()
+```
+
+
+```{r combined PCA and LDA taxa plot}
+#combine PCA and LDA
+extract.legend.PCA <- get_legend(
+  # create some space to the left of the legend
+  PCA.norm.plot + theme(legend.text=element_text(size=8)) + theme(legend.box.margin = margin(0, 0, 0, 10)))
+
+
+Fig.3<-plot_grid(PCA.norm.plot+guides(color = FALSE, shape=FALSE), LDA.phy.boxplot, extract.legend.PCA, 
+                 labels=c("A", "B", ""), ncol=3,
+                 rel_widths = c(1,0.8,0.3), rel_heights = c(1.5,1,0.1))
+Fig.3
+dev.copy(pdf, "figures/Fig3ab.PCA.LDA.pdf", height = 5, width = 10)
 dev.off()
 ```
 

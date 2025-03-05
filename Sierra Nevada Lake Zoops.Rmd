@@ -937,7 +937,7 @@ Mix.df.summary.phy<-aggregate(LD1~phy.group, data=Mix.df, FUN=length)
 Mix.df.summary.phy.Lake<-aggregate(LD1~Lake+phy.group, data=Mix.df, FUN=length)
 
 #Write and export a csv of the zooplankton data frame
-write.csv(Mix.df.all, "output/Mix.df.csv", row.names=FALSE)
+write.csv(Mix.df, "output/Mix.df.csv", row.names=FALSE)
 
 #Create a new data frame with desired columns
 Source.df <-  Mix.df.all[(Mix.df.all$phy.group=="Plants" | 
@@ -974,6 +974,10 @@ Now import data and create model structure. This code will run through a series 
 - Outputs from each model will be compared 
 - Compiled model outputs are reported in Table S6.
 ```{r mixsiar by sample, eval=FALSE, echo=TRUE, collapse=TRUE}
+
+# may need to download JAGS for macOS
+#https://sourceforge.net/projects/mcmc-jags/files/JAGS/4.x/Mac%20OS%20X/
+
 #Load zooplankton (consumer) data and assign factors
 cons <- load_mix_data(filename = "output/Mix.df.csv",
                           iso_names=c("LD1"),

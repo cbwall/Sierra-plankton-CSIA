@@ -636,7 +636,7 @@ ESS.n.dat<-ESS.norm.perm  %>%
 Group.n.fac<-ESS.norm.perm  %>% 
   dplyr::select(Lake, Group)
 
-# run PERMANOVA for 3 Groups
+# run PERMANOVA for 4 Groups
 set.seed(51)
 EAA.perm.Group<-adonis2(ESS.n.dat~ Group, data=Group.n.fac, permutations=999, method="euclidian", by="terms")
 EAA.perm.Group # different, Lake: p=0.004 R2=0.13, Group: p=0.001, R2=0.49
@@ -646,6 +646,21 @@ EAA.perm.Group # different, Lake: p=0.004 R2=0.13, Group: p=0.001, R2=0.49
 set.seed(51)
 pairwise.adonis(ESS.n.dat, factors=c(Group.n.fac$Group), sim.method = "euclidian", p.adjust.m = "none")
 # All groups differ from each other
+
+################################
+## what if just sources? (spoiler: same outcome)
+# run PERMANOVA for 3 Source groups
+ESS.norm.perm.source<- ESS.norm.perm[!(ESS.norm.perm$Group=="Zooplankton"),]
+ESS.norm.dat.source<-ESS.norm.perm.source  %>% dplyr::select(Ile.n, Leu.n, Phe.n, Thr.n, Val.n)
+Source.n.fac<-ESS.norm.perm.source  %>%  dplyr::select(Lake, Group)
+
+set.seed(51)
+EAA.perm.Source<-adonis2(ESS.norm.dat.source~ Group, data=Source.n.fac, permutations=999, method="euclidian", by="terms")
+EAA.perm.Source
+
+# run pairwise
+set.seed(51)
+pairwise.adonis(ESS.norm.dat.source, factors=c(Source.n.fac$Group), sim.method = "euclidian", p.adjust.m = "none")
 ```
 
 (2) Perform a PCA on the mean-normalized data to examine patterns in PCA space across the zooplankton groups relative to their sources (POM, algae, terrestrial plants)
@@ -735,14 +750,21 @@ diag(prop.table(All.reclass, 1))
 All.train <- lda(Group~ Ile + Leu + Phe + Thr + Val, data = prod)
 All.train
 
-#Write a csv file for the coefficients of LD1
+#plot LD1 and LD2 to show the sources
+Source.LDA<-ggord(All.train,prod$Group, arrow=0,
+      txt = NULL, veclsz = 0, vectyp="blank",# remove vectors and arrows
+      cols=c("springgreen4","dodgerblue", "lightsalmon3"), grp_title= "Producers",
+      ellipse_pro = 0.95, xlim=c(-6,6), ylim=c(-5,5)) + theme_classic() +theme(legend.position = 'top')
+
+
+#Write a csv file for the coefficients of LD1/2
 lda.info <- as.data.frame(All.train$scaling)
 write.csv(lda.info, "output/SNL_Producers_LDA_loadings_NMX.csv", row.names=FALSE)
 
 #Create a data frame with these LDA coordinates
 AllProdPredict <- data.frame(Group = prod$Group, SampleID = prod$SampleID, predict(All.train)$x)
 
-#Write a csv file for the LDA coordinatinates
+#Write a csv file for the LDA coordinates
 write.csv(AllProdPredict, "output/SNL_Producers_LDA_coords_NMX.csv", row.names=FALSE)
 ```
 
@@ -761,10 +783,6 @@ All.reclass <- table(zoops$Group, zoop.predict$class) # 25 as POM, 3 as algae, 0
 #Write a csv file for the zooplankton LDA info
 write.csv(zoop.predict.data, "output/SNL_Zooplankton_LDA_info_NMX.csv", row.names=FALSE)
 
-### alternative coding
-pacman::p_load('devtools', 'ggord')
-ord <- lda(Species ~ ., iris, prior = rep(1, 3)/3)
-ggord(ord, iris$Species)
 ```
 
 Now that we have new data, let's combine it with the previous data so that we have a unified dataframe with the measured AA~ESS~ data, sampling information, and LD-classification and LD1 coordinate.  
@@ -803,7 +821,6 @@ zoop.predict.data.NMX <- zoop.predict.data.NMX %>%
 
 zoop.predict.data.NMX <- zoop.predict.data.NMX %>% 
        dplyr::rename("LD.class" = "zoop.predict.class")
-
 
 ####### bind the 2 dfs
 LDA.df<-rbind(zoop.predict.data.NMX, AllProdPredict.mod)
@@ -901,7 +918,43 @@ LDA.phy.boxplot<-ggplot(LDA.df, aes(x=LD1, y=phy.group,
 #dev.off()
 ```
 
+Run the LDA as biplot at different levels
+```{r LD biplot}
+LDA.df$Group<-as.factor(LDA.df$Group)
 
+lda.4.colors<-c("springgreen4", "dodgerblue", "lightsalmon3", "gray30")
+
+# version 1 with pooled plankton 
+LDA.scat.Group<-ggplot(LDA.df, aes(x=LD1, y=LD2))+
+  geom_point(size = 3.5, color="black",
+             aes(fill=Group, color=Group, shape=Group), alpha=0.9) +
+  stat_ellipse(type = "norm", level=0.90, linewidth=0.5, aes(lty=Group, color=Group))+
+  scale_color_manual(values=lda.4.colors)+
+  scale_fill_manual(values=lda.4.colors)+
+  scale_shape_manual(values=c(24, 24, 24 ,21))+
+  scale_linetype_manual(values=c(2,2,2,0))+
+  xlab("LD1") + ylab("LD2") +
+  theme_classic() + guides(lty = "none")
+
+
+#version 2 with plankton groups separated out
+LDA.scat.phygroup<-ggplot(LDA.df, aes(x=LD1, y=LD2))+
+  geom_point(size = 3.5, color="black",
+             aes(fill=phy.group, color=phy.group, shape=phy.group), alpha=0.9) +
+  stat_ellipse(type = "norm", level=0.90, linewidth=0.5, aes(lty=phy.group, color=phy.group))+
+  scale_color_manual(values=lda.6.colors)+
+  scale_fill_manual(values=lda.6.colors)+
+  scale_shape_manual(values=c(24, 24, 21 ,21, 21, 24))+
+  scale_linetype_manual(values=c(2,2,0,0,0, 2))+
+  xlab("LD1") + ylab("LD2") +
+  theme_classic() + guides(lty = "none")
+
+plot_grid(Source.LDA, LDA.scat.Group, LDA.scat.phygroup, ncol=3, labels=c("A", "B", "C"), rel_widths = c(1,1.2,1.2))
+dev.copy(pdf, "figures/FigSx.Source.Plank.scat.LDA3.pdf", width = 14, height = 4)
+dev.off()
+```
+
+Combine LD1-boxplots and PCA
 ```{r combined PCA and LDA taxa plot}
 #combine PCA and LDA
 extract.legend.PCA <- get_legend(
@@ -918,19 +971,79 @@ dev.off()
 ```
 
 ### MixSIAR
-Firest, export zooplankton and source data to feed into MixSIAR. We will calcualte the mean, standard deviations, and sample sized for LD1 values of the sources.
-```{r mixsiar sources}
+We will first run MixSIAR to determine the proportion of algae/terrestrial material in the POM. This will help us validate the use of POM as a food source and its autochthony composition.
+```{r}
 #Load Packages for MixSIAR Models .... should already load in setup chunk, but just in case
-library(MixSIAR)
-library(dplyr)
-library(GGally)
+#library(MixSIAR)
+#library(dplyr)
+#library(GGally)
 
+#Create a new data frame with desired columns (Zooplankton)
+Mix.df.all <- LDA.df %>%
+  dplyr::select("SampleID", "Group", "orig.class", "phy.group", "Lake", "Elevation.m", "LD1")
+
+#Keep just POM as "consumer"
+POM.df <- Mix.df.all[(Mix.df.all$Group=="POM"),]
+POM.summary.phy.Lake<-aggregate(LD1~Lake+phy.group, data=POM.df, FUN=length)
+
+#Write and export a csv of the zooplankton data frame
+write.csv(POM.df, "output/POM.Mix.df.csv", row.names=FALSE)
+
+#Create a new data frame with desired columns
+Source.2.df <-  Mix.df.all[(Mix.df.all$phy.group=="Plants" | 
+                            Mix.df.all$phy.group=="Algae"),]
+
+#drop levels and subset
+Source.2.df$phy.group<-droplevels(Source.2.df$phy.group)
+Source.2.df <- Source.2.df %>%
+  dplyr::select("phy.group", "LD1")
+
+#Calculate mean, SD, and length LD1 values of the sources
+mean.df.mix <- aggregate(LD1~phy.group, data=Source.2.df, FUN=mean)
+sd.df.mix <- aggregate(LD1~phy.group, data=Source.2.df, FUN=sd)
+n.df.mix <- aggregate(LD1~phy.group, data=Source.2.df, FUN=length)
+
+#Bind the values calculated above into one data frame
+source.2.agg.df <- cbind(n.df.mix, mean.df.mix[2], sd.df.mix[2])
+
+#Rename the columns in this data frame
+colnames(source.2.agg.df) <- c("phy.group", "n", "MeanLD1", "SDLD1")
+
+#Write and export a csv of the source data frame
+write.csv(source.2.agg.df, "output/source.2.agg.df.csv", row.names=FALSE)
+
+###################
+#Load zooplankton (consumer) data and assign factors
+cons <- load_mix_data(filename = "output/POM.Mix.df.csv",
+                          iso_names=c("LD1"),
+                          factors=c("SampleID"),
+                          fac_random=c(FALSE),
+                          fac_nested=c(FALSE),
+                          cont_effects=NULL)
+#SampleID is a fixed factor
+
+#Load source data
+source <- load_source_data(filename="output/source.2.agg.df.csv",
+                             source_factors=NULL,
+                             conc_dep=FALSE,
+                             data_type="means",
+                             cons)
+
+#Load TDF data
+discr <- load_discr_data(filename="data/MixSIAR_prod.TDFs.csv", cons)
+
+```
+
+
+
+Export zooplankton and source data to feed into MixSIAR. We will calculate the mean, standard deviations, and sample sized for LD1 values of the sources.
+```{r mixsiar sources}
 #Create a new data frame with desired columns (Zooplankton)
 Mix.df.all <- LDA.df %>%
   dplyr::select("SampleID", "orig.class", "phy.group", "Lake", "Elevation.m", "LD1")
 
 #Remove Plants, algae and POM from the data frame
-Mix.df <- Mix.df.all[!(Mix.df.all$phy.group=="Plants" | Mix.df.all$orig.class=="POM" |  Mix.df.all$orig.class=="Algae"),]
+Mix.df <- Mix.df.all[!(Mix.df.all$orig.class=="Plants" | Mix.df.all$orig.class=="POM" |  Mix.df.all$orig.class=="Algae"),]
 
 Mix.df.summary.Lake<-aggregate(LD1~Lake, data=Mix.df, FUN=length)
 Mix.df.summary.phy<-aggregate(LD1~phy.group, data=Mix.df, FUN=length)
@@ -967,6 +1080,104 @@ colnames(source.agg.df) <- c("phy.group", "n", "MeanLD1", "SDLD1")
 #Write and export a csv of the source data frame
 write.csv(source.agg.df, "output/source.agg.df.csv", row.names=FALSE)
 
+##########################
+# Run MixSIAR by-sample Model
+set.seed(12)
+
+#Define the model and error structure and write JAGS model file
+  model_filename <- "output/MixSIAR_models/SampleID_prod_models/MixSIAR_Model_SampleID_fixed.txt"
+  resid_err <- FALSE
+  process_err <- TRUE
+  write_JAGS_model(model_filename, resid_err, process_err, cons, source)
+  
+#Run the JAGS model
+invt.jags.mod <- run_model(run="normal", cons, source, discr, model_filename, alpha.prior=1, resid_err, process_err)
+  
+#Process diagnostics, summary stats, and posterior plots
+  output_JAGS(invt.jags.mod, cons, source, output_options=list(
+    summary_save = TRUE,                   
+    summary_name = "output/MixSIAR_models/SampleID_prod_models/MixSIAR_SampleID_summary_stats",
+    sup_post = FALSE,                       
+    plot_post_save_pdf = TRUE,              
+    plot_post_name = "output/MixSIAR_models/SampleID_prod_models/MixSIAR_SampleID_posterior_density",   
+    sup_pairs = TRUE,                       
+    plot_pairs_save_pdf = TRUE,             
+    plot_pairs_name = "output/MixSIAR_models/SampleID_prod_models/MixSIAR_SampleID_pairs_plot",         
+    sup_xy = TRUE,                          
+    plot_xy_save_pdf = TRUE,                
+    plot_xy_name = "output/MixSIAR_models/SampleID_prod_models/MixSIAR_SampleID_xy_plot",             
+    gelman = TRUE,                         
+    heidel = FALSE,                         
+    geweke = TRUE,                         
+    diag_save = TRUE,                       
+    diag_name = "output/MixSIAR_models/SampleID_prod_models/MixSIAR_SampleID_diagnostics",
+    indiv_effect = FALSE,
+    plot_post_save_png = FALSE,            
+    plot_pairs_save_png = FALSE,            
+    plot_xy_save_png = FALSE))
+    graphics.off()
+
+#save all results
+save.image("output/MixSIAR_models/SampleID_prod_models/MixSIAR_SampleID_fixed_data.RData")
+
+#############################
+SAMP.mixSIAR.output<-read.table("output/MixSIAR_models/SampleID_prod_models/MixSIAR_SampleID_summary_stats.txt", sep='\t', header=TRUE, skip=6)
+
+SAMP.mixSIAR.output<-as.data.frame(SAMP.mixSIAR.output)
+colnames(SAMP.mixSIAR.output)<-"full.data"
+
+# remove all extra spaces using "squish", make them 1 space only
+library(stringr)
+SAMP.mixSIAR.output$full.data<- str_squish(SAMP.mixSIAR.output$full.data)
+
+# rename columns
+library(plyr)
+samp.mix.out<-separate(SAMP.mixSIAR.output, full.data, into = c("factor", "Mean", "SD", "2.5.perc", "5.perc", "25.perc", "50.perc", "75.perc", "95.perc", "97.5.perc"), sep=" ")
+
+# parse the factors here into 3 columns
+new.cols<- stringr::str_split_fixed(samp.mix.out$factor, "\\.", 3) %>%
+        as.data.frame() %>%
+       setNames(c("proportion", "SampleID", "Source"))
+
+new.cols<- new.cols %>%
+  dplyr::select("SampleID", "Source")
+
+# combine the new, separated columns with the data, verify the levels match, then remove "factor"
+Samp.out.cleaned<-cbind(new.cols, samp.mix.out[1:10])
+Samp.out.cleaned<-Samp.out.cleaned %>%
+  dplyr::select(-factor)
+                          
+write.csv(Samp.out.cleaned, "output/MixSIAR_prod_Samp.df.csv", row.names=FALSE)
+############
+aggregate(Mean~Source, data=Samp.out.cleaned, FUN=mean)
+aggregate(Mean~Source, data=Samp.out.cleaned, FUN=sd)
+
+#plot it
+Samp.out.cleaned$Group<-as.factor(Samp.out.cleaned$Source)
+Samp.out.cleaned$Mean<-as.numeric(Samp.out.cleaned$Mean)
+
+POM.mixsiar.plot<-ggplot(Samp.out.cleaned, aes(y=Mean, x=Source))+
+geom_boxplot(alpha=0.8, aes(fill=Source))+
+  geom_jitter(aes(fill=Source), colour="black",pch=21, size=2)+
+  scale_fill_manual(values=colors2)+ 
+  coord_cartesian(ylim=c(0, 1)) +
+  ylab(expression(paste("Energy channel proportion"))) +
+  xlab("Source") +
+  theme_classic()
+
+POM.mixsiar.plot<-ggplot(Samp.out.cleaned, aes(y=Mean, x=Source))+
+geom_boxplot(alpha=0.8, aes(fill=Source))+
+  geom_jitter(aes(fill=Source), colour="black",pch=21, size=2)+
+  scale_fill_manual(values =c("springgreen4", "lightsalmon3")) +
+  scale_color_manual(values =c("springgreen4", "lightsalmon3")) +
+  coord_cartesian(ylim=c(0, 1)) +
+  ylab(expression(paste("Energy channel proportion"))) +
+  xlab("Source") +
+  theme_classic()
+
+pdf(file= "figures/Figx.Phy.mixsiar.pdf", height=4, width=3)
+POM.mixsiar.plot
+dev.off()
 ```
 
 #### MixSIAR: by-sample models

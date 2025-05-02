@@ -766,62 +766,15 @@ pairwise.adonis(ESS.norm.dat.source, factors=c(Source.n.fac$Group), sim.method =
 ```
 
 #### PCA 
-Use the mean-normalized data to examine patterns in PCA space across the zooplankton groups relative to their sources (POM, algae, terrestrial plants)
+Use the mean-normalized data to examine patterns in PCA space across sources (POM, algae, terrestrial plants)
 *This is Figure S5*
-```{r PCA zoops, results='hide', fig.dim=c(6,5), fig.cap="**Figure S5**. Principal component analysis (PCA) for mean-normalized AA~ESS~ δ^13^C values (AA~ESS-norm~) for zooplankton Groups and sources (POM, terrestrial plants). Ellipses represent 90% confidence intervals, where Group sample sizes are n ≥ 4."}
-
+```{r PCA sources, results='hide', fig.dim=c(6,5), fig.cap="**Figure S5**. Principal component analysis (PCA) for mean-normalized AA~ESS~ δ^13^C values (AA~ESS-norm~) for sources (POM, terrestrial plants). Ellipses represent 95% confidence intervals."}
 # factors, reorder
 ESS.norm.perm$phy.group<-factor(ESS.norm.perm$phy.group, 
                                 levels=c("Algae", "POM", "Plants", "cladocera", "copepoda", ">350um"))
 ESS.norm.perm$category<-ifelse(ESS.norm.perm$Group == "Zooplankton", "Zooplankton", "Producer")
 ESS.norm.perm$category<-as.factor(ESS.norm.perm$category)
 
-PC.n.fac<-ESS.norm.perm  %>% 
-  dplyr::select(Lake, Group, phy.group, category)
-
-#run the PCA on scaled and centered data
-set.seed(508)
-PC.norm<- prcomp(ESS.n.dat, center = TRUE, scale= TRUE) 
-
-PC.norm.summ<-summary(PC.norm) #64% in 3 PCs
-#plot(PC.norm, type="lines", main="PC.area eigenvalues")
-
-###### plot for PCA by phy group
-phy.6.colors<-c("springgreen4", "dodgerblue", "lightsalmon3", "orange", "brown1", "gray65")
-
-
-## PC1 and PC2
-PCA.norm.plot <- ggbiplot(PC.norm, choices = 1:2, obs.scale = 1, var.scale = 1, 
-                      groups=PC.n.fac$phy.group,
-                      varname.color="saddlebrown", varname.adjust = 2,
-                      ellipse = TRUE, ellipse.fill = FALSE, ellipse.alpha=0.05, 
-                      ellipse.prob=0.90, ellipse.linewidth =0.7,
-                      circle = FALSE) +
-  geom_point(size = 3.5, color="black",
-             aes(fill=PC.n.fac$phy.group, shape=ESS.norm.perm$category)) +
-  geom_vline(xintercept=0, linetype="dashed", color = "gray60")+
-  geom_hline(yintercept=0, linetype="dashed", color = "gray60")+
-  scale_x_continuous(breaks=pretty_breaks(n=5))+
-  scale_color_manual(values=phy.6.colors)+
-  scale_fill_manual(values=phy.6.colors)+
-  scale_shape_manual(values=c(24,21))+
-  ggtitle("ESS-normalized")+
-   theme_classic()+
-   theme(legend.text=element_text(size=10),
-    axis.ticks.length=unit(0.2, "cm"), 
-    axis.text.y=element_text(margin=unit(c(0.5, 0.5, 0.5, 0.5), "cm")),
-    axis.text.x=element_text(margin=unit(c(0.5, 0.5, 0.5, 0.5), "cm"))) +
-  guides(fill = FALSE)
-
-PCA.norm.plot
-
-# export it
-PCA.norm.plot
-dev.copy(pdf, "figures/FigS5.PCA.pdf", height = 5, width = 8)
-dev.off()
-```
-
-```{r PCA sources}
 # new df
 ESS.norm.source<-ESS.norm.perm[(ESS.norm.perm$category=="Producer"),]
 
@@ -871,10 +824,56 @@ PCA.norm.sorc.plot
 
 # export it
 PCA.norm.sorc.plot
-dev.copy(pdf, "figures/Figx.PCA.Sources.pdf", height = 5, width = 6.5)
+dev.copy(pdf, "figures/FigS5.PCA.Sources.pdf", height = 5, width = 6.5)
 dev.off()
 ```
 
+```{r PCA sources and zoop, eval=FALSE}
+# factors, reorder
+ESS.norm.perm$phy.group<-factor(ESS.norm.perm$phy.group, 
+                                levels=c("Algae", "POM", "Plants", "cladocera", "copepoda", ">350um"))
+ESS.norm.perm$category<-ifelse(ESS.norm.perm$Group == "Zooplankton", "Zooplankton", "Producer")
+ESS.norm.perm$category<-as.factor(ESS.norm.perm$category)
+
+PC.n.fac<-ESS.norm.perm  %>% 
+  dplyr::select(Lake, Group, phy.group, category)
+
+#run the PCA on scaled and centered data
+set.seed(508)
+PC.norm<- prcomp(ESS.n.dat, center = TRUE, scale= TRUE) 
+
+PC.norm.summ<-summary(PC.norm) #64% in 3 PCs
+#plot(PC.norm, type="lines", main="PC.area eigenvalues")
+
+###### plot for PCA by phy group
+phy.6.colors<-c("springgreen4", "dodgerblue", "lightsalmon3", "orange", "brown1", "gray65")
+
+
+## PC1 and PC2
+PCA.norm.plot <- ggbiplot(PC.norm, choices = 1:2, obs.scale = 1, var.scale = 1, 
+                      groups=PC.n.fac$phy.group,
+                      varname.color="saddlebrown", varname.adjust = 2,
+                      ellipse = TRUE, ellipse.fill = FALSE, ellipse.alpha=0.05, 
+                      ellipse.prob=0.90, ellipse.linewidth =0.7,
+                      circle = FALSE) +
+  geom_point(size = 3.5, color="black",
+             aes(fill=PC.n.fac$phy.group, shape=ESS.norm.perm$category)) +
+  geom_vline(xintercept=0, linetype="dashed", color = "gray60")+
+  geom_hline(yintercept=0, linetype="dashed", color = "gray60")+
+  scale_x_continuous(breaks=pretty_breaks(n=5))+
+  scale_color_manual(values=phy.6.colors)+
+  scale_fill_manual(values=phy.6.colors)+
+  scale_shape_manual(values=c(24,21))+
+  ggtitle("ESS-normalized")+
+   theme_classic()+
+   theme(legend.text=element_text(size=10),
+    axis.ticks.length=unit(0.2, "cm"), 
+    axis.text.y=element_text(margin=unit(c(0.5, 0.5, 0.5, 0.5), "cm")),
+    axis.text.x=element_text(margin=unit(c(0.5, 0.5, 0.5, 0.5), "cm"))) +
+  guides(fill = FALSE)
+
+PCA.norm.plot
+```
 
 ### LDA 
 Use a linear discriminant analysis (LDA) to determine separation of primary producers and assign zooplankton to these Groups as sources of AA~EAA~.  

@@ -88,7 +88,7 @@ This map shows sampling locations in the Sierra Nevada Mountains. Note you must 
 
 # load data
 SNL.env<-read.csv("data/SNL.envdata.csv")
-API<-read.csv("data/API_key.csv") # can we put the API_key.csv in the data folder? I don't see it, if not, let's remove this chunk of code from our .Rmd file in GitHub becasue it's not reproducible?
+API<-read.csv("data/API_key.csv") # can we put the API_key.csv in the data folder? I don't see it, if not, let's remove this chunk of code from our .Rmd file in GitHub because it's not reproducible?
 API.key<-API[1,1]
 
 # quick map

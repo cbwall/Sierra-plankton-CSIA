@@ -1,5 +1,5 @@
 ---
-title: "Essential amino acid δ^13^C reveal zooplankton energy channel reliance across alpine Lakes"
+title: "Zooplankton reliance on autochthonous and allochthonous resources across alpine lakes revealed through essential amino acid δ^13^C analysis"
 author: "Wall and Besser et al in *review*"
 date: "02/10/2025"
 output:
@@ -27,13 +27,14 @@ editor_options:
   
 Compound specific isotope analysis of individual amino acids (CSIA-AA) is a new and exciting tool in the study of trophic ecology and animal nutrition. CSIA-AA are not constrained by the same spatiotemporal variability and fractionation effects observed in stable isotope analyses (SIA) of bulk tissues (carbons + lipids + proteins). Therefore, CSIA-AA represent a sea change in our ability to understand food webs and  trophic interactions.  
 
-Certain amino acids can only be produced by primary producers (bacteria, algae, plants, fungi). These *de novo* synthesized amino acids, termed 'essential amino acids (AA~ESS~),' must be gained by animals through feeding/dietary means. Essential amino acids are passed from producers to consumers with limited fractionation or transamination, making them an ideal tool to examine the sources of carbon in consumers. Moreover, essential amino acids differ in their isotope signatures due to the biochemical pathways found in different Groups of producers (i.e., fungi, bacteria, microalgae, C~3~/C~4~/CAM plants), allowing producers signatures to be mapped with high resolution. By using multiple essential amino acids as a multivariate trait, an essential amino acid fingerprint can be used to identify the source of amino acids in consumers and the contributions and identify of producers in diets.
+Certain amino acids can only be synthesized *de novo* by primary producers (e.g., bacteria, algae, plants, fungi) and must be acquired by animals through feeding/dietary means. Thus, such amino acids are considered 'essential amino acids (AA~ESS~)' for animals. AA~ESS~ are passed from producers to consumers with limited carbon isotope fractionation, making the carbon isotope analysis of individual AA~ESS~ an ideal tool to examine the sources of carbon in consumers. Moreover, the AA~ESS~ carbon isotope values of different groups of primary producers (e.g., microalgae, macroalgae, C~3~/C~4~/CAM plants) vary due to unique biochemical pathways, pools, and fluxes, allowing primary producers AA~ESS~ carbon isotope patterns (i.e., fingerprints) to be separated with high resolution. AA~ESS~ carbon isotope fingerprints can be used to identify the sources of AA~ESS~ supporting consumers and the proportional contributions of different primary producers to consumer diets and/or food chains.
 
-Terrestrial energy channels (collevtively, "allochthony") in aquatic systems is a resource for aquatic consumers and ecosystems, although its significance has been debated. Zooplankton prefer (and require) the high fatty acid content of microalgae (or autochthonous energy channels), which is a vital nutritional source.Terrestrial materials entering Lakes can leads to browning and a decrease in microalgae productivity as light is attenuated. In this case, allochthonous energy channels may limits primary production but can be an important alternative resource for consumers that are able to utilize the abundant (although low quality) nutritional source.
+Terrestrial energy channels (known as allochthonous energy channels in aquatic systems) are a resource of energy and nutrients for aquatic consumers and ecosystems, although their significance can vary greatly across space and time. Zooplankton prefer (and require) the high fatty acid content of microalgae, which are a vital nutritional source and considered the base of an important autochthonous energy channel in most aquatic systems.Terrestrial resources entering lakes can lead to browning through the leaching dissolved organic matter and subsequently, a decrease in microalgae productivity as light is attenuated. In such a case, allochthonous energy channels may limit primary production, decreasing the importance of autochthonous energy channels, and provide an important alternative resource for consumers that are able to utilize the abundant (although potentially low quality) terrestrial nutritional sources.
 
-Here, we used CSIA-AA to ask whether zooplankton in high elevation alpine Lakes of the Sierra Nevada Mountains obtain their essential amino acids from in-water producers (particulate organic matter of microalgae origin) or from terrestrial C~3~ plants (sedges, pines, broadleaf deciduous trees). We sampled 7 Lakes and 1 dystropic pond across an elevation gradient (2500-3200m) and measured environmental conditions (temperature, pH, DOC, TN, TP, chlorophyll-*a*), measuring AA-carbon isotope values in producers and plankton consumers picked to individual species as well as a community size-fraction (>350um). 
+Here, we used CSIA-AA to ask whether zooplankton in high elevation alpine Lakes of the Sierra Nevada Mountains obtain their AA~ESS~ from in-water producers (particulate organic matter dominated by microalgae and benthic algae) or from terrestrial C~3~ plants (sedges, pines, and broadleaf deciduous trees). We sampled 7 Lakes and 1 dystropic pond across an elevation gradient (2500-3200m) and measured environmental conditions (temperature, pH, DOC, TN, TP, chlorophyll-*a*). We analyzed the AA~ESS~ carbon isotope values of three primary producer groups and zooplankton consumers as both a community size-fraction (>350um) and individual taxa. 
 
 ```{r setup chunk, setup, include = FALSE, cache=FALSE, message=FALSE, warning=FALSE, collapse=TRUE}
+
 if (!require('knitr')) install.packages('knitr'); library('knitr')
 knitr::opts_chunk$set(warning=FALSE, message=FALSE, fig.align='center')
 
@@ -65,7 +66,9 @@ Fig.formatting<-(theme_classic()) +
   theme(panel.spacing=unit(c(0, 0, 0, 0), "cm"))
 
 ```
+
 ```{r unused function, eval=FALSE}
+
 # function to bind the data frames together
 bind_cols_fill <- function(df_list) {
   max_rows <- map_int(df_list, nrow) %>% max()
@@ -75,19 +78,20 @@ bind_cols_fill <- function(df_list) {
     df %>% add_row(!!first := rep(NA, max_rows - nrow(df)))
   }) %>% bind_cols()
 }
+
 ```
 
 
 ### Site Maps
-The map here will shows sampling locations in the Sierra Nevada Mountains. Note you must have a Google API to generate maps in `get_googlmaps`.  
+This map shows sampling locations in the Sierra Nevada Mountains. Note you must have a Google API to generate maps in `get_googlmaps`.  
 ```{r, site maps, fig.cap="**Figure 1**. Site map of the Eastern Sierra Nevada Mountains and sampling sites.", fig.align='center', results='hide'}
 
 # load data
 SNL.env<-read.csv("data/SNL.envdata.csv")
-API<-read.csv("data/API_key.csv")
+API<-read.csv("data/API_key.csv") # can we put the API_key.csv in the data folder? I don't see it, if not, let's remove this chunk of code from our .Rmd file in GitHub because it's not reproducible?
 API.key<-API[1,1]
 
-#quick map
+# quick map
 # ggplot(SNL.env, aes(x = longitude, y = latitude)) + coord_quickmap() + geom_point()
 
 ######## using ggmap
@@ -153,6 +157,7 @@ site.plots<-plot_grid(CA.map_for_man, SNL.sites,
 pdf(file= "figures/Fig1.sites_AB.pdf", height=4, width=8)
 site.plots
 dev.off()
+
 ```
 
 
@@ -163,31 +168,38 @@ dev.off()
 </center>  
 
 
-### Bulk SIA, Symons et al
+### Bulk SIA, Symons et al. 2019
 Data here is from:  
 *Symons, C. C., M. A. Schulhof, H. B. Cavalheri, and J. B. Shurin. 2019. Antagonistic effects of temperature and dissolved organic carbon on fish growth in California mountain Lakes. Oecologia 189: 231–241. doi:10.1007/s00442-018-4298-9*. 
 
-In this study they sampled fish, grass, pines, plankton, and POM for carbon and nitrogen isotope analyses. The figure details that there is considerable overlap and high variance in these Groups, making it difficult to determine degrees of allochthony contribution to consumers.
+In this study they sampled fish, grass, pines, plankton, and POM for bulk tissue carbon and nitrogen isotope analyses. The figure shows that there is considerable overlap and high variance in these groups, making it difficult to determine relative allochthonous and autochthonous contributions to consumers.
 ```{r Bulk SIA Symons, fig.dim= c(6,4), fig.cap="**Figure**. Biplot of bulk tissue stable isotope analysis for carbon (δ^13^C) and nitrogen (δ^15^N) in fish, grasses, pines, POM, and zooplankton from montane Lakes in the Eastern Sierra Nevada Mountains of California (data from Symons et al. 2019)."}
 
 ##### Bulk stable isotope analyses (SIA)
 bulk.iso<-read.csv("data/Symons iso data/Symons_Yos_bulkSIA.csv")
 
-bulk.iso$Type<-factor(bulk.iso$Type, levels=c("fish", "zooplankton", "POM", "grass", "pine"))
-  
 #d13C vs d15N
-d13C.d15N<-ggplot(bulk.iso, aes(x=d13C, y=d15N, color=Type)) +
-  scale_color_manual(values=c("darkslategray4", "coral", "royalblue1", "wheat3", "wheat4")) +
-  xlab(expression(paste(delta^{13}, C, " (\u2030, V-PDB)")))+
-  ylab(expression(paste(delta^{15}, N, " (\u2030, Air)")))+
+d13C.d15N<-ggplot(bulk.iso, aes(x=d13C, y=d15N, fill=Type, shape=Type)) +
+  geom_point(size = 3, color="black") +
+  scale_shape_manual(values=c(21,22,22,24,21)) +
+  scale_fill_manual(values=c("orchid", "lightgoldenrod3", "lightsalmon3", "dodgerblue", "black")) +
+  stat_ellipse(aes(color=Type)) +
+  scale_color_manual(values=c("orchid", "lightgoldenrod3", "lightsalmon3", "dodgerblue", "black")) +
+  xlab(expression(paste(delta^{13}, C, " (\u2030, V-PDB)"))) +
+  ylab(expression(paste(delta^{15}, N, " (\u2030, Air)"))) +
   coord_cartesian(xlim=c(-45, -5), ylim=c(-6, 10)) +
-  labs(color = "")+
-  geom_point() +
-  stat_ellipse()+
-  theme_classic()
-ggsave("figures/FigS1.Bulk_13C.15N.pdf", height=5, width=6)
+  theme_classic() +
+  theme(axis.text.x = element_text(size = 12, color = "black"),
+        axis.text.y = element_text(size = 12, color = "black"),
+        axis.title.x = element_text(size = 14, color = "black"),
+        axis.title.y = element_text(size = 14, color = "black"),
+        legend.text = element_text(size = 12, color = "black"),
+        legend.title = element_blank())
+
+ggsave("figures/FigS1.Bulk_13C.15N.pdf", height=6, width=7)
 
 d13C.d15N
+
 ```
 
 
@@ -195,6 +207,7 @@ d13C.d15N
 Load in the full, standardized data (not to be confused with mean-normalized data) and pull out the essential amino acids (AA~ESS~), and subset by sample Type. We will be excluding Lysine due to poor resolution.
 ```{r essAA load}
 SNL.d13C.aa<- read.csv("data/Sierra Nevada Lakes AA d13C Data NMX standard_update.csv")
+
 
 #Pull out just the essential AA values (excluding Lys)
 SNL.ess <- data.frame(SNL.d13C.aa$SampleID, SNL.d13C.aa$Ile13C, SNL.d13C.aa$Leu13C, SNL.d13C.aa$Phe13C,
@@ -324,11 +337,49 @@ EAA.df.long$d13C.n<-as.numeric(EAA.df.long$d13C.n)
 #### Individual AA~ESS~
 Arrange and format the dataframe for ggplot. We will use this data for linear model tests to determine which (if any)  AA~ESS~ are different among these 3 Groups. Make a boxplot of this data.  
 
+##### Boxplots: raw & norm
+We see clear effects of sampling location and sample types that reflect elevation of Lakes (possibly in interaction with other environmental factors) as well as biology, notably in benthic algae.  *This is Figure S3A-B*.
+
 Mean normalization recommended to handle such variation and allow for group comparisons:  
 Larsen, T., T. Hansen, and J. Dierking. 2020. Characterizing niche differentiation among marine consumers with amino acid δ13C fingerprinting. Ecol. Evol. 10: 7768–7782. doi:10.1002/ece3.6502
 
+```{r EssAA boxplot, fig.dim=c(5,4), results='hide', fig.cap="**Figure S3**. Boxplot of *(A)* measured and *(B)* mean-normalized essential amino acids (AA~EES~) δ^13^C values for benthic algae, terrestrial plants, particulate organic matter (POM), and zooplankton in aquatic habitats in the Eastern Sierras Nevada mountains."}
+
+#Now, that the data is structured, make a boxplot for each AA~ESS~ by sample Type (terrestrial plants, POM, zooplankton). 
+
+colors2<-c("springgreen3", "dodgerblue", "goldenrod", "coral")
+
+####### plot by EAA, with Groups of sources and consumers
+EAA.box<-ggplot(EAA.df.long, aes(x=EAA, y=d13C, fill=Group))+
+  geom_boxplot(alpha=0.8)+
+  #geom_jitter(aes(fill=Group), colour="black",pch=21, size=1)+
+  scale_fill_manual(values=colors2)+ 
+  ylab(expression(paste("AA  ", delta^{13}, C, " (\U2030)"))) +
+  xlab("Essential Amino Acids") +
+  theme_classic()+
+  #annotate('text', x = 4, y = -8, label='*', size=6)+
+  #annotate('text', x = 3, y = -23, label='*', size=6) #
+  guides(fill = "none")
+
+####### NORMALIZED plot by EAA, with Groups of sources and consumers
+EAA.box.nrm<-ggplot(EAA.df.long, aes(x=EAA, y=d13C.n, fill=Group))+
+  geom_boxplot(alpha=0.8)+
+  #geom_jitter(aes(fill=Group), colour="black",pch=21, size=1)+
+  scale_fill_manual(values=colors2)+ 
+  ylab(expression(paste("AA-norm ", delta^{13}, C, " (\U2030)"))) +
+  xlab("Essential Amino Acids") +
+  theme_classic()
+  #annotate('text', x = 4, y = -8, label='*', size=6)+
+  #annotate('text', x = 3, y = -23, label='*', size=6) #
+
+
+plot_grid(EAA.box, EAA.box.nrm, rel_widths=c(1.65,2.2), labels=c("A", "B"))
+dev.copy(pdf, "figures/Fig2.SNL.EssAA.Boxplot_rev.pdf", width = 10, height = 5)
+dev.off()
+```
+
 ##### Facet means: raw & norm
-Make point-line plots (mean +/-SE) for the individual AA~ESS~, both raw/measured and mean normalized. Do this for each producer group (algae, POM, terrestrial plants) and zooplankton. This will allow us to evaluate effects of normalization on different groups. *This is Figure S3A-B*.
+Make point-line plots (mean +/-SE) for the individual AA~ESS~, both raw/measured and mean normalized. Do this for each producer group (algae, POM, terrestrial plants) and zooplankton. This will allow us to evaluate effects of normalization on different groups. *This is Figure S4A-B*.
 ```{r ESS zoop by site, results='hide', fig.dim=c(5,4), collapse=TRUE, fig.cap="**Figure S3**. Mean (± standard error) δ^13^C values of individual essential amino acids in producers and plankton. Panel *(A)* is raw, non-normalized data and panel *(B)* is mean-normalized data."}
 
 # Group by sample Type, Lake, and EAA, then calculate the mean d13C for EAA for each Group
@@ -387,131 +438,23 @@ plot_grid(indiv.EAA.plot, indiv.EAA.plot.norm, rel_widths = c(1.65,2.1), labels=
 dev.off()
 ```
 
-##### Boxplots: raw & norm
-We see clear effects of sampling location and sample types that reflect elevation of Lakes (possibly in interaction with other environmental factors) as well as biology, notably in benthic algae.  *This is Figure S4A-B*.
-
-```{r EssAA boxplot, fig.dim=c(5,4), results='hide', fig.cap="**Figure S4**. Boxplot of *(A)* measured and *(B)* mean-normalized essential amino acids (AA~EES~) δ^13^C values for benthic algae, particulate organic matter (POM), terrestrial plants, and zooplankton in aquatic habitats of the Eastern Sierra Nevada mountains."}
-
-#Now, that the data is structured, make a boxplot for each AA~ESS~ by sample Type (terrestrial plants, POM, zooplankton). 
-
-colors2<-c("springgreen3", "dodgerblue", "goldenrod", "coral")
-
-####### plot by EAA, with Groups of sources and consumers
-EAA.box<-ggplot(EAA.df.long, aes(x=EAA, y=d13C, fill=Group))+
-  geom_boxplot(alpha=0.8)+
-  #geom_jitter(aes(fill=Group), colour="black",pch=21, size=1)+
-  scale_fill_manual(values=colors2)+ 
-  ylab(expression(paste("AA  ", delta^{13}, C, " (\U2030)"))) +
-  xlab("Essential Amino Acids") +
-  theme_classic()+
-  #annotate('text', x = 4, y = -8, label='*', size=6)+
-  #annotate('text', x = 3, y = -23, label='*', size=6) #
-  guides(fill = "none")
-
-####### NORMALIZED plot by EAA, with Groups of sources and consumers
-EAA.box.nrm<-ggplot(EAA.df.long, aes(x=EAA, y=d13C.n, fill=Group))+
-  geom_boxplot(alpha=0.8)+
-  #geom_jitter(aes(fill=Group), colour="black",pch=21, size=1)+
-  scale_fill_manual(values=colors2)+ 
-  ylab(expression(paste("AA-norm ", delta^{13}, C, " (\U2030)"))) +
-  xlab("Essential Amino Acids") +
-  theme_classic()
-  #annotate('text', x = 4, y = -8, label='*', size=6)+
-  #annotate('text', x = 3, y = -23, label='*', size=6) #
-
-
-plot_grid(EAA.box, EAA.box.nrm, rel_widths=c(1.65,2.2), labels=c("A", "B"))
-dev.copy(pdf, "figures/FigS4.SNL.EssAA.Boxplot_rev.pdf", width = 10, height = 5)
-dev.off()
-```
-
 
 #### Linear models: AA~ESS-norm~
 Test for differences in individual EAAs among the three Groups (producers [POM, plants], zooplankton). Which amino acids are different across Groups?
 - These models are combined in manuscript Table S3.
 - Plots of individual AA~ESS-norm~ by site are in Figure S4A
 ```{r linear models, results='hide', fig.show='hide', collapse=TRUE}
-# First, set the factor levels
-# make factors for columns
-make.fac<-c("Group", "orig.class", "phy.group", "Lake")
-EAA.df.wide[make.fac] <- lapply(EAA.df.wide[make.fac], factor)
-str(EAA.df.wide)
-
-# get the df organized for the analyses.
-##### measured data, non-norm #####
-ESS.df.raw<-EAA.df.wide %>%
-  dplyr::select(SampleID, Lake, Elevation.m, Group, Type, orig.class, phy.group, Ile, Leu, Phe, Thr, Val)
+# First, get the df organized for the analyses.
 
 ##### normalized EAAs for sources and plankton, test differences in EAA among Groups for individual EAAs
 ESS.df.norm<-EAA.df.wide %>%
-  dplyr::select(SampleID, Lake, Elevation.m, Group, Type, orig.class, phy.group, Ile.n, Leu.n, Phe.n, Thr.n, Val.n)
-```
+  dplyr::select(SampleID, Lake, Elevation.m, Group, Type, orig.class, phy.group, Ile.n, Leu.n , Phe.n, Thr.n, Val.n)
 
-```{r linear models measured data, results='hide', fig.show='hide', collapse=TRUE}
-################### ###################  NON-NORMALIZED DATA ####
-# test differences in EAA among Groups in linear models: use NON-NORMALIZED DATA
-################### ###################
+# make factors for columns
+make.fac<-c("Group", "orig.class", "phy.group", "Lake")
+ESS.df.norm[make.fac] <- lapply(ESS.df.norm[make.fac], factor)
+str(ESS.df.norm)
 
-# look at assumptions
-for(i in c(8:12)){
-  Y<-ESS.df.raw[,i]
-  full<-lm(Y~Group, data=ESS.df.raw, na.action=na.exclude)
-  R <- resid(full) #save glm residuals
-  
-  op<-par(mfrow = c(2,2), mar=c(5,4,1,2), pty="sq")
-  plot(full, add.smooth = FALSE, which=1)
-  QQ <- qqnorm(R, main = colnames(ESS.df.raw)[i]) 
-  QQline <- qqline(R)
-  hist(R, xlab="Residuals", main = colnames(ESS.df.raw)[i])
-}
-
-##########################
-### run models to see where the Groups differ from each other
-##########################
-
-# Isoleucine
-Ile.mod<-lm(Ile~Group, data=ESS.df.raw)
-print(anova(Ile.mod), digits=6) # p=0.013
-plot(allEffects(Ile.mod), ylab="Ile", par.strip.text=list(cex=0.7))
-
-posthoc.Ile<-emmeans(Ile.mod, ~Group)
-multcomp::cld(posthoc.Ile, Letters=letters) # POM (A), Zoop (A), Plant (AB), Algae (B)
-
-
-# Leucine
-Leu.mod<-lm(Leu~ Group, data=ESS.df.raw)
-print(anova(Leu.mod), digits=6) # p<0.001
-plot(allEffects(Leu.mod), ylab="Leu", par.strip.text=list(cex=0.7))
-
-posthoc.Leu<-emmeans(Leu.mod, ~Group)
-multcomp::cld(posthoc.Leu, Letters=letters) # Plants (A), Zoop (A), POM (A), Algae (B)
-
-
-# Phenylalanine: Group signif
-Phe.mod<-lm(Phe~Group, data=ESS.df.raw)
-print(anova(Phe.mod), digits=6) # p<0.001
-plot(allEffects(Phe.mod), ylab="Phe", par.strip.text=list(cex=0.7))
-
-posthoc.Phe<-emmeans(Phe.mod, ~Group)
-multcomp::cld(posthoc.Phe, Letters=letters) # Zoop (A), POM (A), Plants (B), Algae (B)
-
-
-# Threonine: Group signif
-Thr.mod<-lm(Thr~Group, data=ESS.df.raw)
-print(anova(Thr.mod), digits=6) # p<0.001
-plot(allEffects(Thr.mod), ylab="Thr", par.strip.text=list(cex=0.7))
-
-posthoc.Thr<-emmeans(Thr.mod, ~Group)
-multcomp::cld(posthoc.Thr, Letters=letters) # POM (A), Algae (AB), Zoop (B), Plants (B)
-
-
-###### Valine: 
-Val.mod<-lm(Val~Group, data=ESS.df.raw)
-print(anova(Val.mod), digits=6) # p=0.329
-plot(allEffects(Val.mod), ylab="Val", par.strip.text=list(cex=0.7))
-```
-
-```{r linear models normalized data, results='hide', fig.show='hide', collapse=TRUE}
 ################### ###################  NON-NORMALIZED DATA ####
 # test differences in EAA among Groups in linear models: use NON-NORMALIZED DATA
 ################### ###################
@@ -581,24 +524,40 @@ multcomp::cld(posthoc.Val.n, Letters=letters) # Algae (A), all others (B)
 ### Multivariate analyses
 Using the standardized δ^13^C AA~ESS-norm~ data, we will use a PERMANOVA to test whether the four Groups (terrestrial plants, POM, algae, zooplankton) differ from each other in multivariate space. Considering we observed significant site level differences due to base-of-the-foodweb variance, normalized data is best.  
 
-#### Permanova: Site and Group effects 
-Use Permanova to test for differences among sites in measured and normalized data. Explore the differences at the base of the food web in δ^13^C values across sites.   
-  
-*Site effects*
-- Use raw and normalized daga
-- Remove the source, since collection unbalanced
+#### Permanova & PCA: AA~ESS~  
+Make a non-norm PCA with values to explore the differences at the base of the food web in δ^13^C values across sites.  
+- Remove the source since there is no information/low sample size to test site-specific effects
 - Run PERMANOVA to test for site effects. 
-- This is part of Table S3.
+- Perform PCA to see patterns in zooplankton by sites. 
 
-This PERMANOVA (`EAA.raw.perm.Lake.zoop`) uses measured (non-normalized) data to test site effects on zooplankton.
+**Take home**: multivariate patterns (PCA) and PERMANOVA show site-effects for non-normalized data.
+- This is in Figure S4B & Table S4-topA. 
+
+This PERMANOVA (`EAA.perm.Lake`) tests which sites are different form each other.
+
 ```{r rawEAA perman Lake}
 # master df = EAA.df.wide
-# non-normalized df = ESS.df.raw
+# non-normalized df
+ESS.df.raw<-EAA.df.wide %>%
+  dplyr::select(SampleID, Lake, Elevation.m, Group, Type, orig.class, phy.group, Ile, Leu, Phe, Thr, Val)
+
+# make factors for columns
+make.fac<-c("Group", "orig.class", "phy.group", "Lake")
+ESS.df.raw[make.fac] <- lapply(ESS.df.raw[make.fac], factor)
+str(ESS.df.raw)
+
+##### # make the PCA df
+PCA.raw.df<-ESS.df.raw %>% 
+  dplyr::select(Lake, phy.group, Ile, Leu, Phe, Thr, Val)
+
+# make new level for "Elevation" (in m), "0" for ordering, but actually is "NA"
+PCA.raw.df$Lake<- factor(PCA.raw.df$Lake, levels=c("Lukens", "MayPond", "Sunrise2", "Blue", "Greenstone", 
+                                           "Cascade", "EasternBrook", "Granite2"))
 
 # remove the sources (POM and Plants), just look at the zooplankton which have site-level replications
-PCA.raw.zoop<-ESS.df.raw[!(ESS.df.raw$phy.group=="Plants" | 
-                        ESS.df.raw$phy.group=="POM" | 
-                        ESS.df.raw$phy.group=="Algae"),]
+PCA.raw.zoop<-PCA.df[!(PCA.raw.df$phy.group=="Plants" | 
+                        PCA.raw.df$phy.group=="POM" | 
+                        PCA.raw.df$phy.group=="Algae"),]
 
 # factors: just Lake sampling sites and phy.group (cladocera or copepoda, >350um)
 PCA.fac.zoop<- PCA.raw.zoop %>%
@@ -617,41 +576,11 @@ EAA.raw.perm.Lake.zoop<-adonis2(PCA.dat.raw.zoop~Lake, data=PCA.fac.zoop, permut
 EAA.raw.perm.Lake.zoop # different at p=0.001, R2=0.87 at Lake level
 
 pairwise.adonis(PCA.dat.raw.zoop, factors=c(PCA.fac.zoop$Lake), sim.method = "euclidian", p.adjust.m = "none")
+############### ####### ####### ####### a bit messy...
 ```
 
-This PERMANOVA (`EAA.norm.perm.Lake.zoop`) uses mean-normalized data to test site effects on zooplankton.
-```{r normEAA perman Lake}
-# master df = EAA.df.wide
-# normalized df = ESS.df.norm
-
-# remove the sources (POM and Plants), just look at the zooplankton which have site-level replications
-PCA.norm.zoop<-ESS.df.norm[!(ESS.df.norm$phy.group=="Plants" | 
-                        ESS.df.norm$phy.group=="POM" | 
-                        ESS.df.norm$phy.group=="Algae"),]
-
-# factors: just Lake sampling sites and phy.group (cladocera or copepoda, >350um)
-PCA.fac.norm.zoop<- PCA.norm.zoop %>%
-  dplyr::select(Lake, phy.group)
-
-# the response variables
-PCA.dat.norm.zoop<- PCA.norm.zoop %>%
-  dplyr::select(Ile.n, Leu.n, Phe.n, Thr.n, Val.n)
-
-####### ####### ####### ####### ####### NORMALIZED  DATA -- PCA, just zooplankton
-####### Run a PERMANOVA for Lake, *no sources* to test for differences among zooplankton by Lake
-
-# run PERMANOVA for Lake non-norm
-set.seed(312)
-EAA.norm.perm.Lake.zoop<-adonis2(PCA.dat.norm.zoop~Lake, data=PCA.fac.norm.zoop, permutations=999, method="euclidian",by="terms")
-EAA.norm.perm.Lake.zoop # different at p=0.068, R2=0.35 at Lake level
-
-pairwise.adonis(PCA.dat.raw.zoop, factors=c(PCA.fac.norm.zoop$Lake), sim.method = "euclidian", p.adjust.m = "none")
-```
-
-```{r PCA raw, eval=FALSE}
-#################### PCA below not used
-
-# Now, perform a *PCA on the non-normalized data,* this shows the ellipses according to site, pooling across full plankton communities. Sources are excluded.
+Now, perform a *PCA on the non-normalized data,* this shows the ellipses according to site, pooling across full plankton communities. Sources are excluded.
+```{r rawEAA PCA Lake, results='hide', fig.dim=c(6,5), fig.cap="**Figure**. Principal component analysis of measured AA~ESS~ δ^13^C values for zooplankton Groups across sampling locations, ordered from low (Lukens) to high (Granite 2) elevation."}
 ### PCA
 # run the PCA on scaled and centered data
 set.seed(138)
@@ -688,43 +617,26 @@ PCA.raw.Lake.zoop <- ggbiplot(PC.raw.zoop, choices = 1:2, obs.scale = 1, var.sca
     axis.text.y=element_text(margin=unit(c(0.5, 0.5, 0.5, 0.5), "cm")),
     axis.text.x=element_text(margin=unit(c(0.5, 0.5, 0.5, 0.5), "cm")))
 
+
+PCA.raw.Lake.zoop
+
+######
+pdf(file= "figures/FigS4.PCA.location_rev.pdf", height=6, width=8)
+plot_grid(PCA.raw.Lake.zoop)
+dev.off()
 ```
 
-*Group effects*  
-- Use  measured and normalized data
+
+#### Permanova & PCA: AA~ESS-norm~
+Run PERMANOVA and PCA on mean normalized data.  
+
+*Permanova (mean-norm)*
+(1) Using the normalized data, test for differences among all the data at three levels using a PERMANOVA. 
 - Test using the 4 Groups: are they distinct from each other?  
 - Are there differences between zoops, POM, algae, or terrestrial plants?   
+*This is Table S4*
 
-This PERMANOVA `EAA.raw.perm.Group` uses raw/measured data, with 3 sources and zooplankton (pooled). 
-```{r permanova raw groups}
-#### #### #### #### #### #### #### #### #### #### #### 
-#### df just for the "Groups", which drops Lake and phy.group
-ESS.raw.perm<- ESS.df.raw %>% dplyr::select(-c(SampleID, Elevation.m, orig.class))
-
-# just AAs data
-ESS.dat<-ESS.raw.perm  %>% 
-  dplyr::select(Ile, Leu, Phe, Thr, Val)
-
-# factors
-# Here: only using Group: Zooplankton, Plants, POM, Algae
-Group.fac<-ESS.raw.perm  %>% 
-  dplyr::select(Lake, Group)
-
-# run PERMANOVA for 4 Groups, using measured data
-set.seed(51)
-EAA.raw.perm.Group<-adonis2(ESS.dat~ Group, data=Group.fac, permutations=999, 
-                            method="euclidian", by="terms")
-EAA.raw.perm.Group # different, Lake: p=0.004 R2=0.13, Group: p=0.001, R2=0.49
-# with Group model, 54% R2
-
-# run pairwise
-set.seed(51)
-pairwise.adonis(ESS.dat, factors=c(Group.fac$Group), sim.method = "euclidian", p.adjust.m = "none")
-# All groups differ from each other, except POM and zoop.
-```
-
-This PERMANOVA `EAA.norm.perm.Group` uses normalized data, with 3 sources and zooplankton (pooled). 
-```{r permanova normalized groups}
+```{r permanova normalized across all 4 groups}
 #### #### #### #### #### #### #### #### #### #### #### 
 #### df just for the "Groups", which drops Lake and phy.group
 ESS.norm.perm<- ESS.df.norm %>% dplyr::select(-c(SampleID, Elevation.m, orig.class))
@@ -740,9 +652,9 @@ Group.n.fac<-ESS.norm.perm  %>%
 
 # run PERMANOVA for 4 Groups
 set.seed(51)
-EAA.norm.perm.Group<-adonis2(ESS.n.dat~ Group, data=Group.n.fac, permutations=999, 
-                        method="euclidian", by="terms")
-EAA.norm.perm.Group # Group: p=0.001, R2=0.54
+EAA.perm.Group<-adonis2(ESS.n.dat~ Group, data=Group.n.fac, permutations=999, method="euclidian", by="terms")
+EAA.perm.Group # different, Lake: p=0.004 R2=0.13, Group: p=0.001, R2=0.49
+# with Group model, 54% R2
 
 # run pairwise
 set.seed(51)
@@ -765,70 +677,10 @@ set.seed(51)
 pairwise.adonis(ESS.norm.dat.source, factors=c(Source.n.fac$Group), sim.method = "euclidian", p.adjust.m = "none")
 ```
 
-#### PCA 
-Use the mean-normalized data to examine patterns in PCA space across sources (POM, algae, terrestrial plants)
-*This is Figure S5*
-```{r PCA sources, results='hide', fig.dim=c(6,5), fig.cap="**Figure S5**. Principal component analysis (PCA) for mean-normalized AA~ESS~ δ^13^C values (AA~ESS-norm~) for sources (POM, terrestrial plants). Ellipses represent 95% confidence intervals."}
-# factors, reorder
-ESS.norm.perm$phy.group<-factor(ESS.norm.perm$phy.group, 
-                                levels=c("Algae", "POM", "Plants", "cladocera", "copepoda", ">350um"))
-ESS.norm.perm$category<-ifelse(ESS.norm.perm$Group == "Zooplankton", "Zooplankton", "Producer")
-ESS.norm.perm$category<-as.factor(ESS.norm.perm$category)
+(2) Perform a PCA on the mean-normalized data to examine patterns in PCA space across the zooplankton groups relative to their sources (POM, algae, terrestrial plants)
+*This is Figure S4B* 
+```{r PCA zoops, results='hide', fig.dim=c(6,5), fig.cap="**Figure**. Principal component analysis (PCA) for mean-normalized AA~ESS~ δ^13^C values (AA~ESS-norm~) for zooplankton Groups and sources (POM, terrestrial plants). Ellipses represent 90% confidence intervals, where Group sample sizes are n ≥ 4."}
 
-# new df
-ESS.norm.source<-ESS.norm.perm[(ESS.norm.perm$category=="Producer"),]
-
-# just AAs data
-ESS.n.dat.sorc<-ESS.norm.source  %>% 
-  dplyr::select(Ile.n, Leu.n, Phe.n, Thr.n, Val.n)
-
-# factors
-PC.n.fac.sorc<-ESS.norm.source  %>% 
-  dplyr::select(Lake, Group, phy.group, category)
-
-#run the PCA on scaled and centered data
-set.seed(508)
-PC.norm.sorc<- prcomp(ESS.n.dat.sorc, center = TRUE, scale= TRUE) 
-
-PC.norm.summ.sorc<-summary(PC.norm.sorc) #64% in 3 PCs
-#plot(PC.norm, type="lines", main="PC.area eigenvalues")
-
-###### plot for PCA by phy group
-pca.3.colors<-c("springgreen4", "dodgerblue", "lightsalmon3")
-
-
-## PC1 and PC2
-PCA.norm.sorc.plot <- ggbiplot(PC.norm.sorc, choices = 1:2, obs.scale = 1, var.scale = 1, 
-                      groups=PC.n.fac.sorc$Group,
-                      varname.color="saddlebrown", varname.adjust = 2,
-                      ellipse = TRUE, ellipse.fill = FALSE, ellipse.alpha=0.05, 
-                      ellipse.prob=0.90, ellipse.linewidth =0.7,
-                      circle = FALSE) +
-  geom_point(size = 3.5, color="black",
-             aes(fill=PC.n.fac.sorc$Group, shape=PC.n.fac.sorc$Group)) +
-  geom_vline(xintercept=0, linetype="dashed", color = "gray60")+
-  geom_hline(yintercept=0, linetype="dashed", color = "gray60")+
-  scale_color_manual(values=pca.3.colors)+
-  scale_fill_manual(values=pca.3.colors)+
-  scale_shape_manual(values=c(24,24,21))+
-  ggtitle("ESS-normalized: Sources")+
-  coord_cartesian(xlim=c(-3, 3)) +
-   theme_classic()+
-   theme(legend.text=element_text(size=10),
-    axis.ticks.length=unit(0.2, "cm"), 
-    axis.text.y=element_text(margin=unit(c(0.5, 0.5, 0.5, 0.5), "cm")),
-    axis.text.x=element_text(margin=unit(c(0.5, 0.5, 0.5, 0.5), "cm"))) +
-  guides(shape = FALSE) + guides(fill = FALSE)
-
-PCA.norm.sorc.plot
-
-# export it
-PCA.norm.sorc.plot
-dev.copy(pdf, "figures/FigS5.PCA.Sources.pdf", height = 5, width = 6.5)
-dev.off()
-```
-
-```{r PCA sources and zoop, eval=FALSE}
 # factors, reorder
 ESS.norm.perm$phy.group<-factor(ESS.norm.perm$phy.group, 
                                 levels=c("Algae", "POM", "Plants", "cladocera", "copepoda", ">350um"))
@@ -873,7 +725,13 @@ PCA.norm.plot <- ggbiplot(PC.norm, choices = 1:2, obs.scale = 1, var.scale = 1,
   guides(fill = FALSE)
 
 PCA.norm.plot
+
+### export it
+#pdf(file= "figures/Fig3A.PCA.norm.plank.pdf", height=6, width=8)
+#plot_grid(PCA.norm.plot)
+#dev.off()
 ```
+
 
 ### LDA 
 Use a linear discriminant analysis (LDA) to determine separation of primary producers and assign zooplankton to these Groups as sources of AA~EAA~.  
@@ -1105,12 +963,26 @@ LDA.scat.phygroup<-ggplot(LDA.df, aes(x=LD1, y=LD2))+
   xlab("LD1") + ylab("LD2") +
   theme_classic() + guides(lty = "none")
 
-LDA.compiled<-plot_grid(Source.LDA, LDA.scat.Group, LDA.scat.phygroup, ncol=3, labels=c("A", "B", "C"), rel_widths = c(1,1.2,1.2))
-
-dev.copy(pdf, "figures/Fig2.Source.Plank.scat.LDA3.pdf", width = 14, height = 4)
+plot_grid(Source.LDA, LDA.scat.Group, LDA.scat.phygroup, ncol=3, labels=c("A", "B", "C"), rel_widths = c(1,1.2,1.2))
+dev.copy(pdf, "figures/FigSx.Source.Plank.scat.LDA3.pdf", width = 14, height = 4)
 dev.off()
 ```
 
+Combine LD1-boxplots and PCA
+```{r combined PCA and LDA taxa plot}
+#combine PCA and LDA
+extract.legend.PCA <- get_legend(
+  # create some space to the left of the legend
+  PCA.norm.plot + theme(legend.text=element_text(size=8)) + theme(legend.box.margin = margin(0, 0, 0, 10)))
+
+
+Fig.3<-plot_grid(PCA.norm.plot+guides(color = FALSE, shape=FALSE), LDA.phy.boxplot, extract.legend.PCA, 
+                 labels=c("A", "B", ""), ncol=3,
+                 rel_widths = c(1,0.8,0.3), rel_heights = c(1.5,1,0.1))
+Fig.3
+dev.copy(pdf, "figures/Fig3ab.PCA.LDA.pdf", height = 5, width = 10)
+dev.off()
+```
 
 ### MixSIAR
 We will first run MixSIAR to determine the proportion of algae/terrestrial material in the POM. This will help us validate the use of POM as a food source and its autochthony composition.

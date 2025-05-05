@@ -476,7 +476,7 @@ EAA.raw.nrm.lines
 ```
 
 
-#### Linear models: AA~ESS~ and AA~ESS[norm]~ 
+#### Linear models: AA~ESS~ and AA~ESS-norm~ 
 Test for differences in individual EAA carbon isotope values among the four **Groups** (primary producers [algae, POM, terrestrial plants], zooplankton). Which amino acids are different across Groups?
 - These models are combined into Table S3 in the supporting information for the manuscript.
 - Plots of individual AA~ESS-norm~ carbon isotope values by site are displayed in Figure S4B.
@@ -500,327 +500,363 @@ ESS.df.norm <- EAA.df.wide %>%
 ```
 
 ```{r linear models measured data, results='hide', fig.show='hide', collapse=TRUE}
-################### ###################  NON-NORMALIZED DATA ####
-# test differences in EAA among Groups in linear models: use NON-NORMALIZED DATA
-################### ###################
+
+########################## RAW DATA ###########################
+# testing differences in EAA among Groups using linear models #
+###############################################################
 
 # look at assumptions
 for(i in c(8:12)){
-  Y<-ESS.df.raw[,i]
-  full<-lm(Y~Group, data=ESS.df.raw, na.action=na.exclude)
+  Y <- ESS.df.raw[,i]
+  full <- lm(Y ~ Group, data = ESS.df.raw, na.action = na.exclude)
   R <- resid(full) #save glm residuals
   
-  op<-par(mfrow = c(2,2), mar=c(5,4,1,2), pty="sq")
-  plot(full, add.smooth = FALSE, which=1)
+  op <- par(mfrow = c(2,2), mar = c(5,4,1,2), pty = "sq")
+  plot(full, add.smooth = FALSE, which = 1)
   QQ <- qqnorm(R, main = colnames(ESS.df.raw)[i]) 
   QQline <- qqline(R)
-  hist(R, xlab="Residuals", main = colnames(ESS.df.raw)[i])
+  hist(R, xlab = "Residuals", main = colnames(ESS.df.raw)[i])
 }
 
-##########################
-### run models to see where the Groups differ from each other
-##########################
+##############################################################
+# run the linear models to see which EAA differ among Groups #
+##############################################################
 
 # Isoleucine
-Ile.mod<-lm(Ile~Group, data=ESS.df.raw)
-print(anova(Ile.mod), digits=6) # p=0.013
-plot(allEffects(Ile.mod), ylab="Ile", par.strip.text=list(cex=0.7))
+Ile.mod <- lm(Ile ~ Group, data = ESS.df.raw)
+print(anova(Ile.mod), digits = 4) # p=0.013
+plot(allEffects(Ile.mod), ylab = "Ile", par.strip.text = list(cex = 0.7))
 
-posthoc.Ile<-emmeans(Ile.mod, ~Group)
-multcomp::cld(posthoc.Ile, Letters=letters) # POM (A), Zoop (A), Plant (AB), Algae (B)
+posthoc.Ile <- emmeans(Ile.mod, ~ Group)
+multcomp::cld(posthoc.Ile, Letters = letters) # POM (A), Zoop (A), Plants (AB), Algae (B)
 
 
 # Leucine
-Leu.mod<-lm(Leu~ Group, data=ESS.df.raw)
-print(anova(Leu.mod), digits=6) # p<0.001
-plot(allEffects(Leu.mod), ylab="Leu", par.strip.text=list(cex=0.7))
+Leu.mod <- lm(Leu ~ Group, data = ESS.df.raw)
+print(anova(Leu.mod), digits = 4) # p<0.001
+plot(allEffects(Leu.mod), ylab = "Leu", par.strip.text = list(cex = 0.7))
 
-posthoc.Leu<-emmeans(Leu.mod, ~Group)
-multcomp::cld(posthoc.Leu, Letters=letters) # Plants (A), Zoop (A), POM (A), Algae (B)
-
-
-# Phenylalanine: Group signif
-Phe.mod<-lm(Phe~Group, data=ESS.df.raw)
-print(anova(Phe.mod), digits=6) # p<0.001
-plot(allEffects(Phe.mod), ylab="Phe", par.strip.text=list(cex=0.7))
-
-posthoc.Phe<-emmeans(Phe.mod, ~Group)
-multcomp::cld(posthoc.Phe, Letters=letters) # Zoop (A), POM (A), Plants (B), Algae (B)
+posthoc.Leu <- emmeans(Leu.mod, ~ Group)
+multcomp::cld(posthoc.Leu, Letters = letters) # Plants (A), Zoop (A), POM (A), Algae (B)
 
 
-# Threonine: Group signif
-Thr.mod<-lm(Thr~Group, data=ESS.df.raw)
-print(anova(Thr.mod), digits=6) # p<0.001
-plot(allEffects(Thr.mod), ylab="Thr", par.strip.text=list(cex=0.7))
+# Phenylalanine
+Phe.mod <- lm(Phe ~ Group, data = ESS.df.raw)
+print(anova(Phe.mod), digits = 4) # p<0.001
+plot(allEffects(Phe.mod), ylab = "Phe", par.strip.text = list(cex = 0.7))
 
-posthoc.Thr<-emmeans(Thr.mod, ~Group)
-multcomp::cld(posthoc.Thr, Letters=letters) # POM (A), Algae (AB), Zoop (B), Plants (B)
+posthoc.Phe <- emmeans(Phe.mod, ~ Group)
+multcomp::cld(posthoc.Phe, Letters = letters) # Zoop (A), POM (A), Plants (B), Algae (B)
 
 
-###### Valine: 
-Val.mod<-lm(Val~Group, data=ESS.df.raw)
-print(anova(Val.mod), digits=6) # p=0.329
-plot(allEffects(Val.mod), ylab="Val", par.strip.text=list(cex=0.7))
+# Threonine
+Thr.mod <- lm(Thr ~ Group, data = ESS.df.raw)
+print(anova(Thr.mod), digits = 4) # p<0.001
+plot(allEffects(Thr.mod), ylab = "Thr", par.strip.text = list(cex = 0.7))
+
+posthoc.Thr <- emmeans(Thr.mod, ~ Group)
+multcomp::cld(posthoc.Thr, Letters = letters) # POM (A), Zoop (AB), Plants (B), Algae (B)
+
+
+# Valine
+Val.mod <- lm(Val ~ Group, data = ESS.df.raw)
+print(anova(Val.mod), digits = 4) # p=0.329
+plot(allEffects(Val.mod), ylab = "Val", par.strip.text = list(cex = 0.7))
+
+posthoc.Val <- emmeans(Val.mod, ~ Group)
+multcomp::cld(posthoc.Val, Letters = letters) # POM (A), Zoop (A), Plants (A), Algae (A)
+
+### ^ top of Table S3 ###
+
 ```
 
 ```{r linear models normalized data, results='hide', fig.show='hide', collapse=TRUE}
-################### ###################  NON-NORMALIZED DATA ####
-# test differences in EAA among Groups in linear models: use NON-NORMALIZED DATA
-################### ###################
+
+##################### MEAN-NORMALIZED DATA ####################
+# testing differences in EAA among Groups using linear models #
+###############################################################
 
 # look at assumptions
 for(i in c(8:12)){
-  Y<-ESS.df.norm[,i]
-  full<-lm(Y~Group, data=ESS.df.norm, na.action=na.exclude)
+  Y <- ESS.df.norm[,i]
+  full <- lm(Y ~ Group, data = ESS.df.norm, na.action = na.exclude)
   R <- resid(full) #save glm residuals
   
-  op<-par(mfrow = c(2,2), mar=c(5,4,1,2), pty="sq")
-  plot(full, add.smooth = FALSE, which=1)
+  op <- par(mfrow = c(2,2), mar = c(5,4,1,2), pty = "sq")
+  plot(full, add.smooth = FALSE, which = 1)
   QQ <- qqnorm(R, main = colnames(ESS.df.norm)[i]) 
   QQline <- qqline(R)
-  hist(R, xlab="Residuals", main = colnames(ESS.df.norm)[i])
+  hist(R, xlab = "Residuals", main = colnames(ESS.df.norm)[i])
 }
 
-##########################
-### run models to see where the Groups differ from each other
-##########################
+##############################################################
+# run the linear models to see which EAA differ among Groups #
+##############################################################
 
 # Isoleucine
-Ile.n.mod<-lm(Ile.n~Group, data=ESS.df.norm)
-anova(Ile.n.mod) # p=0.026
-plot(allEffects(Ile.n.mod), ylab="Ile.n", par.strip.text=list(cex=0.7))
+Ile.n.mod <- lm(Ile.n ~ Group, data = ESS.df.norm)
+print(anova(Ile.n.mod), digits = 4) # p=0.027
+plot(allEffects(Ile.n.mod), ylab = "Ile.n", par.strip.text = list(cex = 0.7))
 
-posthoc.Ile<-emmeans(Ile.n.mod, ~Group)
-multcomp::cld(posthoc.Ile, Letters=letters) # POM (A), Zoop (A), Plant (A), Algae (A)
+posthoc.Ile <- emmeans(Ile.n.mod, ~ Group)
+multcomp::cld(posthoc.Ile, Letters = letters) # Plants (A), Algae (A), POM (A), Zoop (A)
 
 
 # Leucine
-Leu.n.mod<-lm(Leu.n~ Group, data=ESS.df.norm)
-anova(Leu.n.mod) # p<0.001
-plot(allEffects(Leu.n.mod), ylab="Leu.n", par.strip.text=list(cex=0.7))
+Leu.n.mod <- lm(Leu.n ~ Group, data = ESS.df.norm)
+print(anova(Leu.n.mod), digits = 4) # p<0.001
+plot(allEffects(Leu.n.mod), ylab = "Leu.n", par.strip.text = list(cex = 0.7))
 
-posthoc.Leu.n<-emmeans(Leu.n.mod, ~Group)
-multcomp::cld(posthoc.Leu.n, Letters=letters) # Plants (A), Zoop (B), POM (C), Algae (C)
-
-
-# Phenylalanine: Group signif
-Phe.n.mod<-lm(Phe.n~Group, data=ESS.df.norm)
-anova(Phe.n.mod) # p<0.001
-plot(allEffects(Phe.n.mod), ylab="Phe.n", par.strip.text=list(cex=0.7))
-
-posthoc.Phe.n<-emmeans(Phe.n.mod, ~Group)
-multcomp::cld(posthoc.Phe.n, Letters=letters) # Zoop (A), all others (B)
+posthoc.Leu.n <- emmeans(Leu.n.mod, ~ Group)
+multcomp::cld(posthoc.Leu.n, Letters = letters) # Plants (A), Zoop (B), POM (C), Algae (C)
 
 
-# Threonine: Group signif
-Thr.n.mod<-lm(Thr.n~Group, data=ESS.df.norm)
-print(anova(Thr.n.mod), digits=6) # p<0.001
-plot(allEffects(Thr.n.mod), ylab="Thr.n", par.strip.text=list(cex=0.7))
+# Phenylalanine
+Phe.n.mod <- lm(Phe.n ~ Group, data = ESS.df.norm)
+print(anova(Phe.n.mod), digits = 4) # p<0.001
+plot(allEffects(Phe.n.mod), ylab = "Phe.n", par.strip.text = list(cex = 0.7))
 
-posthoc.Thr.n<-emmeans(Thr.n.mod, ~Group)
-multcomp::cld(posthoc.Thr.n, Letters=letters) # POM (A), Algae (AB), Zoop (B), Plants (C)
+posthoc.Phe.n <- emmeans(Phe.n.mod, ~ Group)
+multcomp::cld(posthoc.Phe.n, Letters = letters) # Zoop (A), POM (B), Algae (B), Plants (B)
 
 
-###### Valine: 
-Val.n.mod<-lm(Val.n~Group, data=ESS.df.norm)
-anova(Val.n.mod) # p<0.001
-plot(allEffects(Val.n.mod), ylab="Val.n", par.strip.text=list(cex=0.7))
+# Threonine
+Thr.n.mod <- lm(Thr.n ~ Group, data = ESS.df.norm)
+print(anova(Thr.n.mod), digits = 4) # p<0.001
+plot(allEffects(Thr.n.mod), ylab = "Thr.n", par.strip.text = list(cex = 0.7))
 
-posthoc.Val.n<-emmeans(Val.n.mod, ~Group)
-multcomp::cld(posthoc.Val.n, Letters=letters) # Algae (A), all others (B)
+posthoc.Thr.n <- emmeans(Thr.n.mod, ~ Group)
+multcomp::cld(posthoc.Thr.n, Letters = letters) # POM (A), Algae (AB), Zoop (B), Plants (C)
+
+
+# Valine 
+Val.n.mod <- lm(Val.n ~ Group, data = ESS.df.norm)
+print(anova(Val.n.mod), digits = 4) # p<0.001
+plot(allEffects(Val.n.mod), ylab = "Val.n", par.strip.text = list(cex = 0.7))
+
+posthoc.Val.n <- emmeans(Val.n.mod, ~ Group)
+multcomp::cld(posthoc.Val.n, Letters = letters) # Algae (A), Plants (B), Zoop (B), POM (B)
+
+### ^ bottom of Table S3 ###
+
 ```
 
 ### Multivariate analyses
-Using the standardized δ^13^C AA~ESS-norm~ data, we will use a PERMANOVA to test whether the four Groups (terrestrial plants, POM, algae, zooplankton) differ from each other in multivariate space. Considering we observed significant site level differences due to base-of-the-foodweb variance, normalized data is best.  
+Using the AA~ESS-norm~ δ^13^C data, we will use a PERMANOVA to test whether the four Groups (POM, algae, terrestrial plants, zooplankton) differ in multivariate space. Considering we observed significant site-level differences due to isotopic variation at the base of the food web, using mean-normalized data is best.  
 
-#### Permanova: Site and Group effects 
-Use Permanova to test for differences among sites in measured and normalized data. Explore the differences at the base of the food web in δ^13^C values across sites.   
+#### Permanova: **Lake** and **Group** effects 
+Use Permanova to test for differences among sites in measured and normalized δ^13^C values of zooplankton.
   
-*Site effects*
-- Use raw and normalized daga
-- Remove the source, since collection unbalanced
-- Run PERMANOVA to test for site effects. 
-- This is part of Table S3.
+*Lake effects*
+- Investigate both raw and mean-normalized data.
+- Remove sources, since we have a small sample size.
+- Run PERMANOVA to test for Lake effects on zooplankton only. 
+- This is part of Table S4.
 
-This PERMANOVA (`EAA.raw.perm.Lake.zoop`) uses measured (non-normalized) data to test site effects on zooplankton.
+This PERMANOVA (`EAA.raw.perm.Lake.zoop`) uses measured (non-normalized) data to test for Lake effects on zooplankton.
 ```{r rawEAA perman Lake}
-# master df = EAA.df.wide
-# non-normalized df = ESS.df.raw
 
-# remove the sources (POM and Plants), just look at the zooplankton which have site-level replications
-PCA.raw.zoop<-ESS.df.raw[!(ESS.df.raw$phy.group=="Plants" | 
-                        ESS.df.raw$phy.group=="POM" | 
-                        ESS.df.raw$phy.group=="Algae"),]
+# master data frame = EAA.df.wide
+# measured (non-normalized) data frame = ESS.df.raw
 
-# factors: just Lake sampling sites and phy.group (cladocera or copepoda, >350um)
-PCA.fac.zoop<- PCA.raw.zoop %>%
+# remove the sources (Algae, POM, and Plants) to just look at the zooplankton, which have better site-level replication
+PCA.raw.zoop<-ESS.df.raw[!(ESS.df.raw$phy.group == "Algae" | 
+                        ESS.df.raw$phy.group == "POM" | 
+                        ESS.df.raw$phy.group == "Plants"),]
+
+# factors: Lake and phy.group (cladocera, copepoda, >350um)
+PCA.fac.zoop <- PCA.raw.zoop %>%
   dplyr::select(Lake, phy.group)
 
-# the response variables
-PCA.dat.raw.zoop<- PCA.raw.zoop %>%
+# response variables: each EAA
+PCA.dat.raw.zoop <- PCA.raw.zoop %>%
   dplyr::select(Ile, Leu, Phe, Thr, Val)
 
-####### ####### ####### ####### ####### RAW MEASURED DATA -- PCA, just zooplankton
-####### Run a PERMANOVA for Lake, *no sources* to test for differences among zooplankton by Lake
+############ RAW DATA - Zooplankton only ##############
+# run a PERMANOVA to test for differences among Lakes #
+#######################################################
 
-# run PERMANOVA for Lake non-norm
+# run PERMANOVA
 set.seed(213)
-EAA.raw.perm.Lake.zoop<-adonis2(PCA.dat.raw.zoop~Lake, data=PCA.fac.zoop, permutations=999, method="euclidian",by="terms")
-EAA.raw.perm.Lake.zoop # different at p=0.001, R2=0.87 at Lake level
+EAA.raw.perm.Lake.zoop <- adonis2(PCA.dat.raw.zoop ~ Lake, data = PCA.fac.zoop, permutations = 999, method = "euclidian", by = "terms")
+EAA.raw.perm.Lake.zoop # zooplankton only across Lakes: different at p=0.001, R2=0.87 
 
-pairwise.adonis(PCA.dat.raw.zoop, factors=c(PCA.fac.zoop$Lake), sim.method = "euclidian", p.adjust.m = "none")
+pairwise.adonis(PCA.dat.raw.zoop, factors = c(PCA.fac.zoop$Lake), sim.method = "euclidian", p.adjust.m = "none")
+
 ```
 
-This PERMANOVA (`EAA.norm.perm.Lake.zoop`) uses mean-normalized data to test site effects on zooplankton.
+This PERMANOVA (`EAA.norm.perm.Lake.zoop`) uses mean-normalized data to test for Lake effects on zooplankton.
 ```{r normEAA perman Lake}
-# master df = EAA.df.wide
-# normalized df = ESS.df.norm
 
-# remove the sources (POM and Plants), just look at the zooplankton which have site-level replications
-PCA.norm.zoop<-ESS.df.norm[!(ESS.df.norm$phy.group=="Plants" | 
-                        ESS.df.norm$phy.group=="POM" | 
-                        ESS.df.norm$phy.group=="Algae"),]
+# master data frame = EAA.df.wide
+# normalized data frame = ESS.df.norm
 
-# factors: just Lake sampling sites and phy.group (cladocera or copepoda, >350um)
-PCA.fac.norm.zoop<- PCA.norm.zoop %>%
+# remove the sources (Algae, POM, and Plants) to just look at the zooplankton, which have better site-level replication
+PCA.norm.zoop <- ESS.df.norm[!(ESS.df.norm$phy.group == "Algae" | 
+                        ESS.df.norm$phy.group == "POM" | 
+                        ESS.df.norm$phy.group == "Plants"),]
+
+# factors: Lake and phy.group (cladocera, copepoda, >350um)
+PCA.fac.norm.zoop <- PCA.norm.zoop %>%
   dplyr::select(Lake, phy.group)
 
-# the response variables
-PCA.dat.norm.zoop<- PCA.norm.zoop %>%
+# response variables: each EAA
+PCA.dat.norm.zoop <- PCA.norm.zoop %>%
   dplyr::select(Ile.n, Leu.n, Phe.n, Thr.n, Val.n)
 
-####### ####### ####### ####### ####### NORMALIZED  DATA -- PCA, just zooplankton
-####### Run a PERMANOVA for Lake, *no sources* to test for differences among zooplankton by Lake
+####### MEAN-NORMALIZED DATA - Zooplankton only #######
+# run a PERMANOVA to test for differences among Lakes #
+#######################################################
 
-# run PERMANOVA for Lake non-norm
+# run PERMANOVA
 set.seed(312)
-EAA.norm.perm.Lake.zoop<-adonis2(PCA.dat.norm.zoop~Lake, data=PCA.fac.norm.zoop, permutations=999, method="euclidian",by="terms")
-EAA.norm.perm.Lake.zoop # different at p=0.068, R2=0.35 at Lake level
+EAA.norm.perm.Lake.zoop <- adonis2(PCA.dat.norm.zoop ~ Lake, data = PCA.fac.norm.zoop, permutations = 999, method = "euclidian",by = "terms")
+EAA.norm.perm.Lake.zoop # zooplankton only across Lakes: different at p=0.068, R2=0.35
 
-pairwise.adonis(PCA.dat.raw.zoop, factors=c(PCA.fac.norm.zoop$Lake), sim.method = "euclidian", p.adjust.m = "none")
+# run pairwise 
+set.seed(312)
+pairwise.adonis(PCA.dat.raw.zoop, factors = c(PCA.fac.norm.zoop$Lake), sim.method = "euclidian", p.adjust.m = "none")
+
 ```
 
-```{r PCA raw, eval=FALSE}
-#################### PCA below not used
+*Group effects*  
+- Investigate both raw and mean-normalized data.
+- Test using all four Groups: are there differences among zooplankton, algae, POM and/or terrestrial plants?
+- Run PERMANOVA to test for Group effects.
+- This is part of Table S4.
 
-# Now, perform a *PCA on the non-normalized data,* this shows the ellipses according to site, pooling across full plankton communities. Sources are excluded.
-### PCA
+This PERMANOVA `EAA.raw.perm.Group` uses measured (non-normalized) data to test for differences among algae, POM, terrestrial plants, and zooplankton (pooled). 
+```{r permanova raw groups}
+
+# create a new data frame by dropping Lake and phy.group
+ESS.raw.perm <- ESS.df.raw %>% dplyr::select(-c(SampleID, Elevation.m, orig.class))
+
+# factors: Group (algae, POM, plants, zooplankton)
+Group.fac <- ESS.raw.perm  %>% 
+  dplyr::select(Group)
+
+# response variables: each EAA
+ESS.dat <- ESS.raw.perm  %>% 
+  dplyr::select(Ile, Leu, Phe, Thr, Val)
+
+###################### RAW DATA ########################
+# run a PERMANOVA to test for differences among Groups #
+########################################################
+
+# run PERMANOVA
+set.seed(51)
+EAA.raw.perm.Group <- adonis2(ESS.dat ~ Group, data = Group.fac, permutations = 999, method = "euclidian", by = "terms")
+EAA.raw.perm.Group # Groups: different at p=0.001, R2=0.49
+
+# run pairwise
+set.seed(51)
+pairwise.adonis(ESS.dat, factors = c(Group.fac$Group), sim.method = "euclidian", p.adjust.m = "none")
+# all groups differ from each other, except POM and zooplankton
+
+```
+
+This PERMANOVA `EAA.norm.perm.Group` uses normalized data to test for differences among algae, POM, terrestrial plants, and zooplankton (pooled).
+```{r permanova normalized groups}
+
+# create a new data frame by dropping Lake and phy.group
+ESS.norm.perm<- ESS.df.norm %>% dplyr::select(-c(SampleID, Elevation.m, orig.class))
+
+# factors: Group (algae, POM, plants, zooplankton)
+Group.n.fac<-ESS.norm.perm %>% 
+  dplyr::select(Group)
+
+# response variables: each EAA
+ESS.n.dat<-ESS.norm.perm %>% 
+  dplyr::select(Ile.n, Leu.n, Phe.n, Thr.n, Val.n)
+
+################### NORMALIZED DATA ####################
+# run a PERMANOVA to test for differences among Groups #
+########################################################
+
+# run PERMANOVA
+set.seed(51)
+EAA.norm.perm.Group <- adonis2(ESS.n.dat ~ Group, data = Group.n.fac, permutations = 999, method = "euclidian", by = "terms")
+EAA.norm.perm.Group # Groups: different at p=0.001, R2=0.54
+
+# run pairwise
+set.seed(51)
+pairwise.adonis(ESS.n.dat, factors = c(Group.n.fac$Group), sim.method = "euclidian", p.adjust.m = "none")
+# all groups differ from each other
+
+###########################################################
+# what if just the three sources? (spoiler: same outcome) #
+###########################################################
+
+# drop zooplankton
+ESS.norm.perm.source <- ESS.norm.perm[!(ESS.norm.perm$Group == "Zooplankton"),]
+ESS.norm.dat.source <- ESS.norm.perm.source %>% dplyr::select(Ile.n, Leu.n, Phe.n, Thr.n, Val.n)
+Source.n.fac <- ESS.norm.perm.source %>% dplyr::select(Group)
+
+# run PERMANOVA
+set.seed(51)
+EAA.perm.Source<-adonis2(ESS.norm.dat.source ~ Group, data = Source.n.fac, permutations = 999, method = "euclidian", by = "terms")
+EAA.perm.Source
+
+# run pairwise
+set.seed(51)
+pairwise.adonis(ESS.norm.dat.source, factors = c(Source.n.fac$Group), sim.method = "euclidian", p.adjust.m = "none")
+# all groups differ from each other
+
+```
+
+#### PCA
+This PCA (`PC.raw.zoop`) uses measured (non-normalized) data to test for Lake effects on zooplankton.
+```{r PCA raw, eval=FALSE}
+
+### the PCA below is not included in the manuscript ###
+
+# perform a PCA on the raw (non-normalized) zooplankton data to investigate differences in whole zooplankton communities across Lakes
+
 # run the PCA on scaled and centered data
 set.seed(138)
-PC.raw.zoop<- prcomp(PCA.dat.raw.zoop, center = TRUE, scale= TRUE) 
+PC.raw.zoop <- prcomp(PCA.dat.raw.zoop, center = TRUE, scale= TRUE) 
 
-PC.raw.zoop.sum<-summary(PC.raw.zoop)
-#plot(PC.plank, Type="lines", main="PC.area eigenvalues")
-# 2 PCs explain 96% of variation, most in 1 axis (9)
+PC.raw.zoop.sum <- summary(PC.raw.zoop)
+PC.raw.zoop.sum
+#plot(PC.raw.zoop, type = "l", main = "PC.area eigenvalues")
+# 2 PCs explain 95.8% of variation, most in PC1 (93.4%)
 
-PCA.fac.zoop$phy.group<-droplevels(PCA.fac.zoop$phy.group)
-###### plot for PCA by Lake
-## PC1 and PC2
+PCA.fac.zoop$phy.group <- droplevels(PCA.fac.zoop$phy.group)
+
+# plot PCA (PC1 vs PC2)
 PCA.raw.Lake.zoop <- ggbiplot(PC.raw.zoop, choices = 1:2, obs.scale = 1, var.scale = 1, 
-                      groups=PCA.fac.zoop$Lake, varname.color="saddlebrown", varname.adjust = 2,
-                      ellipse = TRUE, ellipse.fill = FALSE, ellipse.alpha=0.05, 
-                      ellipse.prob=0.90, ellipse.linewidth =0.8,
+                      groups = PCA.fac.zoop$Lake, varname.color = "saddlebrown", varname.adjust = 2,
+                      ellipse = TRUE, ellipse.fill = FALSE, ellipse.alpha = 0.05, 
+                      ellipse.prob = 0.90, ellipse.linewidth = 0.8,
                       circle = FALSE) +
-  geom_point(size = 3, color="black",
-             aes(shape=PCA.fac.zoop$phy.group, fill=PCA.fac.zoop$Lake)) +
-  scale_x_continuous(breaks=seq(-4,4,2))+
-  geom_vline(xintercept=0, linetype="dashed", color = "gray60")+
-  geom_hline(yintercept=0, linetype="dashed", color = "gray60")+
+  geom_point(size = 3, color = "black",
+             aes(shape = PCA.fac.zoop$phy.group, fill = PCA.fac.zoop$Lake)) +
+  scale_x_continuous(breaks = seq(-4,4,2)) +
+  geom_vline(xintercept = 0, linetype = "dashed", color = "gray60") +
+  geom_hline(yintercept = 0, linetype = "dashed", color = "gray60") +
   scale_color_brewer(palette = "Spectral") +
   scale_fill_brewer(palette = "Spectral") +
-  scale_shape_manual(values=c(21,22,23)) +
+  scale_shape_manual(values = c(21,22,23)) +
   #scale_color_manual(values=PCA.col2)+
   #scale_shape_manual(values=c(16,1,22,2,3)) +
-  ggtitle("ESS-raw")+
-  theme_classic()+
-  guides(color = guide_legend(reverse=TRUE))+
+  ggtitle(expression(AA[ESS-raw])) +
+  theme_classic() + 
+  guides(color = guide_legend(reverse=TRUE)) +
   guides(fill = FALSE) +
   theme(legend.text=element_text(size=10), 
     aspect.ratio=0.8, axis.ticks.length=unit(0.2, "cm"),
     axis.text.y=element_text(margin=unit(c(0.5, 0.5, 0.5, 0.5), "cm")),
     axis.text.x=element_text(margin=unit(c(0.5, 0.5, 0.5, 0.5), "cm")))
 
+# view
+PCA.raw.Lake.zoop
+
 ```
 
-*Group effects*  
-- Use  measured and normalized data
-- Test using the 4 Groups: are they distinct from each other?  
-- Are there differences between zoops, POM, algae, or terrestrial plants?   
 
-This PERMANOVA `EAA.raw.perm.Group` uses raw/measured data, with 3 sources and zooplankton (pooled). 
-```{r permanova raw groups}
-#### #### #### #### #### #### #### #### #### #### #### 
-#### df just for the "Groups", which drops Lake and phy.group
-ESS.raw.perm<- ESS.df.raw %>% dplyr::select(-c(SampleID, Elevation.m, orig.class))
-
-# just AAs data
-ESS.dat<-ESS.raw.perm  %>% 
-  dplyr::select(Ile, Leu, Phe, Thr, Val)
-
-# factors
-# Here: only using Group: Zooplankton, Plants, POM, Algae
-Group.fac<-ESS.raw.perm  %>% 
-  dplyr::select(Lake, Group)
-
-# run PERMANOVA for 4 Groups, using measured data
-set.seed(51)
-EAA.raw.perm.Group<-adonis2(ESS.dat~ Group, data=Group.fac, permutations=999, 
-                            method="euclidian", by="terms")
-EAA.raw.perm.Group # different, Lake: p=0.004 R2=0.13, Group: p=0.001, R2=0.49
-# with Group model, 54% R2
-
-# run pairwise
-set.seed(51)
-pairwise.adonis(ESS.dat, factors=c(Group.fac$Group), sim.method = "euclidian", p.adjust.m = "none")
-# All groups differ from each other, except POM and zoop.
-```
-
-This PERMANOVA `EAA.norm.perm.Group` uses normalized data, with 3 sources and zooplankton (pooled). 
-```{r permanova normalized groups}
-#### #### #### #### #### #### #### #### #### #### #### 
-#### df just for the "Groups", which drops Lake and phy.group
-ESS.norm.perm<- ESS.df.norm %>% dplyr::select(-c(SampleID, Elevation.m, orig.class))
-
-# just AAs data
-ESS.n.dat<-ESS.norm.perm  %>% 
-  dplyr::select(Ile.n, Leu.n, Phe.n, Thr.n, Val.n)
-
-# factors
-# Here: only using Group: Zooplankton, Plants, POM, Algae
-Group.n.fac<-ESS.norm.perm  %>% 
-  dplyr::select(Lake, Group)
-
-# run PERMANOVA for 4 Groups
-set.seed(51)
-EAA.norm.perm.Group<-adonis2(ESS.n.dat~ Group, data=Group.n.fac, permutations=999, 
-                        method="euclidian", by="terms")
-EAA.norm.perm.Group # Group: p=0.001, R2=0.54
-
-# run pairwise
-set.seed(51)
-pairwise.adonis(ESS.n.dat, factors=c(Group.n.fac$Group), sim.method = "euclidian", p.adjust.m = "none")
-# All groups differ from each other
-
-################################
-## what if just sources? (spoiler: same outcome)
-# run PERMANOVA for 3 Source groups
-ESS.norm.perm.source<- ESS.norm.perm[!(ESS.norm.perm$Group=="Zooplankton"),]
-ESS.norm.dat.source<-ESS.norm.perm.source  %>% dplyr::select(Ile.n, Leu.n, Phe.n, Thr.n, Val.n)
-Source.n.fac<-ESS.norm.perm.source  %>%  dplyr::select(Lake, Group)
-
-set.seed(51)
-EAA.perm.Source<-adonis2(ESS.norm.dat.source~ Group, data=Source.n.fac, permutations=999, method="euclidian", by="terms")
-EAA.perm.Source
-
-# run pairwise
-set.seed(51)
-pairwise.adonis(ESS.norm.dat.source, factors=c(Source.n.fac$Group), sim.method = "euclidian", p.adjust.m = "none")
-```
-
-#### PCA 
-Use the mean-normalized data to examine patterns in PCA space across sources (POM, algae, terrestrial plants)
-*This is Figure S5*
+This PCA (`PC.norm.sorc`) uses mean-normalized data to examine patterns across sources (POM, algae, terrestrial plants). *This is Figure S5*
 ```{r PCA sources, results='hide', fig.dim=c(6,5), fig.cap="**Figure S5**. Principal component analysis (PCA) for mean-normalized AA~ESS~ δ^13^C values (AA~ESS-norm~) for sources (POM, terrestrial plants). Ellipses represent 95% confidence intervals."}
+
 # factors, reorder
 ESS.norm.perm$phy.group<-factor(ESS.norm.perm$phy.group, 
                                 levels=c("Algae", "POM", "Plants", "cladocera", "copepoda", ">350um"))

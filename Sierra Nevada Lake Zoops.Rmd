@@ -1490,7 +1490,7 @@ POM.mixsiar.plot
 dev.off()
 ```
 
-#### MixSIAR Model 1: by sampleID
+#### MixSIAR Model: by sampleID
 Now import data and create model structure.
 ```{r mixsiar 1 by sample, eval=FALSE, echo=TRUE, collapse=TRUE}
 
@@ -1519,50 +1519,65 @@ discr <- load_discr_data(filename = "data/MixSIAR_TDFs.csv", cons)
 
 #### Check data
 # make an isospace plot
-isospace_plot <- plot_data(filename = "output/MixSIAR_isospace_plot_SampleIDs", plot_save_pdf = TRUE, plot_save_png = FALSE,
+isospace_plot <- plot_data(filename = "output/MixSIAR_isospace_plot_SampleIDs",
+                           plot_save_pdf = TRUE, plot_save_png = FALSE,
                            cons, source, discr)
 
-#######################
-# RUN MixSIAR MODEL 1 #
-#######################
+
+### RUN MIXSIAR MODEL BY SAMPLEID ###
+
 set.seed(12)
 
 # define the model and error structure and write JAGS model file
 # PROCESS ERROR ONLY - HAVE TO DO THIS WHEN RUNNING MIXTURE POINTS INDIVIDUALLY
-  model_filename <- "output/MixSIAR_models/SampleID_models/MixSIAR_Model_1_SampleID_fixed.txt"
+  model_filename <- "output/MixSIAR_models/SampleID_models/MixSIAR_Model_SampleID_fixed.txt"
   resid_err <- FALSE
   process_err <- TRUE
   write_JAGS_model(model_filename, resid_err, process_err, cons, source)
   
 # run the JAGS model
-zoop.jags.mod <- run_model(run = "normal", cons, source, discr, model_filename, alpha.prior = 1, resid_err, process_err)
+zoop.jags.mod <- run_model(run = "long", cons, source, discr, model_filename, alpha.prior = 1, resid_err, process_err)
   
-#Process diagnostics, summary stats, and posterior plots
+# save RDS object of JAGS model
+saveRDS(zoop.jags.mod, file = "output/MixSIAR_models/SampleID_models/MixSIAR_Model_SampleID_rjags.rds")
+
+# code below will read back in the RDS object
+#readRDS(file = "output/MixSIAR_models/SampleID_models/MixSIAR_Model_SampleID_rjags.rds")
+
+# process diagnostics, summary stats, and posterior plots
   output_JAGS(zoop.jags.mod, cons, source, output_options = list(
     summary_save = TRUE,                   
-    summary_name = "output/MixSIAR_models/SampleID_models/MixSIAR_1_SampleID_summary_stats",
+    summary_name = "output/MixSIAR_models/SampleID_models/MixSIAR_SampleID_summary_stats",
     sup_post = FALSE,                       
     plot_post_save_pdf = TRUE,              
-    plot_post_name = "output/MixSIAR_models/SampleID_models/MixSIAR_1_SampleID_posterior_density",   
-    sup_pairs = TRUE,                       
+    plot_post_name = "output/MixSIAR_models/SampleID_models/MixSIAR_SampleID_posterior_density",   
+    sup_pairs = FALSE,                       
     plot_pairs_save_pdf = TRUE,             
-    plot_pairs_name = "output/MixSIAR_models/SampleID_models/MixSIAR_1_SampleID_pairs_plot",         
-    sup_xy = TRUE,                          
+    plot_pairs_name = "output/MixSIAR_models/SampleID_models/MixSIAR_SampleID_pairs_plot",         
+    sup_xy = FALSE,                          
     plot_xy_save_pdf = TRUE,                
-    plot_xy_name = "output/MixSIAR_models/SampleID_models/MixSIAR_1_SampleID_xy_plot",             
+    plot_xy_name = "output/MixSIAR_models/SampleID_models/MixSIAR_SampleID_xy_plot",             
     gelman = TRUE,                         
     heidel = FALSE,                         
     geweke = TRUE,                         
     diag_save = TRUE,                       
-    diag_name = "output/MixSIAR_models/SampleID_models/MixSIAR_1_SampleID_diagnostics",
+    diag_name = "output/MixSIAR_models/SampleID_models/MixSIAR_SampleID_diagnostics",
     indiv_effect = FALSE,
     plot_post_save_png = FALSE,            
     plot_pairs_save_png = FALSE,            
     plot_xy_save_png = FALSE))
     graphics.off()
 
-#save all results
-save.image("output/MixSIAR_models/SampleID_models/MixSIAR_1_SampleID_fixed_data.RData")
+# a posteriori aggregation of sources
+# combine benthic algae and POM into one autochthonous source
+zoop.auto.combined <- combine_sources(zoop.jags.mod, cons, source,
+                                      groups = list(Autochthonous = c("Algae", "POM"),
+                                                    Allochthonous = c("Plants")))
+
+# summary statistics for a posteriori aggregation of sources (autochthonous vs allochthonous)
+sink("output/MixSIAR_models/SampleID_models/MixSIAR_SampleID_summary_stats_a_posteriori.txt")
+print(summary_stat(zoop.auto.combined))
+sink()
 
 ```
 

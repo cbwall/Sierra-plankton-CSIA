@@ -39,13 +39,13 @@ if (!require('knitr')) install.packages('knitr'); library('knitr')
 knitr::opts_chunk$set(warning=FALSE, message=FALSE, fig.align='center')
 
 
-install_github("pmartinezarbizu/pairwiseAdonis/pairwiseAdonis")
+#install_github("pmartinezarbizu/pairwiseAdonis/pairwiseAdonis") # CODE DID NOT WORK FOR ALEXI 2025-05-09
 
 # load packages
 if (!require("pacman")) install.packages("pacman") # for rapid install if not in library
 
 # use pacman to load all the packages you are missing!
-pacman::p_load("knitr", "lme4", "lmerTest", "tidyverse", "effects", "plyr", "plotrix", "car","gridExtra", "cowplot", "tools", "mgcv", "gratia", "MASS", "stats", "tidymv", "sjstats", "coin", "emmeans", "ggplot2", "mda", "nortest", "reshape2", "gmm", "propagate","ggmap", "RgoogleMaps", "MixSIAR","GGally", "ggbiplot", "ggcorrplot", "vegan", "devtools", "multcompView", "scales", "pairwiseAdonis", "ggcorrplot", "ggord", "dplyr")
+pacman::p_load("knitr", "lme4", "lmerTest", "tidyverse", "effects", "plyr", "plotrix", "car","gridExtra", "cowplot", "tools", "mgcv", "gratia", "MASS", "stats", "tidymv", "sjstats", "coin", "emmeans", "ggplot2", "mda", "nortest", "reshape2", "gmm", "propagate","ggmap", "RgoogleMaps", "MixSIAR","GGally", "ggbiplot", "ggcorrplot", "vegan", "devtools", "multcompView", "scales", "pairwiseAdonis", "ggcorrplot", "ggord", "dplyr", "ordr")
 
 ### general formatting for figures 
 Fig.formatting <- (theme_classic()) +
@@ -81,6 +81,7 @@ bind_cols_fill <- function(df_list) {
 
 
 ### Site Maps
+# THIS CODE DOES NOT WORK FOR ALEXI 2025-05-09
 This map shows sampling locations in the Sierra Nevada Mountains. Note you must have a Google API to generate maps in `get_googlmaps`.  
 ```{r, site maps, fig.cap="**Figure 1**. Site map of the Eastern Sierra Nevada Mountains and sampling sites.", fig.align='center', results='hide'}
 
@@ -196,7 +197,8 @@ d13C.d15N <- ggplot(bulk.iso, aes(x = d13C, y = d15N, fill = Type, shape = Type)
         axis.ticks = element_line(color = "black"))
 
 ### SAVE FIGURE S1 ###
-ggsave("figures/FigS1.Bulk_13C.15N.pdf", height = 6, width = 7)
+ggsave("figures/FigS1.Bulk_13C.15N.jpeg", height = 6, width = 7)
+# saved as jpeg to preserve the permill symbol
 
 ### VIEW FIGURE S1 ###
 d13C.d15N
@@ -378,7 +380,8 @@ EAA.box <- ggplot(EAA.df.long, aes(x = EAA, y = d13C, fill = Group))+
 EAA.box.nrm <- ggplot(EAA.df.long, aes(x = EAA, y = d13C.n, fill = Group))+
   geom_boxplot(color = "black")+
   #geom_jitter(aes(fill=Group), color="black",pch=21, size=1)+
-  scale_fill_manual(values = colors2)+ 
+  scale_fill_manual(values = colors2, breaks = c("Algae", "POM", "Terrestrial Plants", "Zooplankton"),
+                    labels = c("Benthic Algae", "POM", "Terrestrial Plants", "Zooplankton")) + 
   ylab(expression(paste(delta^{13}, C[norm], " (\U2030)"))) +
   xlab(element_blank()) +
   theme_classic() +
@@ -394,7 +397,8 @@ EAA.box.nrm <- ggplot(EAA.df.long, aes(x = EAA, y = d13C.n, fill = Group))+
 
 # combine the raw and mean-normalized essential amino acid carbon isotope value boxplots into one figure and export 
 EAA.box.raw.nrm <- plot_grid(EAA.box, EAA.box.nrm, rel_widths = c(1.65, 2.2), labels = c("A", "B"))
-dev.copy(pdf, "figures/FigS3.SNL.EssAA.Boxplot_rev.pdf", width = 10, height = 5)
+jpeg("figures/FigS3.SNL.EssAA.Boxplot_rev.jpeg", width = 10, height = 5, units = "in", res = 300)
+EAA.box.raw.nrm
 dev.off()
 
 ### VIEW FIGURE S3 ###
@@ -465,9 +469,10 @@ indiv.EAA.plot.norm <- ggplot(EAA.long.grouped, aes(x = EAA, y = Mean.d13C.n,
   guides(color = FALSE)
 
 # combine into one figure and export
-pdf(file= "figures/FigS4.indivAA_Lines_rev.pdf", height = 9, width = 12)
 EAA.raw.nrm.lines <- plot_grid(indiv.EAA.plot, indiv.EAA.plot.norm, rel_widths = c(1.65,2.1),
           labels = c("A", "B"))
+jpeg("figures/FigS4.indivAA_Lines_rev.jpeg", height = 9, width = 12, units = "in", res = 300)
+EAA.raw.nrm.lines
 dev.off()
 
 ### VIEW FIGURE S4 ###
@@ -759,14 +764,14 @@ This PERMANOVA `EAA.norm.perm.Group` uses normalized data to test for difference
 ```{r permanova normalized groups}
 
 # create a new data frame by dropping Lake and phy.group
-ESS.norm.perm<- ESS.df.norm %>% dplyr::select(-c(SampleID, Elevation.m, orig.class))
+ESS.norm.perm <- ESS.df.norm %>% dplyr::select(-c(SampleID, Elevation.m, orig.class))
 
-# factors: Group (algae, POM, plants, zooplankton)
-Group.n.fac<-ESS.norm.perm %>% 
+# factors: Group (algae, POM, terrestrial plants, zooplankton)
+Group.n.fac <- ESS.norm.perm %>% 
   dplyr::select(Group)
 
 # response variables: each EAA
-ESS.n.dat<-ESS.norm.perm %>% 
+ESS.n.dat <- ESS.norm.perm %>% 
   dplyr::select(Ile.n, Leu.n, Phe.n, Thr.n, Val.n)
 
 ################### NORMALIZED DATA ####################
@@ -824,7 +829,7 @@ PC.raw.zoop.sum
 PCA.fac.zoop$phy.group <- droplevels(PCA.fac.zoop$phy.group)
 
 # plot PCA (PC1 vs PC2)
-PCA.raw.Lake.zoop <- ggbiplot(PC.raw.zoop, choices = 1:2, obs.scale = 1, var.scale = 1, 
+PCA.raw.Lake.zoop <- ggbiplot::ggbiplot(PC.raw.zoop, choices = 1:2, obs.scale = 1, var.scale = 1, 
                       groups = PCA.fac.zoop$Lake, varname.color = "saddlebrown", varname.adjust = 2,
                       ellipse = TRUE, ellipse.fill = FALSE, ellipse.alpha = 0.05, 
                       ellipse.prob = 0.90, ellipse.linewidth = 0.8,
@@ -839,140 +844,156 @@ PCA.raw.Lake.zoop <- ggbiplot(PC.raw.zoop, choices = 1:2, obs.scale = 1, var.sca
   scale_shape_manual(values = c(21,22,23)) +
   #scale_color_manual(values=PCA.col2)+
   #scale_shape_manual(values=c(16,1,22,2,3)) +
-  ggtitle(expression(AA[ESS-raw])) +
+  ggtitle(expression(paste(AA[ESS], " ", delta^{13}, C))) +
   theme_classic() + 
   guides(color = guide_legend(reverse=TRUE)) +
   guides(fill = FALSE) +
-  theme(legend.text=element_text(size=10), 
-    aspect.ratio=0.8, axis.ticks.length=unit(0.2, "cm"),
-    axis.text.y=element_text(margin=unit(c(0.5, 0.5, 0.5, 0.5), "cm")),
-    axis.text.x=element_text(margin=unit(c(0.5, 0.5, 0.5, 0.5), "cm")))
+  theme(legend.text = element_text(size = 10),
+        aspect.ratio = 0.8, axis.ticks.length = unit(0.2, "cm"),
+        axis.text.y = element_text(margin = unit(c(0.5, 0.5, 0.5, 0.5), "cm"), color = "black"),
+        axis.text.x = element_text(margin = unit(c(0.5, 0.5, 0.5, 0.5), "cm"), color = "black"),
+        axis.ticks = element_line(color = "black"),
+        legend.title = element_blank())
 
 # view
 PCA.raw.Lake.zoop
 
 ```
 
-
-This PCA (`PC.norm.sorc`) uses mean-normalized data to examine patterns across sources (POM, algae, terrestrial plants). *This is Figure S5*
+This PCA (`PC.norm.sorc`) uses mean-normalized data to examine patterns across sources (algae, POM, terrestrial plants). *This is Figure S5*
 ```{r PCA sources, results='hide', fig.dim=c(6,5), fig.cap="**Figure S5**. Principal component analysis (PCA) for mean-normalized AA~ESS~ δ^13^C values (AA~ESS-norm~) for sources (POM, terrestrial plants). Ellipses represent 95% confidence intervals."}
 
-# factors, reorder
-ESS.norm.perm$phy.group<-factor(ESS.norm.perm$phy.group, 
-                                levels=c("Algae", "POM", "Plants", "cladocera", "copepoda", ">350um"))
-ESS.norm.perm$category<-ifelse(ESS.norm.perm$Group == "Zooplankton", "Zooplankton", "Producer")
-ESS.norm.perm$category<-as.factor(ESS.norm.perm$category)
+# reorder factors
+ESS.norm.perm$phy.group <- factor(ESS.norm.perm$phy.group, 
+                                levels = c("Algae", "POM", "Plants", "cladocera", "copepoda", ">350um"))
+ESS.norm.perm$category <- ifelse(ESS.norm.perm$Group == "Zooplankton", "Zooplankton", "Producer")
+ESS.norm.perm$category <- as.factor(ESS.norm.perm$category)
 
-# new df
-ESS.norm.source<-ESS.norm.perm[(ESS.norm.perm$category=="Producer"),]
+# create a new data frame for only the three sources 
+ESS.norm.source <- ESS.norm.perm[(ESS.norm.perm$category == "Producer"),]
 
-# just AAs data
-ESS.n.dat.sorc<-ESS.norm.source  %>% 
+# factors: Group (algae, POM, terrestrial plants)
+PC.n.fac.sorc <- ESS.norm.source  %>% 
+  dplyr::select(Group)
+
+# response variables: each EAA
+ESS.n.dat.sorc <- ESS.norm.source  %>% 
   dplyr::select(Ile.n, Leu.n, Phe.n, Thr.n, Val.n)
 
-# factors
-PC.n.fac.sorc<-ESS.norm.source  %>% 
-  dplyr::select(Lake, Group, phy.group, category)
-
-#run the PCA on scaled and centered data
+# run the PCA on scaled and centered data
 set.seed(508)
-PC.norm.sorc<- prcomp(ESS.n.dat.sorc, center = TRUE, scale= TRUE) 
+PC.norm.sorc <- prcomp(ESS.n.dat.sorc, center = TRUE, scale = TRUE) 
 
-PC.norm.summ.sorc<-summary(PC.norm.sorc) #64% in 3 PCs
-#plot(PC.norm, type="lines", main="PC.area eigenvalues")
+PC.norm.summ.sorc <- summary(PC.norm.sorc)
+PC.norm.summ.sorc
+#plot(PC.norm, type = "l", main = "PC.area eigenvalues")
+# 2 PCs explain 63.2% of the variation, 4 PCs explain 100%
 
-###### plot for PCA by phy group
-pca.3.colors<-c("springgreen4", "dodgerblue", "lightsalmon3")
+# assign colors for algae, POM, and terrestrial plants, respectively
+pca.3.colors <- c("springgreen4", "dodgerblue", "lightsalmon3")
 
+# plot PCA (PC1 and PC2)
+PCA.norm.sorc.plot <- ggbiplot::ggbiplot(PC.norm.sorc, choices = 1:2, obs.scale = 1, var.scale = 1, 
+                                         groups = PC.n.fac.sorc$Group,
+                                         varname.color = "saddlebrown", varname.adjust = 1.5,
+                                         ellipse = TRUE, ellipse.fill = FALSE, ellipse.alpha = 0.05, 
+                                         ellipse.prob = 0.90, ellipse.linewidth = 1, circle = FALSE) +
+  #geom_vline(xintercept = 0, linetype = "dashed", color = "gray60") +
+  #geom_hline(yintercept = 0, linetype = "dashed", color = "gray60") +
+  geom_point(size = 3.5, color = "black",
+             aes(fill = PC.n.fac.sorc$Group, shape = PC.n.fac.sorc$Group)) +
+  scale_color_manual(values = pca.3.colors) +
+  scale_fill_manual(values = pca.3.colors) +
+  scale_shape_manual(values = c(24,24,25)) +
+  ggtitle(expression(paste(AA[ESS], " ", delta^{13}, C[normalized]))) +
+  coord_cartesian(xlim = c(-3, 3)) +
+  theme_classic() +
+  theme(axis.ticks.length = unit(0.2, "cm"),
+        axis.ticks = element_line(color = "black"),
+        axis.text.y = element_text(margin = unit(c(0.5, 0.5, 0.5, 0.5), "cm"), color = "black"),
+        axis.text.x = element_text(margin = unit(c(0.5, 0.5, 0.5, 0.5), "cm"), color = "black")) +
+  guides(shape = FALSE) + guides(fill = FALSE) + guides(color = FALSE) +
+  annotate("text", x = -0.3, y = -3.5, label = "Terrestrial Plants", 
+           color = "lightsalmon3", size = 5, fontface = "bold") +
+  annotate("text", x = 0.6, y = 2.4, label = "POM", 
+           color = "dodgerblue", size = 5, fontface = "bold") +
+  annotate("text", x = 2.3, y = -2.6, label = "Benthic Algae", 
+           color = "springgreen4", size = 5, fontface = "bold")
 
-## PC1 and PC2
-PCA.norm.sorc.plot <- ggbiplot(PC.norm.sorc, choices = 1:2, obs.scale = 1, var.scale = 1, 
-                      groups=PC.n.fac.sorc$Group,
-                      varname.color="saddlebrown", varname.adjust = 2,
-                      ellipse = TRUE, ellipse.fill = FALSE, ellipse.alpha=0.05, 
-                      ellipse.prob=0.90, ellipse.linewidth =0.7,
-                      circle = FALSE) +
-  geom_point(size = 3.5, color="black",
-             aes(fill=PC.n.fac.sorc$Group, shape=PC.n.fac.sorc$Group)) +
-  geom_vline(xintercept=0, linetype="dashed", color = "gray60")+
-  geom_hline(yintercept=0, linetype="dashed", color = "gray60")+
-  scale_color_manual(values=pca.3.colors)+
-  scale_fill_manual(values=pca.3.colors)+
-  scale_shape_manual(values=c(24,24,21))+
-  ggtitle("ESS-normalized: Sources")+
-  coord_cartesian(xlim=c(-3, 3)) +
-   theme_classic()+
-   theme(legend.text=element_text(size=10),
-    axis.ticks.length=unit(0.2, "cm"), 
-    axis.text.y=element_text(margin=unit(c(0.5, 0.5, 0.5, 0.5), "cm")),
-    axis.text.x=element_text(margin=unit(c(0.5, 0.5, 0.5, 0.5), "cm"))) +
-  guides(shape = FALSE) + guides(fill = FALSE)
-
+# export
 PCA.norm.sorc.plot
-
-# export it
-PCA.norm.sorc.plot
-dev.copy(pdf, "figures/FigS5.PCA.Sources.pdf", height = 5, width = 6.5)
+dev.copy(pdf, "figures/FigS5.PCA.Sources.pdf", height = 7, width = 6.5)
 dev.off()
+
+jpeg("figures/FigS5.PCA.Sources.jpeg", height = 7, width = 6.5, units = "in", res = 300)
+PCA.norm.sorc.plot
+dev.off()
+
+### VIEW FIGURE S5 ###
+PCA.norm.sorc.plot
+
 ```
 
 ```{r PCA sources and zoop, eval=FALSE}
-# factors, reorder
-ESS.norm.perm$phy.group<-factor(ESS.norm.perm$phy.group, 
-                                levels=c("Algae", "POM", "Plants", "cladocera", "copepoda", ">350um"))
-ESS.norm.perm$category<-ifelse(ESS.norm.perm$Group == "Zooplankton", "Zooplankton", "Producer")
-ESS.norm.perm$category<-as.factor(ESS.norm.perm$category)
 
-PC.n.fac<-ESS.norm.perm  %>% 
+# reorder factors
+ESS.norm.perm$phy.group <- factor(ESS.norm.perm$phy.group, 
+                                levels=c("Algae", "POM", "Plants", "cladocera", "copepoda", ">350um"))
+ESS.norm.perm$category <- ifelse(ESS.norm.perm$Group == "Zooplankton", "Zooplankton", "Producer")
+ESS.norm.perm$category <- as.factor(ESS.norm.perm$category)
+
+PC.n.fac <- ESS.norm.perm  %>% 
   dplyr::select(Lake, Group, phy.group, category)
 
 #run the PCA on scaled and centered data
 set.seed(508)
-PC.norm<- prcomp(ESS.n.dat, center = TRUE, scale= TRUE) 
+PC.norm <- prcomp(ESS.n.dat, center = TRUE, scale= TRUE) 
 
-PC.norm.summ<-summary(PC.norm) #64% in 3 PCs
+PC.norm.summ <- summary(PC.norm) #64% in 3 PCs
 #plot(PC.norm, type="lines", main="PC.area eigenvalues")
 
 ###### plot for PCA by phy group
-phy.6.colors<-c("springgreen4", "dodgerblue", "lightsalmon3", "orange", "brown1", "gray65")
+phy.6.colors <- c("springgreen4", "dodgerblue", "lightsalmon3", "orange", "brown1", "gray65")
 
 
 ## PC1 and PC2
-PCA.norm.plot <- ggbiplot(PC.norm, choices = 1:2, obs.scale = 1, var.scale = 1, 
+PCA.norm.plot <- ggbiplot::ggbiplot(PC.norm, choices = 1:2, obs.scale = 1, var.scale = 1, 
                       groups=PC.n.fac$phy.group,
                       varname.color="saddlebrown", varname.adjust = 2,
                       ellipse = TRUE, ellipse.fill = FALSE, ellipse.alpha=0.05, 
                       ellipse.prob=0.90, ellipse.linewidth =0.7,
                       circle = FALSE) +
   geom_point(size = 3.5, color="black",
-             aes(fill=PC.n.fac$phy.group, shape=ESS.norm.perm$category)) +
-  geom_vline(xintercept=0, linetype="dashed", color = "gray60")+
-  geom_hline(yintercept=0, linetype="dashed", color = "gray60")+
-  scale_x_continuous(breaks=pretty_breaks(n=5))+
-  scale_color_manual(values=phy.6.colors)+
-  scale_fill_manual(values=phy.6.colors)+
-  scale_shape_manual(values=c(24,21))+
+             aes(fill = PC.n.fac$phy.group, shape = ESS.norm.perm$category)) +
+  geom_vline(xintercept = 0, linetype="dashed", color = "gray60")+
+  geom_hline(yintercept = 0, linetype="dashed", color = "gray60")+
+  scale_x_continuous(breaks = pretty_breaks(n = 5))+
+  scale_color_manual(values = phy.6.colors)+
+  scale_fill_manual(values = phy.6.colors)+
+  scale_shape_manual(values = c(24,21))+
   ggtitle("ESS-normalized")+
    theme_classic()+
-   theme(legend.text=element_text(size=10),
-    axis.ticks.length=unit(0.2, "cm"), 
-    axis.text.y=element_text(margin=unit(c(0.5, 0.5, 0.5, 0.5), "cm")),
-    axis.text.x=element_text(margin=unit(c(0.5, 0.5, 0.5, 0.5), "cm"))) +
+   theme(legend.text = element_text(size = 10),
+    axis.ticks.length = unit(0.2, "cm"), 
+    axis.text.y = element_text(margin = unit(c(0.5, 0.5, 0.5, 0.5), "cm")),
+    axis.text.x = element_text(margin = unit(c(0.5, 0.5, 0.5, 0.5), "cm"))) +
   guides(fill = FALSE)
 
 PCA.norm.plot
+
 ```
 
 ### LDA 
-Use a linear discriminant analysis (LDA) to determine separation of primary producers and assign zooplankton to these Groups as sources of AA~EAA~.  
+Use a linear discriminant analysis (LDA) to characterize the fingerprints of primary producers (e.g., AA~ESS~ sources) and classify zooplankton with one of these AA~ESS~ sources.  
 
 #### LDA: Train Primary Producers
-LDA has internal normalization approach, and we tested whether there is no difference in output whether data is mean-normalized or not and found no effect. Therefore, we proceed with the measured (non-mean-normalized data for subsequent analyses) of AA~ESS~ isotope fingerprinting and mixing models. In the LDA, we will use primary prodcers first, inspecting the error rate of a jackknifed - leave one out - model fit and compare classification rates. 
+LDA has an internal normalization procedure (there is no difference in output for data that are mean-normalized versus those that are not). Therefore, we use the measured (NOT mean-normalized) data for all subsequent analyses, including LDA and mixing models. We first train the LDA using the primary producers only, and inspect the error rate/model accuracy using a jackknifed, leave-one-out cross-validation procedure.
 
-Run training data of 3 sources to later categorized zooplankton.
+Training LDA for three AA~ESS sources (benthic algae, POM, terrestrial plants)
 ```{r LDA primary producers training, results='hide'}
+
 # full data = 'EAA.df.wide'
-prod<- EAA.df.wide[!(EAA.df.wide$Group=="Zooplankton"),]
+prod <- EAA.df.wide[!(EAA.df.wide$Group == "Zooplankton"),]
 
 #Run an LDA with a jackknifing model fit to look at error rate
 #'CV = TRUE' makes the LDA run a jackknifed - leave one out - model fit
@@ -981,25 +1002,31 @@ All.lda <- lda(Group ~ Ile + Leu + Phe + Thr + Val, data = prod, CV = TRUE)
 #Create a table which compares the classification from the LDA model to the actual classification
 All.reclass <- table(prod$Group, All.lda$class)
 
-#Total percent of samples correctly classified is the sum of the diagonal of this table: 89%
+#Total percent of samples correctly classified is the sum of the diagonal of this table: 88.9%
 sum(diag(prop.table(All.reclass)))
 
-mean(All.lda$class==prod$Group) # mean accuracy
+mean(All.lda$class == prod$Group) # mean accuracy
 
-#Percent of each producer Group correctly reclassified: 78% algae, 100% plants, 88% POM
+#Percent of each producer Group correctly reclassified: 77.8% algae, 100% plants, 87.5% POM
 diag(prop.table(All.reclass, 1))
 
 #Create a training LDA function from the library data
 #Note - you can't use the 'All.lda' object above because the 'CV = TRUE' command was used to create it, and for some reason this won't work with the predict() function
 All.train <- lda(Group~ Ile + Leu + Phe + Thr + Val, data = prod)
 All.train
+# save as txt file
+sink("output/LDA_Train_Info.txt")
+print(All.train)
+sink()
 
 #plot LD1 and LD2 to show the sources
-Source.LDA<-ggord(All.train,prod$Group, arrow=0,
+Source.LDA <- ggord(All.train,prod$Group, arrow=0,
       txt = NULL, veclsz = 0, vectyp="blank",# remove vectors and arrows
-      cols=c("springgreen4","dodgerblue", "lightsalmon3"), grp_title= "Producers",
-      ellipse_pro = 0.95, xlim=c(-6,6), ylim=c(-5,5)) + theme_classic() +theme(legend.position = 'top')
+      cols = c("springgreen4","dodgerblue", "lightsalmon3"), grp_title = "Producers",
+      ellipse_pro = 0.95, xlim = c(-6,6), ylim = c(-5,5)) + theme_classic() + theme(legend.position = 'top')
 
+#view plot
+Source.LDA
 
 #Write a csv file for the coefficients of LD1/2
 lda.info <- as.data.frame(All.train$scaling)
@@ -1009,14 +1036,17 @@ write.csv(lda.info, "output/SNL_Producers_LDA_loadings_NMX.csv", row.names=FALSE
 AllProdPredict <- data.frame(Group = prod$Group, SampleID = prod$SampleID, predict(All.train)$x)
 
 #Write a csv file for the LDA coordinates
-write.csv(AllProdPredict, "output/SNL_Producers_LDA_coords_NMX.csv", row.names=FALSE)
+write.csv(AllProdPredict, "output/SNL_Producers_LDA_coords_NMX.csv", row.names = FALSE)
+
 ```
 
 
 #### LDA: Classify zooplankton
-Use the LDA to classify the zooplankton as assigning to either POM or terrestrial plants. We will later use the LDA scores (LD1) in a mixing model.  
+Classify zooplankton within this LDA model. Zooplankton will classify with benthic algae, POM, or terrestrial plants. LDA coordinates (LD1 and LD2) will be used in subsequent mixing models.
 ```{r LDA Zoop1}
+
 # full data for zoops only = 'zoops'
+
 #Classify zooplankton
 zoop.predict <- predict(object = All.train, newdata = zoops)
 zoop.predict.data <- data.frame(SampleID = zoops$SampleID, Type = zoops$Type, Lake = zoops$Lake,
@@ -1029,32 +1059,33 @@ write.csv(zoop.predict.data, "output/SNL_Zooplankton_LDA_info_NMX.csv", row.name
 
 ```
 
-Now that we have new data, let's combine it with the previous data so that we have a unified dataframe with the measured AA~ESS~ data, sampling information, and LD-classification and LD1 coordinate.  
+Combine training (AA~ESS~ source/primary producer) LDA data with zooplankton LDA data into one unified data frame that includes measured AA~ESS~ δ^13^C values, sampling information, and LDA classifications, and LDA coordinates.
 ```{r LDA smithing}
-##############
-# combine the zooplankton and source LDA
-##############
 
-####### Producers
-# AlldataPredict.mod original columns as - "Group", "SampleID", "LD1"
+##########################################
+# combine the zooplankton and source LDA #
+##########################################
+
+### Producers
+# AllProdPredict original columns are: "Group", "SampleID", "LD1", "LD2"
 # rearrange
-AllProdPredict.mod<- AllProdPredict %>%
+AllProdPredict.mod <- AllProdPredict %>%
   dplyr::select("SampleID", "Group", "LD1", "LD2")
 
 # rename columns
-colnames(AllProdPredict.mod)<-c("SampleID", "orig.class", "LD1", "LD2")
+colnames(AllProdPredict.mod) <- c("SampleID", "orig.class", "LD1", "LD2")
 
 # make new columns to allow merge
-AllProdPredict.mod$LD.class<-"Source"
+AllProdPredict.mod$LD.class <- "Source"
 
 all(prod$SampleID == AllProdPredict.mod$SampleID) #SampleIDs the same, add in Lake
-AllProdPredict.mod$Lake<-prod$Lake
+AllProdPredict.mod$Lake <- prod$Lake
 
 # rearrange
-AllProdPredict.mod<- AllProdPredict.mod %>%
+AllProdPredict.mod <- AllProdPredict.mod %>%
   dplyr::select("SampleID", "orig.class", "Lake", "LD.class", "LD1", "LD2")
 
-############# Zooplankton
+### Zooplankton
 # grab columns we want
 zoop.predict.data.NMX<- zoop.predict.data %>%
   dplyr::select("SampleID", "Type", "Lake", "zoop.predict.class", "LD1", "LD2")
@@ -1066,7 +1097,7 @@ zoop.predict.data.NMX <- zoop.predict.data.NMX %>%
 zoop.predict.data.NMX <- zoop.predict.data.NMX %>% 
        dplyr::rename("LD.class" = "zoop.predict.class")
 
-####### bind the 2 dfs
+####### bind the producer and zooplankton data frames
 LDA.df<-rbind(zoop.predict.data.NMX, AllProdPredict.mod)
 
 # make new level for "phy.group" based on taxonomy
@@ -1084,12 +1115,13 @@ LDA.df$phy.group<- ifelse(LDA.df$orig.class == "calanoid", "copepoda",
 LDA.df.simple<- LDA.df %>%
   dplyr::select("SampleID", "LD.class", "LD1", "LD2")
 
-#combine with raw and normalized data
-raw.norm.LD.data<-merge(SNL.ess.meta.ordered, LDA.df.simple, by="SampleID", all.x=TRUE)
+# combine with raw and mean-normalized data
+raw.norm.LD.data <- merge(SNL.ess.meta.ordered, LDA.df.simple, by = "SampleID", all.x = TRUE)
 write.csv(raw.norm.LD.data, "output/All.data.comiled.csv")
+
 ```
 
-#### LDA by sample-site
+#### LDA by sample-site # THIS IS LEFTOVER FROM WHEN WE ONLY HAD TWO SOURCES (POM AND TERRESTRIAL PLANTS) AND THUS, ONLY ONE LD!
 Use the LDA scores, plot each score for each sample to see the variance and site-differences. 
 ```{r LDA sample plot, results='hide', fig.dim=c(7,4.5), fig.cap="**Figure**. Linear discriminant analysis of AA~ESS~ δ^13^C values, with sample assignment across LD1 (linear discriminant-axis 1) from lowest (Lukens) to highest elevation (Granite 2). Dashed vertical line shows assignment of zooplankton samples as either supported by terrestrial plants or POM."}
 ##### can load in from output '("output/Producer_zoop_LDA_score.csv")'
@@ -1127,7 +1159,7 @@ dev.copy(pdf, "figures/FigS5.LDA.spp.Lake_rev.pdf", width = 8, height = 6)
 dev.off()
 ```
 
-#### LDA by taxa
+#### LDA by taxa # THIS IS LEFTOVER FROM WHEN WE ONLY HAD TWO SOURCES (POM AND TERRESTRIAL PLANTS) AND THUS, ONLY ONE LD!
 Use the LDA scores to make boxplots showing the assignment for each zooplankton Group. This pools across all sites and emphasizes functional Groups/taxa.
 ```{r LDA taxa plot, results='hide', fig.dim=c(6,5), fig.cap="**Figure**. Boxplots of linear discriminant 1 (LD1) coordinates from linear discriminant analysis of AA~EES~ δ^13^C values. Dashed vertical lines demarcates assignment of zooplankton samples with terrestrial plants (left) or POM (right). "}
 ####################
@@ -1162,46 +1194,71 @@ LDA.phy.boxplot<-ggplot(LDA.df, aes(x=LD1, y=phy.group,
 #dev.off()
 ```
 
-Run the LDA as biplot at different levels
+Plot the LDA. *This is Figure 2.*
 ```{r LD biplot}
-LDA.df$Group<-as.factor(LDA.df$Group)
 
-lda.4.colors<-c("springgreen4", "dodgerblue", "lightsalmon3", "gray30")
+LDA.df$Group <- as.factor(LDA.df$Group)
+
+lda.4.colors <- c("springgreen4", "dodgerblue", "lightsalmon3", "gray30")
 
 # version 1 with pooled plankton 
-LDA.scat.Group<-ggplot(LDA.df, aes(x=LD1, y=LD2))+
+LDA.scat.Group <- ggplot(LDA.df, aes(x = LD1, y = LD2))+
   geom_point(size = 3.5, color="black",
-             aes(fill=Group, color=Group, shape=Group), alpha=0.9) +
-  stat_ellipse(type = "norm", level=0.90, linewidth=0.5, aes(lty=Group, color=Group))+
-  scale_color_manual(values=lda.4.colors)+
-  scale_fill_manual(values=lda.4.colors)+
-  scale_shape_manual(values=c(24, 24, 24 ,21))+
-  scale_linetype_manual(values=c(2,2,2,0))+
+             aes(fill = Group, color = Group, shape = Group), alpha = 0.9) +
+  stat_ellipse(type = "norm", level = 0.90, linewidth = 0.5, aes(lty = Group, color = Group))+
+  scale_color_manual(values = lda.4.colors)+
+  scale_fill_manual(values = lda.4.colors)+
+  scale_shape_manual(values = c(24, 24, 24 ,21))+
+  scale_linetype_manual(values = c(2,2,2,0))+
   xlab("LD1") + ylab("LD2") +
   theme_classic() + guides(lty = "none")
 
+#LDA box plot by phy.group
+lda.6.colors.main <- c("springgreen4", "dodgerblue", "lightsalmon3", "gray65", "orange", "brown1")
 
-#version 2 with plankton groups separated out
-LDA.scat.phygroup<-ggplot(LDA.df, aes(x=LD1, y=LD2))+
-  geom_point(size = 3.5, color="black",
-             aes(fill=phy.group, color=phy.group, shape=phy.group), alpha=0.9) +
-  stat_ellipse(type = "norm", level=0.90, linewidth=0.5, aes(lty=phy.group, color=phy.group))+
-  scale_color_manual(values=lda.6.colors)+
-  scale_fill_manual(values=lda.6.colors)+
-  scale_shape_manual(values=c(24, 24, 21 ,21, 21, 24))+
-  scale_linetype_manual(values=c(2,2,0,0,0, 2))+
-  xlab("LD1") + ylab("LD2") +
-  theme_classic() + guides(lty = "none")
+# version 2 with plankton groups separated out
+LDA.scat.phygroup <- ggplot(LDA.df, aes(x = LD1, y = LD2)) +
+  geom_point(size = 3.5, color = "black",
+             aes(fill = phy.group, color = phy.group, shape = phy.group), alpha = 0.9) +
+  scale_fill_manual(values = lda.6.colors.main, 
+                    breaks = c("Algae", "POM", "Plants", ">350um", "cladocera", "copepoda"),
+                    labels = c("Benthic Algae", "POM", "Terrestrial Plants", "> 350 \u03bcm",
+                               "Cladocera", "Copepoda"),
+                    name = NULL) +
+  scale_shape_manual(values = c(24, 24, 25, 21 ,21, 21),
+                     breaks = c("Algae", "POM", "Plants", ">350um", "cladocera", "copepoda"),
+                     labels = c("Benthic Algae", "POM", "Terrestrial Plants", "> 350 \u03bcm",
+                               "Cladocera", "Copepoda"),
+                     name = NULL) +
+  stat_ellipse(type = "norm", level = 0.90, linewidth = 0.5, aes(lty = phy.group, color = phy.group)) +
+  scale_color_manual(values = lda.6.colors, guide = NULL) +
+  scale_linetype_manual(values = c(2, 2, 0, 0, 0, 2), guide = NULL) +
+  xlab("Linear Discrimant 1 (85.8%)") + ylab("Linear Discriminant 2 (14.2%)") +
+  theme_classic() + 
+  theme(axis.ticks = element_line(color = "black"),
+        axis.text.y = element_text(size = 12, color = "black"),
+        axis.text.x = element_text(size = 12, color = "black"),
+        axis.title.y = element_text(size = 14, color = "black"),
+        axis.title.x = element_text(size = 14, color = "black"),
+        legend.text = element_text(size = 10, color = "black")) +
+  #annotate("text", x = 3.8, y = -4.9, label = expression(beta[Leu] == -0.721 ~ ";" ~ beta[Phe] == 0.563),
+           #color = "black", size = 3) +
+  #annotate("text", x = -6.2, y = 2.8, label = expression(beta[Phe] == 0.385 ~ ";" ~ beta[Val] == -0.237),
+           #angle = 90, color = "black", size = 3)
 
-LDA.compiled<-plot_grid(Source.LDA, LDA.scat.Group, LDA.scat.phygroup, ncol=3, labels=c("A", "B", "C"), rel_widths = c(1,1.2,1.2))
+### SAVE FIGURE 2 ###
+ggsave("figures/Fig2_LDA_biplot.jpeg", height = 6, width = 7)
 
-dev.copy(pdf, "figures/Fig2.Source.Plank.scat.LDA3.pdf", width = 14, height = 4)
-dev.off()
+# view
+LDA.scat.phygroup
+
+LDA.compiled <- plot_grid(Source.LDA, LDA.scat.Group, LDA.scat.phygroup, ncol = 3, labels = c("A", "B", "C"), rel_widths = c(1,1.2,1.2))
+
 ```
 
 
 ### MixSIAR
-We will first run MixSIAR to determine the proportion of algae/terrestrial material in the POM. This will help us validate the use of POM as a food source and its autochthony composition.
+We will first run MixSIAR to determine the proportion of algae/terrestrial material in the POM. This will help us validate the use of POM as a food source and its autochthony composition. #I THINK WE CUT THIS???
 ```{r}
 #Load Packages for MixSIAR Models .... should already load in setup chunk, but just in case
 #library(MixSIAR)
@@ -1264,52 +1321,75 @@ discr <- load_discr_data(filename="data/MixSIAR_prod.TDFs.csv", cons)
 
 ```
 
+Export AA~ESS~ source and zooplankton LDA data to feed into MixSIAR. We will calculate the mean, standard deviations, and sample sizes for the LD1 and LD2 values of the sources.
+```{r mixsiar setup}
 
+############
+# MIXTURES #
+############
 
-Export zooplankton and source data to feed into MixSIAR. We will calculate the mean, standard deviations, and sample sized for LD1 values of the sources.
-```{r mixsiar sources}
-#Create a new data frame with desired columns (Zooplankton)
+# ZOOPLANKTON 
+
+# create a new data frame with desired columns for the zooplankton consumers (mixtures)
 Mix.df.all <- LDA.df %>%
-  dplyr::select("SampleID", "orig.class", "phy.group", "Lake", "Elevation.m", "LD1")
+  dplyr::select("SampleID", "orig.class", "phy.group", "Lake", "Elevation.m", "LD1", "LD2")
 
-#Remove Plants, algae and POM from the data frame
-Mix.df <- Mix.df.all[!(Mix.df.all$orig.class=="Plants" | Mix.df.all$orig.class=="POM" |  Mix.df.all$orig.class=="Algae"),]
+# remove algae, POM, and plants from the data frame
+Mix.df <- Mix.df.all[!(Mix.df.all$orig.class == "Algae" | Mix.df.all$orig.class == "POM" |
+                         Mix.df.all$orig.class == "Terrestrial Plants"),]
 
-Mix.df.summary.Lake<-aggregate(LD1~Lake, data=Mix.df, FUN=length)
-Mix.df.summary.phy<-aggregate(LD1~phy.group, data=Mix.df, FUN=length)
-Mix.df.summary.phy.Lake<-aggregate(LD1~Lake+phy.group, data=Mix.df, FUN=length)
+# Do we need this???
+# Mix.df.summary.Lake <- aggregate(LD1 ~ Lake, data = Mix.df, FUN = length)
+# Mix.df.summary.phy <- aggregate(LD1 ~ phy.group, data = Mix.df, FUN = length)
+# Mix.df.summary.phy.Lake <- aggregate(LD1 ~ Lake + phy.group, data = Mix.df, FUN = length)
 
-#Write and export a csv of the zooplankton data frame
-write.csv(Mix.df, "output/Mix.df.csv", row.names=FALSE)
+# write and export a csv of the zooplankton data frame
+write.csv(Mix.df, "output/Mix.df.csv", row.names = FALSE)
 
-#Create a new data frame with desired columns
-Source.df <-  Mix.df.all[(Mix.df.all$phy.group=="Plants" | 
-                            Mix.df.all$orig.class=="POM" |  
-                            Mix.df.all$orig.class=="Algae"),]
+###########
+# SOURCES #
+###########
 
-#drop levels and subset
-Source.df$phy.group<-droplevels(Source.df$phy.group)
+# BENTHIC ALGAE, POM, PLANTS 
+
+# create a new data frame with desired columns for the primary producers (sources)
+Source.df <-  Mix.df.all[(Mix.df.all$orig.class == "Algae" | Mix.df.all$orig.class == "POM" |
+                            Mix.df.all$orig.class == "Terrestrial Plants"),]
+
+# drop levels and subset
+Source.df$phy.group <- droplevels(Source.df$phy.group)
 Source.df <- Source.df %>%
-  dplyr::select("phy.group", "LD1")
+  dplyr::select("phy.group", "LD1", "LD2")
 
-#Calculate mean LD1 values of the sources
-mean.df <- aggregate(LD1~phy.group, data=Source.df, FUN=mean)
+# calculate mean LD1 values for the sources
+mean.ld1.df <- aggregate(LD1 ~ phy.group, data = Source.df, FUN = mean)
+colnames(mean.ld1.df) <- c("phy.group", "MeanLD1")
 
-#Calculate standard deviations for LD1 values of the sources
-sd.df <- aggregate(LD1~phy.group, data=Source.df, FUN=sd)
+# calculate standard deviations of LD1 values for the sources
+sd.ld1.df <- aggregate(LD1 ~ phy.group, data = Source.df, FUN = sd)
+colnames(sd.ld1.df) <- c("phy.group", "SDLD1")
 
-#Calculate the number of samples for each of the sources
-n.df <- aggregate(LD1~phy.group, data=Source.df, FUN=length)
+# calculate mean LD1 values for the sources
+mean.ld2.df <- aggregate(LD2 ~ phy.group, data = Source.df, FUN = mean)
+colnames(mean.ld2.df) <- c("phy.group", "MeanLD2")
 
-#Bind the values calculated above into one data frame
-source.agg.df <- cbind(n.df, mean.df[2], sd.df[2])
+# calculate standard deviations of LD1 values for the sources
+sd.ld2.df <- aggregate(LD2 ~ phy.group, data = Source.df, FUN = sd)
+colnames(sd.ld2.df) <- c("phy.group", "SDLD2")
 
-#Rename the columns in this data frame
-colnames(source.agg.df) <- c("phy.group", "n", "MeanLD1", "SDLD1")
+# calculate the number of samples for each of the sources
+n.df <- aggregate(LD1 ~ phy.group, data = Source.df, FUN = length)
+colnames(n.df) <- c("phy.group", "n")
 
-#Write and export a csv of the source data frame
-write.csv(source.agg.df, "output/source.agg.df.csv", row.names=FALSE)
+# bind the values calculated above into one data frame
+source.agg.df <- cbind(n.df, mean.ld1.df[2], sd.ld1.df[2], mean.ld2.df[2], sd.ld2.df[2])
+colnames(source.agg.df) <- c(NA, "n", "MeanLD1", "SDLD1", "MeanLD2", "SDLD2")
 
+# write and export a csv of the source data frame
+write.csv(source.agg.df, "output/source.agg.df.csv", row.names = FALSE, na = "")
+# delete the "NA" from the first row/first column in the csv file and resave
+
+#### DO WE NEED THIS?
 ##########################
 # Run MixSIAR by-sample Model
 set.seed(12)
@@ -1410,71 +1490,71 @@ POM.mixsiar.plot
 dev.off()
 ```
 
-#### MixSIAR: by-sample models
-Now import data and create model structure. This code will run through a series of loop models and produce outputs for a `"by sample" model` followed by a `complete model`. 
-- Outputs from each model will be compared 
-- Compiled model outputs are reported in Table S6.
-```{r mixsiar by sample, eval=FALSE, echo=TRUE, collapse=TRUE}
+#### MixSIAR Model 1: by sampleID
+Now import data and create model structure.
+```{r mixsiar 1 by sample, eval=FALSE, echo=TRUE, collapse=TRUE}
 
 # may need to download JAGS for macOS
 #https://sourceforge.net/projects/mcmc-jags/files/JAGS/4.x/Mac%20OS%20X/
 
-#Load zooplankton (consumer) data and assign factors
+# load zooplankton (consumer/mixture) data and assign factors
+# SampleID is a fixed factor
 cons <- load_mix_data(filename = "output/Mix.df.csv",
-                          iso_names=c("LD1"),
-                          factors=c("SampleID"),
-                          fac_random=c(FALSE),
-                          fac_nested=c(FALSE),
-                          cont_effects=NULL)
-#SampleID is a fixed factor
+                          iso_names = c("LD1", "LD2"),
+                          factors = c("SampleID"),
+                          fac_random = FALSE,
+                          fac_nested = FALSE,
+                          cont_effects = NULL)
 
-#Load source data
-source <- load_source_data(filename="output/source.agg.df.csv",
-                             source_factors=NULL,
-                             conc_dep=FALSE,
-                             data_type="means",
+# load source data
+source <- load_source_data(filename = "output/source.agg.df.csv",
+                             source_factors = NULL,
+                             conc_dep = FALSE,
+                             data_type = "means",
                              cons)
 
 #Load TDF data
-discr <- load_discr_data(filename="data/MixSIAR_TDFs.csv", cons)
+discr <- load_discr_data(filename = "data/MixSIAR_TDFs.csv", cons)
 
 
-##### Check data
-# Make an isospace plot
-# isospace_plot <- plot_data(filename="output/MixSIAR_isospace_plot_SampleIDs", plot_save_pdf=FALSE, plot_save_png=FALSE, cons,source,discr)
+#### Check data
+# make an isospace plot
+isospace_plot <- plot_data(filename = "output/MixSIAR_isospace_plot_SampleIDs", plot_save_pdf = TRUE, plot_save_png = FALSE,
+                           cons, source, discr)
 
-
-############
-# Run MixSIAR by-sample Model
+#######################
+# RUN MixSIAR MODEL 1 #
+#######################
 set.seed(12)
 
-#Define the model and error structure and write JAGS model file
-  model_filename <- "output/MixSIAR_models/SampleID_models/MixSIAR_Model_SampleID_fixed.txt"
+# define the model and error structure and write JAGS model file
+# PROCESS ERROR ONLY - HAVE TO DO THIS WHEN RUNNING MIXTURE POINTS INDIVIDUALLY
+  model_filename <- "output/MixSIAR_models/SampleID_models/MixSIAR_Model_1_SampleID_fixed.txt"
   resid_err <- FALSE
   process_err <- TRUE
   write_JAGS_model(model_filename, resid_err, process_err, cons, source)
   
-#Run the JAGS model
-invt.jags.mod <- run_model(run="normal", cons, source, discr, model_filename, alpha.prior=1, resid_err, process_err)
+# run the JAGS model
+zoop.jags.mod <- run_model(run = "normal", cons, source, discr, model_filename, alpha.prior = 1, resid_err, process_err)
   
 #Process diagnostics, summary stats, and posterior plots
-  output_JAGS(invt.jags.mod, cons, source, output_options=list(
+  output_JAGS(zoop.jags.mod, cons, source, output_options = list(
     summary_save = TRUE,                   
-    summary_name = "output/MixSIAR_models/SampleID_models/MixSIAR_SampleID_summary_stats",
+    summary_name = "output/MixSIAR_models/SampleID_models/MixSIAR_1_SampleID_summary_stats",
     sup_post = FALSE,                       
     plot_post_save_pdf = TRUE,              
-    plot_post_name = "output/MixSIAR_models/SampleID_models/MixSIAR_SampleID_posterior_density",   
+    plot_post_name = "output/MixSIAR_models/SampleID_models/MixSIAR_1_SampleID_posterior_density",   
     sup_pairs = TRUE,                       
     plot_pairs_save_pdf = TRUE,             
-    plot_pairs_name = "output/MixSIAR_models/SampleID_models/MixSIAR_SampleID_pairs_plot",         
+    plot_pairs_name = "output/MixSIAR_models/SampleID_models/MixSIAR_1_SampleID_pairs_plot",         
     sup_xy = TRUE,                          
     plot_xy_save_pdf = TRUE,                
-    plot_xy_name = "output/MixSIAR_models/SampleID_models/MixSIAR_SampleID_xy_plot",             
+    plot_xy_name = "output/MixSIAR_models/SampleID_models/MixSIAR_1_SampleID_xy_plot",             
     gelman = TRUE,                         
     heidel = FALSE,                         
     geweke = TRUE,                         
     diag_save = TRUE,                       
-    diag_name = "output/MixSIAR_models/SampleID_models/MixSIAR_SampleID_diagnostics",
+    diag_name = "output/MixSIAR_models/SampleID_models/MixSIAR_1_SampleID_diagnostics",
     indiv_effect = FALSE,
     plot_post_save_png = FALSE,            
     plot_pairs_save_png = FALSE,            
@@ -1482,126 +1562,140 @@ invt.jags.mod <- run_model(run="normal", cons, source, discr, model_filename, al
     graphics.off()
 
 #save all results
-save.image("output/MixSIAR_models/SampleID_models/MixSIAR_SampleID_fixed_data.RData")
+save.image("output/MixSIAR_models/SampleID_models/MixSIAR_1_SampleID_fixed_data.RData")
+
 ```
 
-```{r MixSIAR by sample output, eval=FALSE, echo=TRUE, fig.keep='none'}
-# *By Sample OUTPUT*: Clean and process summary stats for the `"by sample model"` and generate an output
-# read in the summary stats from mixSIAR, parse and make a dataframe, replacing spaces from .txt
+```{r mixsiar 1 by sample output, eval=FALSE, echo=TRUE, fig.keep='none'}
 
-SAMP.mixSIAR.output<-read.table("output/MixSIAR_models/SampleID_models/MixSIAR_SampleID_summary_stats.txt", sep='\t', header=TRUE, skip=6)
+############################
+# EVALUATE MixSIAR MODEL 1 #
+############################
 
-SAMP.mixSIAR.output<-as.data.frame(SAMP.mixSIAR.output)
-colnames(SAMP.mixSIAR.output)<-"full.data"
+# *By Sample OUTPUT*: Clean and process summary stats for the "by sample model" and generate an output
+# read in the summary stats, parse, and make a dataframe, replacing spaces from .txt
+
+SAMP.mixSIAR.1.output <- read.table("output/MixSIAR_models/SampleID_models/MixSIAR_1_SampleID_summary_stats.txt",
+                                  sep = '\t', header = TRUE, skip = 6)
+
+SAMP.mixSIAR.1.output <- as.data.frame(SAMP.mixSIAR.1.output)
+colnames(SAMP.mixSIAR.1.output) <- "full.data"
 
 # remove all extra spaces using "squish", make them 1 space only
 library(stringr)
-SAMP.mixSIAR.output$full.data<- str_squish(SAMP.mixSIAR.output$full.data)
+SAMP.mixSIAR.1.output$full.data <- str_squish(SAMP.mixSIAR.1.output$full.data)
 
 # rename columns
 library(plyr)
-samp.mix.out<-separate(SAMP.mixSIAR.output, full.data, into = c("factor", "Mean", "SD", "2.5.perc", "5.perc", "25.perc", "50.perc", "75.perc", "95.perc", "97.5.perc"), sep=" ")
+samp.mix.1.out<-separate(SAMP.mixSIAR.1.output, full.data, into = c("factor", "Mean", "SD", "2.5.perc", "5.perc", "25.perc", "50.perc", "75.perc", "95.perc", "97.5.perc"), sep=" ")
 
 # parse the factors here into 3 columns
-new.cols<- stringr::str_split_fixed(samp.mix.out$factor, "\\.", 3) %>%
+new.cols <- stringr::str_split_fixed(samp.mix.1.out$factor, "\\.", 3) %>%
         as.data.frame() %>%
        setNames(c("proportion", "SampleID", "Source"))
 
-new.cols<- new.cols %>%
+new.cols <- new.cols %>%
   dplyr::select("SampleID", "Source")
 
 # combine the new, separated columns with the data, verify the levels match, then remove "factor"
-Samp.out.cleaned<-cbind(new.cols, samp.mix.out[1:10])
-Samp.out.cleaned<-Samp.out.cleaned %>%
+Samp.out.cleaned <- cbind(new.cols, samp.mix.1.out[1:10])
+Samp.out.cleaned <- Samp.out.cleaned %>%
   dplyr::select(-factor)
                           
-write.csv(Samp.out.cleaned, "output/MixSIAR_Samp.df.csv", row.names=FALSE)
+write.csv(Samp.out.cleaned, "output/MixSIAR_1_Samp.df.csv", row.names = FALSE)
+
 ```
 
-```{r import mixSIAR data complete, eval=FALSE, echo=TRUE, fig.keep='none'}
-#### MixSIAR: complete models
+#### MixSIAR Models 2 and 3: Zooplankton Group and Zooplankton Group by Lake
+Now import data and create model structure. This code will run through a series of loop models and produce outputs for 
+- Outputs from each model will be compared 
+- Compiled model outputs are reported in Table S6.
 
-#Now import data and create model structure. This code will run through a series of loop models and produce outputs for a `complete model`.
-
+```{r mixSIAR data complete, eval=FALSE, echo=TRUE, fig.keep='none'}
 
 n.mod <- 4
 mix <- vector("list", n.mod) 
 
-#Define mixtures for each model
+# define mixtures for each model
 
-#Null Model
-mix[[1]] <- load_mix_data(filename="output/Mix.df.csv",
-                          iso_names=c("LD1"),
-                          factors=NULL,
-                          fac_random=NULL,
-                          fac_nested=NULL,
-                          cont_effects=NULL)
+# null model
+mix[[1]] <- load_mix_data(filename = "output/Mix.df.csv",
+                          iso_names = c("LD1", "LD2"),
+                          factors = NULL,
+                          fac_random = NULL,
+                          fac_nested = NULL,
+                          cont_effects = NULL)
 
-#Group - Fixed; Taxa - Random, Nested
-mix[[2]] <- load_mix_data(filename="output/Mix.df.csv",
-                          iso_names=c("LD1"),
-                          factors=c("phy.group", "orig.class"),
-                          fac_random=c(FALSE, TRUE),
-                          fac_nested=c(FALSE, TRUE),
-                          cont_effects=NULL)
+# Group (phy.group) - Fixed; Taxa (orig.class) - Random, Nested
+mix[[2]] <- load_mix_data(filename = "output/Mix.df.csv",
+                          iso_names = c("LD1", "LD2"),
+                          factors = c("phy.group", "orig.class"),
+                          fac_random = c(FALSE, TRUE),
+                          fac_nested = c(FALSE, TRUE),
+                          cont_effects = NULL)
 
-#Group - Fixed; Lake - Random, Nested
-mix[[3]] <- load_mix_data(filename="output/Mix.df.csv",
-                          iso_names=c("LD1"),
-                          factors=c("phy.group", "Lake"),
-                          fac_random=c(FALSE, TRUE),
-                          fac_nested=c(FALSE, TRUE),
-                          cont_effects=NULL)
+# Group (phy.group) - Fixed; Lake - Random, Nested
+mix[[3]] <- load_mix_data(filename = "output/Mix.df.csv",
+                          iso_names = c("LD1", "LD2"),
+                          factors = c("phy.group", "Lake"),
+                          fac_random = c(FALSE, TRUE),
+                          fac_nested = c(FALSE, TRUE),
+                          cont_effects = NULL)
 
-#Elevation - Continuous; Group - Random
-mix[[4]] <- load_mix_data(filename="output/Mix.df.csv",
-                          iso_names=c("LD1"),
-                          factors="phy.group",
-                          fac_random=TRUE,
-                          fac_nested=FALSE,
-                          cont_effects="Elevation")
+# Elevation - Continuous; Group (phy.group) - Random
+mix[[4]] <- load_mix_data(filename = "output/Mix.df.csv",
+                          iso_names = c("LD1", "LD2"),
+                          factors = "phy.group",
+                          fac_random = TRUE,
+                          fac_nested = FALSE,
+                          cont_effects = "Elevation.m")
 
-
-##### ##### ##### ##### 
-##### Run MixSIAR complete models
-
+###############################
+# RUN MixSIAR COMPLETE MODELS #
+###############################
 set.seed(12)
 
-#Run the models
+# Run the models
 source <- vector("list", n.mod)
 discr <- vector("list", n.mod)
 jags.mod <- vector("list", n.mod)
 
-#Run loop
+### UPDATE WITH THE FILE PATH FOR YOUR COMPUTER HERE ###
+source.agg.df.file <- "~/Desktop/Github/Sierra-plankton-CSIA/output/source.agg.df.csv"
+MixSIAR_TDFs.file <- "~/Desktop/Github/Sierra-plankton-CSIA/data/MixSIAR_TDFS.csv"
+
+# run the loop
 for(mod in 1:n.mod){
 
   # create sub-directory and move into it
   mainDir <- getwd()
-  subDir <- paste0("model_", mod)
+  subDir <- paste0("MixSIAR_model_", mod)
   dir.create(file.path(mainDir, subDir), showWarnings = FALSE)
   setwd(file.path(mainDir, subDir))
                            
-  #Load source data
-  source[[mod]] <- load_source_data(filename="~/Desktop/Github/Sierra-plankton-CSIA/output/source.agg.df.csv",
-                             source_factors=NULL,
-                             conc_dep=FALSE,
-                             data_Type="means",
+  # load source data
+  source[[mod]] <- load_source_data(filename = "~/Desktop/Github/Sierra-plankton-CSIA/output/source.agg.df.csv",
+                             source_factors = NULL,
+                             conc_dep = FALSE,
+                             data_type = "means",
                              mix[[mod]])
   
-  #Load TDF data
-  discr[[mod]] <- load_discr_data(filename="~/Desktop/Github/Sierra-plankton-CSIA/data/MixSIAR_TDFs.csv", mix[[mod]])
+  # load TDF data
+  discr[[mod]] <- load_discr_data(filename = "~/Desktop/Github/Sierra-plankton-CSIA/data/MixSIAR_TDFS.csv", mix[[mod]])
   
-  #Define model structure and write JAGS model file
+  # define model structure and write JAGS model file
+  # RESIDUAL AND PROCESS ERROR
   model_filename <- paste0("MixSIAR_model_", mod, ".txt")
   resid_err <- TRUE
   process_err <- TRUE
   write_JAGS_model(model_filename, resid_err, process_err, mix[[mod]], source[[mod]])
   
-  #Run JAGS model
-  jags.mod[[mod]] <- run_model(run="very long", mix[[mod]], source[[mod]], discr[[mod]], model_filename, alpha.prior=1, resid_err, process_err)
+  # run JAGS model
+  jags.mod[[mod]] <- run_model(run = "test", mix[[mod]], source[[mod]], discr[[mod]], model_filename, alpha.prior = 1,
+                               resid_err, process_err)
   
-  #Process diagnostics, summary stats, and posterior plots
-  output_JAGS(jags.mod[[mod]], mix[[mod]], source[[mod]], output_options=list(
+  # process diagnostics, summary stats, and posterior plots
+  output_JAGS(jags.mod[[mod]], mix[[mod]], source[[mod]], output_options = list(
     summary_save = TRUE,
     summary_name = "summary_statistics",
     sup_post = FALSE,                 
@@ -1630,58 +1724,68 @@ for(mod in 1:n.mod){
 
 # Save all results
 save.image("MixSIAR_Model_Comparisons_Data.RData")
+
 ```
 
-```{r full MixSIAR compare, eval=FALSE, echo=TRUE, fig.keep='none'}
-##### Compare Models
+```{r complete mixsiar model comparison, eval=FALSE, echo=TRUE, fig.keep='none'}
 
-#Use 'compare_models' to get table with LOOic weights
+##########################
+# Compare MixSIAR Models #
+##########################
+setwd(mainDir)
+
+# use 'compare_models' to get table with LOOic weights
 names(jags.mod) <- c("null", "Group_taxa","Group_Lake", "elev_Group")
 comparison.table <- compare_models(jags.mod)
 
 comparison.table <- as.data.frame(comparison.table)
 
 write.csv(comparison.table, "MixSIAR_Model_Comparisons_Table.csv")
+
 ```
 
-```{r read comp Mix summary, eval=FALSE, echo=TRUE, fig.keep='none'}
-##### Clean and process summary stats
-#This is the data for the MixSIAR full output
+```{r read complete mixsiar summary, eval=FALSE, echo=TRUE, fig.keep='none'}
 
-# read in the summary stats from mixSIAR, parse and make a dataframe, replacing spaces from .txt
-mod3.mixSIAR.output<-read.table("model_3/summary_statistics.txt", 
-                                sep='\t', header=TRUE, skip=6)
-mod3.mixSIAR.output<-as.data.frame(mod3.mixSIAR.output)
-colnames(mod3.mixSIAR.output)<-"full.data"
+
+######################################
+# EVALUATE MixSIAR MODEL COMPARISONS #
+######################################
+
+# clean and process summary stats
+
+# read in the summary stats from MixSIAR, parse and make a dataframe, replacing spaces from .txt
+mod3.mixSIAR.output <- read.table("MixSIAR_model_3/summary_statistics.txt", sep='\t', header=TRUE, skip=6)
+mod3.mixSIAR.output <- as.data.frame(mod3.mixSIAR.output)
+colnames(mod3.mixSIAR.output) <- "full.data"
 
 # remove all extra spaces using "squish", make them 1 space only, using library(stringr)
-mod3.mixSIAR.output$full.data<- str_squish(mod3.mixSIAR.output$full.data)
+mod3.mixSIAR.output$full.data <- str_squish(mod3.mixSIAR.output$full.data)
 
 # separate using library(plyr)
-mod3.out<-separate(mod3.mixSIAR.output, full.data, into = c("factor", "Mean", "SD", "2.5.perc", "5.perc", "25.perc", "50.perc", "75.perc", "95.perc", "97.5.perc"), sep=" ")
+mod3.out <- separate(mod3.mixSIAR.output, full.data, into = c("factor", "Mean", "SD", "2.5.perc", "5.perc", "25.perc", "50.perc", "75.perc", "95.perc", "97.5.perc"), sep=" ")
 
-# remove top 2 rows from output
-mod3.out<- mod3.out[-c(1:2),]
+# remove top 3 rows from output
+mod3.out<- mod3.out[-c(1:3),]
 
-### top 6 rows need to be handles differently since there is no "Lake" here
-mod3.out.phy<-mod3.out[c(1:6), ]
-new.cols.mod3.phy<- stringr::str_split_fixed(mod3.out.phy$factor, "\\.", 3) %>%
+### top 9 rows need to be handled differently since there is no "Lake" here
+mod3.out.phy <- mod3.out[c(1:9), ]
+new.cols.mod3.phy <- stringr::str_split_fixed(mod3.out.phy$factor, "\\.", 3) %>%
         as.data.frame() %>%
        setNames(c("proportion", "phy.group", "Source"))
 
-#make NA column for Lake
-new.cols.mod3.phy$Lake<-NA
+# make NA column for Lake
+new.cols.mod3.phy$Lake <- NA
 
-#rearrange
-new.cols.mod3.phy<-new.cols.mod3.phy %>% 
+# rearrange
+new.cols.mod3.phy <- new.cols.mod3.phy %>% 
   dplyr::select("phy.group", "Lake", "Source")
 
 
-### now, the rest of data, by Lake
-mod3.out.by.Lake<-mod3.out[-c(1:6), ]
+# now, the rest of data, by Lake
+mod3.out.by.Lake<-mod3.out[-c(1:9), ]
 
 # parse the factors here
-new.cols.mod3.Lake<- stringr::str_split_fixed(mod3.out.by.Lake$factor, "\\.", 4) %>%
+new.cols.mod3.Lake <- stringr::str_split_fixed(mod3.out.by.Lake$factor, "\\.", 4) %>%
         as.data.frame() %>%
        setNames(c("proportion", "phy.group", "Lake", "Source"))
 
@@ -1689,48 +1793,62 @@ new.cols.mod3.Lake<- new.cols.mod3.Lake %>%
   dplyr::select("phy.group", "Lake", "Source")
 
 # combine the new, separated columns with the data
-Mod3.all.facs<-rbind(new.cols.mod3.phy, new.cols.mod3.Lake)
+Mod3.all.facs <- rbind(new.cols.mod3.phy, new.cols.mod3.Lake)
 
 # combine with data
-Mod3.out.cleaned<-cbind(Mod3.all.facs, mod3.out[1:10]) # verify the levels match, then remove "factor"
-Mod3.out.cleaned<-Mod3.out.cleaned %>%
+Mod3.out.cleaned <- cbind(Mod3.all.facs, mod3.out[1:10]) # verify the levels match, then remove "factor"
+Mod3.out.cleaned <- Mod3.out.cleaned %>%
   dplyr::select(-factor)
                           
-write.csv(Mod3.out.cleaned, "output/MixSIAR_Mod3.df.csv", row.names=FALSE)
+write.csv(Mod3.out.cleaned, "output/MixSIAR_Model_3_Group_Lake.df.csv", row.names = FALSE)
+
 ```
 
 
-#### Figs mixSIAR models and plots
-Make plots from mixSIAR. We will make a plot for each zooplankton Group and one for each site.
+#### MixSIAR Model Figures
+Make plots for MixSIAR results. We will make a plot for each zooplankton Group and one for zooplankton Group and Lake.
 ```{r mixSIAR plots, out.width="50%", fig.show='hold', results='hide', fig.cap="**Figure**.  Proportional contributions of two AA~ESS~ sources (POM and terrestrial plants) to zooplankton consumers (left) pooled across sites and (right) at each site, estimated from a MixSIAR model that included Group as fixed effect and location as random effect."}
-############### now makes some plots and run models
 
-mod3<-read.csv("output/MixSIAR_Mod3.df.csv", check.names=FALSE) 
-#check.names=FALSE prevents an "X" being added to the columns that start with a number
+# read in model 3 data (Group fixed; Lake random, nested)
+mod3 <- read.csv("output/MixSIAR_Model_3_Group_Lake.df.csv", check.names = FALSE) 
+# check.names=FALSE prevents an "X" being added to the columns that start with a number
+
+mod3.auto <- mod3[!(mod3$Source == "Plants"), ]
+
+mod3.auto.posthoc <- mod3.auto %>%
+  group_by(phy.group, Lake) %>%
+  summarize(phy.group = phy.group, Lake = Lake, Source = "Autochthonous",
+            Mean = sum(Mean), )
+
 
 # make factors for columns
-make.fac<-c("phy.group", "Source")
+make.fac <- c("phy.group", "Source")
 mod3[make.fac] <- lapply(mod3[make.fac], factor)
 
-mod3$Source<-factor(mod3$Source, levels=c("POM", "Plants"))
+mod3$Source <- factor(mod3$Source, levels = c("Algae", "POM", "Plants"))
 
-############# Look at the Groups pooled across the Lakes
-# phy Group effects, across Lakes
-mod3.phy<-mod3[(1:6),]
+# look at the Groups pooled across Lakes
+mod3.phy <- mod3[(1:9),]
 
-mod3.phy.fig<-ggplot(data=mod3.phy, aes(x=phy.group, y=Mean, fill=Source))+
-  scale_fill_manual(values=c("dodgerblue", "springgreen3"))+
-  geom_errorbar(aes(ymin=Mean-SD, ymax=Mean+SD, width=.2),
-                 position=position_dodge(0.5))+
-  geom_point(size=4,  position=position_dodge(0.5), color="black", pch=21)+
-  ylab("Proportion of EAA-source") +
-  xlab("Zooplankton Groups") +
-  theme_classic()
+mod3.phy.fig <- ggplot(data = mod3.phy, aes(x = phy.group, y = Mean, fill = Source)) +
+  scale_fill_manual(values = c("springgreen4", "dodgerblue", "lightsalmon3")) +
+  geom_errorbar(aes(ymin = Mean-SD, ymax = Mean+SD, width = 0.2),
+                 position = position_dodge(0.5))+
+  geom_point(size = 4,  position = position_dodge(0.5), color = "black", pch=21)+
+  ylab("Proportional Contribution") +
+  xlab(NULL) +
+  guides(fill = guide_legend(title = expression(paste(AA[ESS], " ", Source)))) +
+  theme_classic() +
+  theme(axis.ticks = element_line(color = "black"),
+        axis.text.x = element_text(size = 10, color = "black"),
+        axis.text.y = element_text(size = 10, color = "black"),
+        axis.title.y = element_text(size = 12, color = "black"),
+        legend.title = element_text(size = 10, color = "black")) 
 
 mod3.phy.fig
 
-### export it
-pdf(file= "figures/Fig3.Phy.mixsiar.pdf", height=5, width=5)
+# export
+jpeg("figures/Fig3.Phy.mixsiar.jpeg", height = 5, width = 5, units = "in", res = 300)
 mod3.phy.fig
 dev.off()
 

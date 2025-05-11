@@ -1117,7 +1117,7 @@ LDA.df.simple<- LDA.df %>%
 
 # combine with raw and mean-normalized data
 raw.norm.LD.data <- merge(SNL.ess.meta.ordered, LDA.df.simple, by = "SampleID", all.x = TRUE)
-write.csv(raw.norm.LD.data, "output/All.data.comiled.csv")
+write.csv(raw.norm.LD.data, "output/All.essAA.LDA.data.compiled.csv")
 
 ```
 
@@ -1590,7 +1590,7 @@ sink()
 # *By Sample OUTPUT*: Clean and process summary stats for the "by sample model" and generate an output
 # read in the summary stats, parse, and make a dataframe, replacing spaces from .txt
 
-SAMP.mixSIAR.1.output <- read.table("output/MixSIAR_models/SampleID_models/MixSIAR_1_SampleID_summary_stats.txt",
+SAMP.mixSIAR.1.output <- read.table("output/MixSIAR_models/SampleID_models/MixSIAR_1_SampleID_summary_stats_a_posteriori.txt",
                                   sep = '\t', header = TRUE, skip = 6)
 
 SAMP.mixSIAR.1.output <- as.data.frame(SAMP.mixSIAR.1.output)

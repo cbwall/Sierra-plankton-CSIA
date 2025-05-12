@@ -1,0 +1,147 @@
+
+-------------------------------------------------------------------------
+*** WARNING ***
+
+Aggregating sources after running the mixing model (a posteriori)
+effectively changes the prior weighting on the sources. Aggregating
+uneven numbers of sources will turn an 'uninformative'/generalist
+prior into an informative one. Please check your new, aggregated
+prior (red), and note the difference between it and the original prior 
+(blue). The right (grey) column shows what the 'uninformative'/generalist 
+prior would be if you aggregate sources before running the mixing model 
+(a priori).
+-------------------------------------------------------------------------
+
+NULL
+Inference for Bugs model at "MixSIAR_model_2.txt", fit using jags,
+ 3 chains, each with 1e+05 iterations (first 50000 discarded), n.thin = 50
+ n.sims = 3000 iterations saved
+              mu.vect sd.vect    2.5%    25%    50%    75%   97.5%  Rhat n.eff
+fac2.sig        2.167   3.475   0.041  0.434  0.959  2.084  15.207 1.006   370
+ilr.fac1[1,1]   0.000   0.000   0.000  0.000  0.000  0.000   0.000 1.000     1
+ilr.fac1[2,1]   0.199   0.904  -1.648 -0.403  0.226  0.804   1.917 1.001  3000
+ilr.fac1[3,1]  -0.611   0.920  -2.333 -1.262 -0.630  0.026   1.255 1.004   570
+ilr.fac1[1,2]   0.000   0.000   0.000  0.000  0.000  0.000   0.000 1.000     1
+ilr.fac1[2,2]  -0.072   0.843  -1.830 -0.603 -0.034  0.511   1.443 1.003   860
+ilr.fac1[3,2]  -0.134   0.806  -1.897 -0.638 -0.069  0.392   1.353 1.001  3000
+ilr.fac2[1,1]   0.211   3.361  -5.005 -0.316  0.096  0.728   6.213 1.040  1500
+ilr.fac2[2,1]  -0.794   3.258  -7.668 -1.110 -0.199  0.130   2.921 1.015  1100
+ilr.fac2[3,1]  -1.200   3.486 -11.556 -1.197 -0.264  0.093   1.491 1.043   420
+ilr.fac2[4,1]   0.991   4.109  -2.872 -0.257  0.110  1.003  11.733 1.058   450
+ilr.fac2[5,1]  -0.153   3.181  -5.681 -0.670 -0.043  0.384   5.393 1.050  3000
+ilr.fac2[6,1]   0.372   3.477  -5.099 -0.290  0.099  0.828   7.049 1.054  2600
+ilr.fac2[1,2]  -2.551   5.066 -17.655 -2.422 -0.935 -0.213   0.280 1.043   210
+ilr.fac2[2,2]  -1.560   3.914 -13.938 -1.413 -0.331  0.007   0.850 1.017   700
+ilr.fac2[3,2]  -0.701   2.840  -9.249 -0.555  0.002  0.373   1.616 1.053   270
+ilr.fac2[4,2]   0.698   3.557  -4.051 -0.153  0.218  1.087   9.368 1.019  1000
+ilr.fac2[5,2]  -1.531   4.378 -15.295 -1.171 -0.245  0.081   1.130 1.047   230
+ilr.fac2[6,2]  -1.427   4.578 -13.983 -1.284 -0.261  0.082   1.608 1.033   380
+ilr.global[1]  -0.508   1.179  -2.969 -1.163 -0.463  0.190   1.751 1.007   330
+ilr.global[2]  -1.660   0.914  -3.404 -2.223 -1.696 -1.156   0.376 1.003  1000
+loglik[1]      -3.014   0.978  -5.196 -3.569 -2.836 -2.281  -1.642 1.001  3000
+loglik[2]      -1.556   0.485  -2.716 -1.817 -1.472 -1.212  -0.834 1.001  3000
+loglik[3]      -1.274   0.464  -2.488 -1.488 -1.184 -0.955  -0.607 1.002  1300
+loglik[4]      -1.847   0.561  -3.211 -2.140 -1.742 -1.442  -1.047 1.001  2200
+loglik[5]      -1.723   0.399  -2.659 -1.938 -1.665 -1.450  -1.097 1.001  3000
+loglik[6]      -2.603   0.671  -4.142 -3.002 -2.536 -2.118  -1.511 1.001  2200
+loglik[7]      -1.413   0.443  -2.380 -1.701 -1.364 -1.083  -0.677 1.001  3000
+loglik[8]      -0.893   0.446  -1.977 -1.125 -0.832 -0.583  -0.186 1.001  3000
+loglik[9]      -0.907   0.501  -2.166 -1.167 -0.832 -0.552  -0.137 1.001  3000
+loglik[10]     -1.642   0.389  -2.458 -1.877 -1.639 -1.381  -0.916 1.001  2900
+loglik[11]     -1.386   0.429  -2.240 -1.687 -1.375 -1.074  -0.608 1.001  3000
+loglik[12]     -2.078   0.582  -3.337 -2.438 -2.044 -1.670  -1.053 1.001  3000
+loglik[13]     -1.195   0.364  -2.095 -1.374 -1.146 -0.956  -0.629 1.001  2800
+loglik[14]     -2.072   0.588  -3.323 -2.439 -2.045 -1.659  -1.027 1.001  3000
+loglik[15]     -1.316   0.550  -2.736 -1.539 -1.191 -0.946  -0.590 1.001  3000
+loglik[16]     -0.770   0.431  -1.843 -0.987 -0.711 -0.466  -0.085 1.001  3000
+loglik[17]     -2.258   0.727  -3.866 -2.743 -2.166 -1.707  -1.111 1.002  1300
+loglik[18]     -2.704   0.727  -4.342 -3.125 -2.621 -2.194  -1.504 1.002  1900
+loglik[19]     -2.349   0.880  -4.281 -2.907 -2.300 -1.719  -0.832 1.003   730
+loglik[20]     -1.048   0.255  -1.579 -1.206 -1.038 -0.879  -0.591 1.002  1600
+loglik[21]     -1.336   0.499  -2.738 -1.503 -1.272 -1.061  -0.608 1.002  1300
+loglik[22]     -1.232   0.265  -1.781 -1.398 -1.218 -1.061  -0.741 1.001  3000
+loglik[23]     -1.011   0.246  -1.504 -1.165 -1.004 -0.848  -0.550 1.001  2300
+loglik[24]     -1.534   0.318  -2.211 -1.716 -1.509 -1.327  -0.967 1.001  3000
+loglik[25]     -0.827   0.226  -1.276 -0.978 -0.823 -0.672  -0.403 1.001  3000
+loglik[26]     -1.969   0.462  -3.076 -2.230 -1.896 -1.646  -1.237 1.002  1600
+loglik[27]     -1.740   0.357  -2.565 -1.940 -1.704 -1.503  -1.120 1.001  3000
+loglik[28]     -1.182   0.244  -1.672 -1.333 -1.177 -1.021  -0.724 1.001  3000
+p.fac1[1,1]     0.119   0.140   0.003  0.030  0.070  0.151   0.544 1.004   620
+p.fac1[2,1]     0.146   0.167   0.001  0.025  0.084  0.209   0.619 1.005   500
+p.fac1[3,1]     0.082   0.134   0.001  0.013  0.036  0.086   0.531 1.001  2100
+p.fac1[1,2]     0.175   0.147   0.016  0.076  0.132  0.222   0.606 1.006   350
+p.fac1[2,2]     0.153   0.148   0.006  0.055  0.114  0.200   0.598 1.006   370
+p.fac1[3,2]     0.224   0.165   0.010  0.109  0.197  0.295   0.693 1.001  2400
+p.fac1[1,3]     0.706   0.197   0.184  0.615  0.762  0.853   0.943 1.007   710
+p.fac1[2,3]     0.701   0.214   0.129  0.595  0.752  0.862   0.973 1.003   840
+p.fac1[3,3]     0.694   0.201   0.144  0.611  0.735  0.831   0.963 1.008  1100
+p.global[1]     0.119   0.140   0.003  0.030  0.070  0.151   0.544 1.004   620
+p.global[2]     0.175   0.147   0.016  0.076  0.132  0.222   0.606 1.006   350
+p.global[3]     0.706   0.197   0.184  0.615  0.762  0.853   0.943 1.007   710
+resid.prop[1]   4.396   2.255   1.344  2.794  3.924  5.521   9.807 1.001  3000
+resid.prop[2]   2.965   1.673   0.812  1.785  2.597  3.785   7.094 1.003   830
+deviance       89.759   5.642  80.027 85.758 89.462 93.179 101.899 1.002  1900
+
+For each parameter, n.eff is a crude measure of effective sample size,
+and Rhat is the potential scale reduction factor (at convergence, Rhat=1).
+
+DIC info (using the rule, pD = var(deviance)/2)
+pD = 15.9 and DIC = 105.7
+DIC is an estimate of expected predictive error (lower deviance is better).
+[1] "rjags"
+
+-------------------------------------------------------------------------
+*** WARNING ***
+
+Aggregating sources after running the mixing model (a posteriori)
+effectively changes the prior weighting on the sources. Aggregating
+uneven numbers of sources will turn an 'uninformative'/generalist
+prior into an informative one. Please check your new, aggregated
+prior (red), and note the difference between it and the original prior 
+(blue). The right (grey) column shows what the 'uninformative'/generalist 
+prior would be if you aggregate sources before running the mixing model 
+(a priori).
+-------------------------------------------------------------------------
+
+
+-------------------------------------------------------------------------
+*** WARNING ***
+
+Aggregating sources after running the mixing model (a posteriori)
+effectively changes the prior weighting on the sources. Aggregating
+uneven numbers of sources will turn an 'uninformative'/generalist
+prior into an informative one. Please check your new, aggregated
+prior (red), and note the difference between it and the original prior 
+(blue). The right (grey) column shows what the 'uninformative'/generalist 
+prior would be if you aggregate sources before running the mixing model 
+(a priori).
+-------------------------------------------------------------------------
+
+
+-------------------------------------------------------------------------
+*** WARNING ***
+
+Aggregating sources after running the mixing model (a posteriori)
+effectively changes the prior weighting on the sources. Aggregating
+uneven numbers of sources will turn an 'uninformative'/generalist
+prior into an informative one. Please check your new, aggregated
+prior (red), and note the difference between it and the original prior 
+(blue). The right (grey) column shows what the 'uninformative'/generalist 
+prior would be if you aggregate sources before running the mixing model 
+(a priori).
+-------------------------------------------------------------------------
+
+
+-------------------------------------------------------------------------
+*** WARNING ***
+
+Aggregating sources after running the mixing model (a posteriori)
+effectively changes the prior weighting on the sources. Aggregating
+uneven numbers of sources will turn an 'uninformative'/generalist
+prior into an informative one. Please check your new, aggregated
+prior (red), and note the difference between it and the original prior 
+(blue). The right (grey) column shows what the 'uninformative'/generalist 
+prior would be if you aggregate sources before running the mixing model 
+(a priori).
+-------------------------------------------------------------------------
+

@@ -1492,7 +1492,7 @@ dev.off()
 
 #### MixSIAR Model: by sampleID
 Now import data and create model structure.
-```{r mixsiar 1 by sample, eval=FALSE, echo=TRUE, collapse=TRUE}
+```{r mixsiar by sample, eval=FALSE, echo=TRUE, collapse=TRUE}
 
 # may need to download JAGS for macOS
 #https://sourceforge.net/projects/mcmc-jags/files/JAGS/4.x/Mac%20OS%20X/
@@ -1519,7 +1519,7 @@ discr <- load_discr_data(filename = "data/MixSIAR_TDFs.csv", cons)
 
 #### Check data
 # make an isospace plot
-isospace_plot <- plot_data(filename = "output/MixSIAR_isospace_plot_SampleIDs",
+isospace_plot <- plot_data(filename = "output/MixSIAR_models/SampleID_models/MixSIAR_isospace_plot_SampleIDs",
                            plot_save_pdf = TRUE, plot_save_png = FALSE,
                            cons, source, discr)
 
@@ -1542,7 +1542,7 @@ zoop.jags.mod <- run_model(run = "long", cons, source, discr, model_filename, al
 saveRDS(zoop.jags.mod, file = "output/MixSIAR_models/SampleID_models/MixSIAR_Model_SampleID_rjags.rds")
 
 # code below will read back in the RDS object
-#readRDS(file = "output/MixSIAR_models/SampleID_models/MixSIAR_Model_SampleID_rjags.rds")
+#zoop.jags.mod <- readRDS(file = "output/MixSIAR_models/SampleID_models/MixSIAR_Model_SampleID_rjags.rds")
 
 # process diagnostics, summary stats, and posterior plots
   output_JAGS(zoop.jags.mod, cons, source, output_options = list(
@@ -1581,16 +1581,14 @@ sink()
 
 ```
 
-```{r mixsiar 1 by sample output, eval=FALSE, echo=TRUE, fig.keep='none'}
+```{r mixsiar by sample results, eval=FALSE, echo=TRUE, fig.keep='none'}
 
-############################
-# EVALUATE MixSIAR MODEL 1 #
-############################
+### CLEAN MIXSIAR MODEL BY SAMPLEID RESULTS ###
 
 # *By Sample OUTPUT*: Clean and process summary stats for the "by sample model" and generate an output
 # read in the summary stats, parse, and make a dataframe, replacing spaces from .txt
 
-SAMP.mixSIAR.1.output <- read.table("output/MixSIAR_models/SampleID_models/MixSIAR_1_SampleID_summary_stats_a_posteriori.txt",
+SAMP.mixSIAR.1.output <- read.table("output/MixSIAR_models/SampleID_models/MixSIAR_SampleID_summary_stats_a_posteriori.txt",
                                   sep = '\t', header = TRUE, skip = 6)
 
 SAMP.mixSIAR.1.output <- as.data.frame(SAMP.mixSIAR.1.output)
@@ -1617,16 +1615,16 @@ Samp.out.cleaned <- cbind(new.cols, samp.mix.1.out[1:10])
 Samp.out.cleaned <- Samp.out.cleaned %>%
   dplyr::select(-factor)
                           
-write.csv(Samp.out.cleaned, "output/MixSIAR_1_Samp.df.csv", row.names = FALSE)
+write.csv(Samp.out.cleaned, "output/MixSIAR_models/SampleID_models/MixSIAR_SampleID_a_posteriori.df.csv", row.names = FALSE)
 
 ```
 
-#### MixSIAR Models 2 and 3: Zooplankton Group and Zooplankton Group by Lake
+#### MixSIAR Model Comparisons: Zooplankton Group and Zooplankton Group by Lake
 Now import data and create model structure. This code will run through a series of loop models and produce outputs for 
 - Outputs from each model will be compared 
 - Compiled model outputs are reported in Table S6.
 
-```{r mixSIAR data complete, eval=FALSE, echo=TRUE, fig.keep='none'}
+```{r run mixsiar model comparisons, eval=FALSE, echo=TRUE, fig.keep='none'}
 
 n.mod <- 4
 mix <- vector("list", n.mod) 
@@ -1665,9 +1663,8 @@ mix[[4]] <- load_mix_data(filename = "output/Mix.df.csv",
                           fac_nested = FALSE,
                           cont_effects = "Elevation.m")
 
-###############################
-# RUN MixSIAR COMPLETE MODELS #
-###############################
+### RUN MixSIAR COMPLETE MODELS ###
+
 set.seed(12)
 
 # Run the models
@@ -1678,6 +1675,8 @@ jags.mod <- vector("list", n.mod)
 ### UPDATE WITH THE FILE PATH FOR YOUR COMPUTER HERE ###
 source.agg.df.file <- "~/Desktop/Github/Sierra-plankton-CSIA/output/source.agg.df.csv"
 MixSIAR_TDFs.file <- "~/Desktop/Github/Sierra-plankton-CSIA/data/MixSIAR_TDFS.csv"
+
+setwd("~/Desktop/Github/Sierra-plankton-CSIA/output/MixSIAR_models")
 
 # run the loop
 for(mod in 1:n.mod){
@@ -1737,17 +1736,72 @@ for(mod in 1:n.mod){
   
 }
 
-# Save all results
-save.image("MixSIAR_Model_Comparisons_Data.RData")
+setwd("~/Desktop/Github/Sierra-plankton-CSIA")
+
+# save RDS object of JAGS model (this one is a large list rather than a large rjags)
+saveRDS(jags.mod, file = "output/MixSIAR_models/MixSIAR_Model_comparisons_jags.mod.rds")
+
+# code below will read back in the RDS object
+#jags.mod <- readRDS(file = "output/MixSIAR_models/MixSIAR_Model_comparisons_jags.mod.rds")
+
+# rename models in mix and source
+names(mix) <- c("null", "Group_taxa", "Group_Lake", "elev_Group")
+names(source) <- c("null", "Group_taxa", "Group_Lake", "elev_Group")
+
+# a posteriori aggregation of sources
+# combine benthic algae and POM into one autochthonous source
+
+# everything is broken and terrible help
+mods.auto.combined <- combine_sources(jags.mod, mix, source,
+                                      groups = list(Autochthonous = c("Algae", "POM"),
+                                                    Allochthonous = c("Plants")))
+
+# Model 1: Null
+mod.1.auto.combined <- combine_sources(jags.mod$null, mix$null, source$null,
+                                       groups = list(Autochthonous = c("Algae", "POM"),
+                                                     Allochthonous = c("Plants")))
+
+# Model 2: Group (phy.group) - Fixed; Taxa (orig.class) - Random, Nested
+mod.2.auto.combined <- combine_sources(jags.mod$Group_taxa, mix$Group_taxa, source$Group_taxa,
+                                       groups = list(Autochthonous = c("Algae", "POM"),
+                                                     Allochthonous = c("Plants")))
+
+# Model 3: Group (phy.group) - Fixed; Lake - Random, Nested
+mod.3.auto.combined <- combine_sources(jags.mod$Group_Lake, mix$Group_Lake, source$Group_Lake,
+                                       groups = list(Autochthonous = c("Algae", "POM"),
+                                                     Allochthonous = c("Plants")))
+
+# Model 4: Elevation - Continuous; Group (phy.group) - Random
+mod.4.auto.combined <- combine_sources(jags.mod$elev_Group, mix$elev_Group, source$elev_Group,
+                                       groups = list(Autochthonous = c("Algae", "POM"),
+                                                     Allochthonous = c("Plants")))
+
+# summary statistics for a posteriori aggregation of sources (autochthonous vs allochthonous)
+# Model 1: Null
+sink("output/MixSIAR_models/MixSIAR_model_1/MixSIAR_mod1_summary_stats_a_post.txt")
+print(summary_stat(mod.1.auto.combined))
+sink()
+
+# Model 2: Group (phy.group) - Fixed; Taxa (orig.class) - Random, Nested
+sink("output/MixSIAR_models/MixSIAR_model_2/MixSIAR_mod2_summary_stats_a_post.txt")
+print(summary_stat(mod.2.auto.combined))
+sink()
+
+# Model 3: Group (phy.group) - Fixed; Lake - Random, Nested
+sink("output/MixSIAR_models/MixSIAR_model_3/MixSIAR_mod3_summary_stats_a_post.txt")
+print(summary_stat(mod.3.auto.combined))
+sink()
+
+# Model 4: Elevation - Continuous; Group (phy.group) - Random
+sink("output/MixSIAR_models/MixSIAR_model_4/MixSIAR_mod4_summary_stats_a_post.txt")
+print(summary_stat(mod.4.auto.combined))
+sink()
 
 ```
 
-```{r complete mixsiar model comparison, eval=FALSE, echo=TRUE, fig.keep='none'}
+```{r eval mixsiar model comparisons, eval=FALSE, echo=TRUE, fig.keep='none'}
 
-##########################
-# Compare MixSIAR Models #
-##########################
-setwd(mainDir)
+### EVALUATE MIXSIAR MODEL COMPARISONS ###
 
 # use 'compare_models' to get table with LOOic weights
 names(jags.mod) <- c("null", "Group_taxa","Group_Lake", "elev_Group")
@@ -1755,16 +1809,13 @@ comparison.table <- compare_models(jags.mod)
 
 comparison.table <- as.data.frame(comparison.table)
 
-write.csv(comparison.table, "MixSIAR_Model_Comparisons_Table.csv")
+write.csv(comparison.table, "output/MixSIAR_models/MixSIAR_Model_Comparisons_Table.csv")
 
 ```
 
-```{r read complete mixsiar summary, eval=FALSE, echo=TRUE, fig.keep='none'}
+```{r mixsiar model 3 results, eval=FALSE, echo=TRUE, fig.keep='none'}
 
-
-######################################
-# EVALUATE MixSIAR MODEL COMPARISONS #
-######################################
+### CLEAN MIXSIAR MODEL 3 (Group (phy.group) - Fixed; Lake - Random, Nested) RESULTS ###
 
 # clean and process summary stats
 

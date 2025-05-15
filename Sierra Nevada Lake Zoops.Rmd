@@ -1501,9 +1501,9 @@ Now import data and create model structure.
 # SampleID is a fixed factor
 cons <- load_mix_data(filename = "output/Mix.df.csv",
                           iso_names = c("LD1", "LD2"),
-                          factors = c("SampleID"),
-                          fac_random = FALSE,
-                          fac_nested = FALSE,
+                          factors = c("SampleID", "phy.group"),
+                          fac_random = c(FALSE, TRUE),
+                          fac_nested = c(FALSE, FALSE),
                           cont_effects = NULL)
 
 # load source data

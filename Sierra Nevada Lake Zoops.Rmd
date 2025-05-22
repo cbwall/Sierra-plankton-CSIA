@@ -39,13 +39,16 @@ if (!require('knitr')) install.packages('knitr'); library('knitr')
 knitr::opts_chunk$set(warning=FALSE, message=FALSE, fig.align='center', collapse=TRUE)
 
 
-#install_github("pmartinezarbizu/pairwiseAdonis/pairwiseAdonis") # CODE DID NOT WORK FOR ALEXI 2025-05-09
-
 # load packages
 if (!require("pacman")) install.packages("pacman") # for rapid install if not in library
 
 # use pacman to load all the packages you are missing!
-pacman::p_load("knitr", "lme4", "lmerTest", "tidyverse", "effects", "plyr", "plotrix", "car","gridExtra", "cowplot", "tools", "mgcv", "gratia", "MASS", "stats", "tidymv", "sjstats", "coin", "emmeans", "ggplot2", "mda", "nortest", "reshape2", "gmm", "propagate","ggmap", "RgoogleMaps", "MixSIAR","GGally", "ggbiplot", "ggcorrplot", "vegan", "devtools", "multcompView", "scales", "pairwiseAdonis", "ggcorrplot", "ggord", "dplyr", "ordr")
+pacman::p_load("knitr", "lme4", "lmerTest", "tidyverse", "effects", "plyr", "plotrix", "car","gridExtra", "cowplot", "tools", "mgcv", "gratia", "MASS", "stats", "sjstats", "coin", "emmeans", "ggplot2", "mda", "nortest", "reshape2", "gmm", "propagate","ggmap", "RgoogleMaps", "R2jags", "MixSIAR","GGally", "ggbiplot", "ggcorrplot", "vegan", "devtools", "multcompView", "scales", "pairwiseAdonis", "ggcorrplot", "ggord", "dplyr", "ordr", "remotes", "devtools", "pak")
+
+remotes::install_github("pmartinezarbizu/pairwiseAdonis/pairwiseAdonis")
+remotes::install_github("brianstock/MixSIAR", dependencies=T)
+#pak::pak("r-lib/devtools") # if having an issue with devtools, can load the development version
+
 
 ### general formatting for figures 
 Fig.formatting <- 
@@ -62,7 +65,6 @@ Fig.formatting <-
 ```
 
 ### Site Maps
-# THIS CODE DOES NOT WORK FOR ALEXI 2025-05-09
 This map shows sampling locations in the Sierra Nevada Mountains. Note you must have a Google API to generate maps in `get_googlmaps`.  
 ```{r, site maps, fig.cap="**Figure 1**. Site map of the Eastern Sierra Nevada Mountains and sampling sites.", fig.align='center', results='hide'}
 
@@ -907,71 +909,12 @@ dev.off()
 
 
 ### MixSIAR
-We will first run MixSIAR to determine the proportion of algae/terrestrial material in the POM. This will help us validate the use of POM as a food source and its autochthony composition. #I THINK WE CUT THIS???
-```{r}
+We will first run MixSIAR to determine the proportion of algae/terrestrial material in the POM. This will help us validate the use of POM as a food source and its autochthony composition.
+```{r Mixsiar setup}
 #Load Packages for MixSIAR Models .... should already load in setup chunk, but just in case
 #library(MixSIAR)
 #library(dplyr)
 #library(GGally)
-
-#Create a new data frame with desired columns (Zooplankton)
-Mix.df.all <- LDA.df %>%
-  dplyr::select("SampleID", "Group", "orig.class", "phy.group", "Lake", "Elevation.m", "LD1")
-
-#Keep just POM as "consumer"
-POM.df <- Mix.df.all[(Mix.df.all$Group=="POM"),]
-POM.summary.phy.Lake<-aggregate(LD1~Lake+phy.group, data=POM.df, FUN=length)
-
-#Write and export a csv of the zooplankton data frame
-write.csv(POM.df, "output/POM.Mix.df.csv", row.names=FALSE)
-
-#Create a new data frame with desired columns
-Source.2.df <-  Mix.df.all[(Mix.df.all$phy.group=="Plants" | 
-                            Mix.df.all$phy.group=="Algae"),]
-
-#drop levels and subset
-Source.2.df$phy.group<-droplevels(Source.2.df$phy.group)
-Source.2.df <- Source.2.df %>%
-  dplyr::select("phy.group", "LD1")
-
-#Calculate mean, SD, and length LD1 values of the sources
-mean.df.mix <- aggregate(LD1~phy.group, data=Source.2.df, FUN=mean)
-sd.df.mix <- aggregate(LD1~phy.group, data=Source.2.df, FUN=sd)
-n.df.mix <- aggregate(LD1~phy.group, data=Source.2.df, FUN=length)
-
-#Bind the values calculated above into one data frame
-source.2.agg.df <- cbind(n.df.mix, mean.df.mix[2], sd.df.mix[2])
-
-#Rename the columns in this data frame
-colnames(source.2.agg.df) <- c("phy.group", "n", "MeanLD1", "SDLD1")
-
-#Write and export a csv of the source data frame
-write.csv(source.2.agg.df, "output/source.2.agg.df.csv", row.names=FALSE)
-
-###################
-#Load zooplankton (consumer) data and assign factors
-cons <- load_mix_data(filename = "output/POM.Mix.df.csv",
-                          iso_names=c("LD1"),
-                          factors=c("SampleID"),
-                          fac_random=c(FALSE),
-                          fac_nested=c(FALSE),
-                          cont_effects=NULL)
-#SampleID is a fixed factor
-
-#Load source data
-source <- load_source_data(filename="output/source.2.agg.df.csv",
-                             source_factors=NULL,
-                             conc_dep=FALSE,
-                             data_type="means",
-                             cons)
-
-#Load TDF data
-discr <- load_discr_data(filename="data/MixSIAR_prod.TDFs.csv", cons)
-
-```
-
-Export AA~ESS~ source and zooplankton LDA data to feed into MixSIAR. We will calculate the mean, standard deviations, and sample sizes for the LD1 and LD2 values of the sources.
-```{r mixsiar setup}
 
 ############
 # MIXTURES #
@@ -986,11 +929,7 @@ Mix.df.all <- LDA.df %>%
 # remove algae, POM, and plants from the data frame
 Mix.df <- Mix.df.all[!(Mix.df.all$orig.class == "Algae" | Mix.df.all$orig.class == "POM" |
                          Mix.df.all$orig.class == "Terrestrial Plants"),]
-
-# Do we need this???
-# Mix.df.summary.Lake <- aggregate(LD1 ~ Lake, data = Mix.df, FUN = length)
-# Mix.df.summary.phy <- aggregate(LD1 ~ phy.group, data = Mix.df, FUN = length)
-# Mix.df.summary.phy.Lake <- aggregate(LD1 ~ Lake + phy.group, data = Mix.df, FUN = length)
+Mix.df$orig.class <- droplevels(Mix.df$orig.class)
 
 # write and export a csv of the zooplankton data frame
 write.csv(Mix.df, "output/Mix.df.csv", row.names = FALSE)
@@ -1002,8 +941,8 @@ write.csv(Mix.df, "output/Mix.df.csv", row.names = FALSE)
 # BENTHIC ALGAE, POM, PLANTS 
 
 # create a new data frame with desired columns for the primary producers (sources)
-Source.df <-  Mix.df.all[(Mix.df.all$orig.class == "Algae" | Mix.df.all$orig.class == "POM" |
-                            Mix.df.all$orig.class == "Terrestrial Plants"),]
+Source.df <-  Mix.df.all[(Mix.df.all$phy.group == "Algae" | Mix.df.all$phy.group == "POM" |
+                            Mix.df.all$phy.group == "Plants"),]
 
 # drop levels and subset
 Source.df$phy.group <- droplevels(Source.df$phy.group)
@@ -1032,127 +971,27 @@ colnames(n.df) <- c("phy.group", "n")
 
 # bind the values calculated above into one data frame
 source.agg.df <- cbind(n.df, mean.ld1.df[2], sd.ld1.df[2], mean.ld2.df[2], sd.ld2.df[2])
-colnames(source.agg.df) <- c(NA, "n", "MeanLD1", "SDLD1", "MeanLD2", "SDLD2")
+colnames(source.agg.df) <- c("", "n", "MeanLD1", "SDLD1", "MeanLD2", "SDLD2")
 
 # write and export a csv of the source data frame
 write.csv(source.agg.df, "output/source.agg.df.csv", row.names = FALSE, na = "")
-# delete the "NA" from the first row/first column in the csv file and resave
-
-#### DO WE NEED THIS?
-##########################
-# Run MixSIAR by-sample Model
-set.seed(12)
-
-#Define the model and error structure and write JAGS model file
-  model_filename <- "output/MixSIAR_models/SampleID_prod_models/MixSIAR_Model_SampleID_fixed.txt"
-  resid_err <- FALSE
-  process_err <- TRUE
-  write_JAGS_model(model_filename, resid_err, process_err, cons, source)
-  
-#Run the JAGS model
-invt.jags.mod <- run_model(run="normal", cons, source, discr, model_filename, alpha.prior=1, resid_err, process_err)
-  
-#Process diagnostics, summary stats, and posterior plots
-  output_JAGS(invt.jags.mod, cons, source, output_options=list(
-    summary_save = TRUE,                   
-    summary_name = "output/MixSIAR_models/SampleID_prod_models/MixSIAR_SampleID_summary_stats",
-    sup_post = FALSE,                       
-    plot_post_save_pdf = TRUE,              
-    plot_post_name = "output/MixSIAR_models/SampleID_prod_models/MixSIAR_SampleID_posterior_density",   
-    sup_pairs = TRUE,                       
-    plot_pairs_save_pdf = TRUE,             
-    plot_pairs_name = "output/MixSIAR_models/SampleID_prod_models/MixSIAR_SampleID_pairs_plot",         
-    sup_xy = TRUE,                          
-    plot_xy_save_pdf = TRUE,                
-    plot_xy_name = "output/MixSIAR_models/SampleID_prod_models/MixSIAR_SampleID_xy_plot",             
-    gelman = TRUE,                         
-    heidel = FALSE,                         
-    geweke = TRUE,                         
-    diag_save = TRUE,                       
-    diag_name = "output/MixSIAR_models/SampleID_prod_models/MixSIAR_SampleID_diagnostics",
-    indiv_effect = FALSE,
-    plot_post_save_png = FALSE,            
-    plot_pairs_save_png = FALSE,            
-    plot_xy_save_png = FALSE))
-    graphics.off()
-
-#save all results
-save.image("output/MixSIAR_models/SampleID_prod_models/MixSIAR_SampleID_fixed_data.RData")
-
-#############################
-SAMP.mixSIAR.output<-read.table("output/MixSIAR_models/SampleID_prod_models/MixSIAR_SampleID_summary_stats.txt", sep='\t', header=TRUE, skip=6)
-
-SAMP.mixSIAR.output<-as.data.frame(SAMP.mixSIAR.output)
-colnames(SAMP.mixSIAR.output)<-"full.data"
-
-# remove all extra spaces using "squish", make them 1 space only
-library(stringr)
-SAMP.mixSIAR.output$full.data<- str_squish(SAMP.mixSIAR.output$full.data)
-
-# rename columns
-library(plyr)
-samp.mix.out<-separate(SAMP.mixSIAR.output, full.data, into = c("factor", "Mean", "SD", "2.5.perc", "5.perc", "25.perc", "50.perc", "75.perc", "95.perc", "97.5.perc"), sep=" ")
-
-# parse the factors here into 3 columns
-new.cols<- stringr::str_split_fixed(samp.mix.out$factor, "\\.", 3) %>%
-        as.data.frame() %>%
-       setNames(c("proportion", "SampleID", "Source"))
-
-new.cols<- new.cols %>%
-  dplyr::select("SampleID", "Source")
-
-# combine the new, separated columns with the data, verify the levels match, then remove "factor"
-Samp.out.cleaned<-cbind(new.cols, samp.mix.out[1:10])
-Samp.out.cleaned<-Samp.out.cleaned %>%
-  dplyr::select(-factor)
-                          
-write.csv(Samp.out.cleaned, "output/MixSIAR_prod_Samp.df.csv", row.names=FALSE)
-############
-aggregate(Mean~Source, data=Samp.out.cleaned, FUN=mean)
-aggregate(Mean~Source, data=Samp.out.cleaned, FUN=sd)
-
-#plot it
-Samp.out.cleaned$Group<-as.factor(Samp.out.cleaned$Source)
-Samp.out.cleaned$Mean<-as.numeric(Samp.out.cleaned$Mean)
-
-POM.mixsiar.plot<-ggplot(Samp.out.cleaned, aes(y=Mean, x=Source))+
-geom_boxplot(alpha=0.8, aes(fill=Source))+
-  geom_jitter(aes(fill=Source), colour="black",pch=21, size=2)+
-  scale_fill_manual(values=colors2)+ 
-  coord_cartesian(ylim=c(0, 1)) +
-  ylab(expression(paste("Energy channel proportion"))) +
-  xlab("Source") +
-  theme_classic()
-
-POM.mixsiar.plot<-ggplot(Samp.out.cleaned, aes(y=Mean, x=Source))+
-geom_boxplot(alpha=0.8, aes(fill=Source))+
-  geom_jitter(aes(fill=Source), colour="black",pch=21, size=2)+
-  scale_fill_manual(values =c("springgreen4", "lightsalmon3")) +
-  scale_color_manual(values =c("springgreen4", "lightsalmon3")) +
-  coord_cartesian(ylim=c(0, 1)) +
-  ylab(expression(paste("Energy channel proportion"))) +
-  xlab("Source") +
-  theme_classic()
-
-pdf(file= "figures/Figx.Phy.mixsiar.pdf", height=4, width=3)
-POM.mixsiar.plot
-dev.off()
 ```
 
 #### MixSIAR Model: by sampleID
 Now import data and create model structure.
-```{r mixsiar by sample, eval=FALSE, echo=TRUE, collapse=TRUE}
+```{r mixsiar by sample, echo=TRUE, collapse=TRUE}
 
 # may need to download JAGS for macOS
 #https://sourceforge.net/projects/mcmc-jags/files/JAGS/4.x/Mac%20OS%20X/
+
 
 # load zooplankton (consumer/mixture) data and assign factors
 # SampleID is a fixed factor
 cons <- load_mix_data(filename = "output/Mix.df.csv",
                           iso_names = c("LD1", "LD2"),
-                          factors = c("SampleID", "phy.group"),
-                          fac_random = c(FALSE, TRUE),
-                          fac_nested = c(FALSE, FALSE),
+                          factors = "SampleID",
+                          fac_random = FALSE,
+                          fac_nested = FALSE,
                           cont_effects = NULL)
 
 # load source data
@@ -1168,14 +1007,23 @@ discr <- load_discr_data(filename = "data/MixSIAR_TDFs.csv", cons)
 
 #### Check data
 # make an isospace plot
-isospace_plot <- plot_data(filename = "output/MixSIAR_models/SampleID_models/MixSIAR_isospace_plot_SampleIDs",
-                           plot_save_pdf = TRUE, plot_save_png = FALSE,
-                           cons, source, discr)
+# use 'return_obj = TRUE' to have the plot returned as a ggplot object we can customize (notably the legend)
+# save options set to 'FALSE' to edit elements, 'sup_post" suppresses plots being displayed in Quartz
 
+isospace_plot <- plot_data(filename = "output/MixSIAR_models/SampleID_models/MixSIAR_isospace_plot_SampleIDs",
+                           plot_save_pdf = FALSE, plot_save_png = FALSE,
+                           cons, source, discr, return_obj = TRUE)
+
+isospace_ggplot<- isospace_plot + 
+  theme(legend.position = "right") +
+  guides(color='none') + Fig.formatting 
+
+## plot and save
+isospace_ggplot
+dev.copy(pdf, "output/MixSIAR_models/SampleID_models/MixSIAR_isospace_plot_SampleIDs.pdf")
+dev.off()
 
 ### RUN MIXSIAR MODEL BY SAMPLEID ###
-
-set.seed(12)
 
 # define the model and error structure and write JAGS model file
 # PROCESS ERROR ONLY - HAVE TO DO THIS WHEN RUNNING MIXTURE POINTS INDIVIDUALLY
@@ -1185,22 +1033,23 @@ set.seed(12)
   write_JAGS_model(model_filename, resid_err, process_err, cons, source)
   
 # run the JAGS model
+set.seed(12)
 zoop.jags.mod <- run_model(run = "long", cons, source, discr, model_filename, alpha.prior = 1, resid_err, process_err)
   
 # save RDS object of JAGS model
 saveRDS(zoop.jags.mod, file = "output/MixSIAR_models/SampleID_models/MixSIAR_Model_SampleID_rjags.rds")
 
 # code below will read back in the RDS object
-#zoop.jags.mod <- readRDS(file = "output/MixSIAR_models/SampleID_models/MixSIAR_Model_SampleID_rjags.rds")
+zoop.jags.mod <- readRDS(file = "output/MixSIAR_models/SampleID_models/MixSIAR_Model_SampleID_rjags.rds")
 
 # process diagnostics, summary stats, and posterior plots
-  output_JAGS(zoop.jags.mod, cons, source, output_options = list(
+output_options <- list(
     summary_save = TRUE,                   
     summary_name = "output/MixSIAR_models/SampleID_models/MixSIAR_SampleID_summary_stats",
     sup_post = FALSE,                       
     plot_post_save_pdf = TRUE,              
     plot_post_name = "output/MixSIAR_models/SampleID_models/MixSIAR_SampleID_posterior_density",   
-    sup_pairs = FALSE,                       
+    sup_pairs = TRUE,                       
     plot_pairs_save_pdf = TRUE,             
     plot_pairs_name = "output/MixSIAR_models/SampleID_models/MixSIAR_SampleID_pairs_plot",         
     sup_xy = FALSE,                          
@@ -1214,20 +1063,36 @@ saveRDS(zoop.jags.mod, file = "output/MixSIAR_models/SampleID_models/MixSIAR_Mod
     indiv_effect = FALSE,
     plot_post_save_png = FALSE,            
     plot_pairs_save_png = FALSE,            
-    plot_xy_save_png = FALSE))
-    graphics.off()
+    plot_xy_save_png = FALSE,
+    graphics.off())
+
+# set max to get all data
+options(max.print = 3000)
+out.JAGS<-output_JAGS(zoop.jags.mod, cons, source, output_options)
+
+# get the output stats for the model
+# output_stats(zoop.jags.mod, cons, source, output_options)
 
 # a posteriori aggregation of sources
 # combine benthic algae and POM into one autochthonous source
-zoop.auto.combined <- combine_sources(zoop.jags.mod, cons, source,
+zoop.auto.combined <- combine_sources(zoop.jags.mod, cons, source, alpha.prior = 1,
                                       groups = list(Autochthonous = c("Algae", "POM"),
-                                                    Allochthonous = c("Plants")))
+                                                    Allochthonous = "Plants"))
+
+# print and save the interval plot
+plot_intervals(zoop.auto.combined, toplot = "fac1")
+dev.copy(pdf, "output/MixSIAR_models/SampleID_models/combines_outost_intervals.pdf", width=10, height=10)
+dev.off()
 
 # summary statistics for a posteriori aggregation of sources (autochthonous vs allochthonous)
-sink("output/MixSIAR_models/SampleID_models/MixSIAR_SampleID_summary_stats_a_posteriori.txt")
-print(summary_stat(zoop.auto.combined))
-sink()
+summary_stat(zoop.auto.combined, toprint = "fac1", meanSD = TRUE, savetxt = TRUE,
+             quantiles = c(0.025, 0.05, 0.25, 0.5, 0.75, 0.95, 0.975),
+             filename = "output/MixSIAR_models/SampleID_models/MixSIAR_SampleID_summary_stats_a_posteriori")
 
+# alternative code
+#sink("output/MixSIAR_models/SampleID_models/MixSIAR_SampleID_summary_stats_a_posteriori.txt")
+#summary_stat(zoop.auto.combined)
+#sink()
 ```
 
 ```{r mixsiar by sample results, eval=FALSE, echo=TRUE, fig.keep='none'}
@@ -1237,8 +1102,9 @@ sink()
 # *By Sample OUTPUT*: Clean and process summary stats for the "by sample model" and generate an output
 # read in the summary stats, parse, and make a dataframe, replacing spaces from .txt
 
-SAMP.mixSIAR.1.output <- read.table("output/MixSIAR_models/SampleID_models/MixSIAR_SampleID_summary_stats_a_posteriori.txt",
-                                  sep = '\t', header = TRUE, skip = 6)
+SAMP.mixSIAR.1.output <- read.table(
+  "output/MixSIAR_models/SampleID_models/MixSIAR_SampleID_summary_stats_a_posteriori.txt",
+  sep = '\t', header = FALSE, skip = 6)
 
 SAMP.mixSIAR.1.output <- as.data.frame(SAMP.mixSIAR.1.output)
 colnames(SAMP.mixSIAR.1.output) <- "full.data"
@@ -1249,7 +1115,9 @@ SAMP.mixSIAR.1.output$full.data <- str_squish(SAMP.mixSIAR.1.output$full.data)
 
 # rename columns
 library(plyr)
-samp.mix.1.out<-separate(SAMP.mixSIAR.1.output, full.data, into = c("factor", "Mean", "SD", "2.5.perc", "5.perc", "25.perc", "50.perc", "75.perc", "95.perc", "97.5.perc"), sep=" ")
+samp.mix.1.out<-separate(SAMP.mixSIAR.1.output, full.data,  
+                         into = c("factor", "Mean", "SD", "2.5.perc", "5.perc", "25.perc", "50.perc",
+                                  "75.perc", "95.perc", "97.5.perc"), sep=" ")
 
 # parse the factors here into 3 columns
 new.cols <- stringr::str_split_fixed(samp.mix.1.out$factor, "\\.", 3) %>%

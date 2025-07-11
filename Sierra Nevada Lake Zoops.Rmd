@@ -1032,12 +1032,12 @@ dev.off()
   process_err <- TRUE
   write_JAGS_model(model_filename, resid_err, process_err, cons, source)
   
-# run the JAGS model
-set.seed(12)
-zoop.jags.mod <- run_model(run = "long", cons, source, discr, model_filename, alpha.prior = 1, resid_err, process_err)
+#### run the JAGS model
+#set.seed(12)
+#zoop.jags.mod <- run_model(run = "long", cons, source, discr, model_filename, alpha.prior = 1, resid_err, process_err)
   
 # save RDS object of JAGS model
-saveRDS(zoop.jags.mod, file = "output/MixSIAR_models/SampleID_models/MixSIAR_Model_SampleID_rjags.rds")
+#saveRDS(zoop.jags.mod, file = "output/MixSIAR_models/SampleID_models/MixSIAR_Model_SampleID_rjags.rds")
 
 # code below will read back in the RDS object
 zoop.jags.mod <- readRDS(file = "output/MixSIAR_models/SampleID_models/MixSIAR_Model_SampleID_rjags.rds")
@@ -1131,6 +1131,8 @@ new.cols <- new.cols %>%
 Samp.out.cleaned <- cbind(new.cols, samp.mix.1.out[1:10])
 Samp.out.cleaned <- Samp.out.cleaned %>%
   dplyr::select(-factor)
+
+Samp.out.cleaned<-na.omit(Samp.out.cleaned)
                           
 write.csv(Samp.out.cleaned, "output/MixSIAR_models/SampleID_models/MixSIAR_SampleID_a_posteriori.df.csv", row.names = FALSE)
 
@@ -1169,7 +1171,7 @@ dev.off()
 
 
 #### plot by lake
-Mix.samp.plot <- ggplot(data = Mix.samp, aes(x = Lake, y = Mean, fill = Source)) +
+Mix.lake.plot <- ggplot(data = Mix.samp, aes(x = Lake, y = Mean, fill = Source)) +
   geom_boxplot(alpha=0.8)+
   geom_point(aes(color=Source), alpha=0.4, position=position_dodge(0.7))+
   scale_fill_manual(values = c("dodgerblue", "springgreen4")) +
@@ -1178,6 +1180,10 @@ Mix.samp.plot <- ggplot(data = Mix.samp, aes(x = Lake, y = Mean, fill = Source))
   xlab(NULL) +
   guides(fill = guide_legend(title = expression(paste(AA[ESS], " ", Source)))) +
   theme_classic() + Fig.formatting + guides(color = "none")
+
+Mix.lake.plot
+dev.copy(pdf, "figures/Figxx.mixsiar.lake.pdf", width=10, height=7)
+dev.off()
 ```
 
 # CUT THE MODEL COMPARISON -- START CUT HERE
@@ -1431,11 +1437,7 @@ Mod3.out.cleaned <- Mod3.out.cleaned %>%
 write.csv(Mod3.out.cleaned, "output/MixSIAR_Model_3_Group_Lake.df.csv", row.names = FALSE)
 
 ```
-# CUT THE MODEL COMPARISON -- END CUT HERE
 
-
-
-#### MixSIAR Model Figures
 Make plots for MixSIAR results. We will make a plot for each zooplankton Group and one for zooplankton Group and Lake.
 ```{r mixSIAR plots, out.width="50%", fig.show='hold', results='hide', fig.cap="**Figure**.  Proportional contributions of two AA~ESS~ sources (POM and terrestrial plants) to zooplankton consumers (left) pooled across sites and (right) at each site, estimated from a MixSIAR model that included Group as fixed effect and location as random effect."}
 
@@ -1522,6 +1524,8 @@ pdf(file= "figures/FigS7.Lake.mixsiar.pdf", height=7, width=12)
 mod3.Lake.fig
 dev.off()
 ```
+
+# CUT THE MODEL COMPARISON -- END CUT HERE
 
 
 *Combine all data*   
@@ -1702,11 +1706,11 @@ discr.n <- load_discr_data(filename = "data/MixSIAR_nEAA_TDFs.csv", cons.n)
   write_JAGS_model(model_filename.n, resid_err, process_err, cons.n, source.n)
   
 # run the JAGS model
-set.seed(12)
-zoop.jags.mod.n <- run_model(run = "long", cons.n, source.n, discr.n, model_filename.n, alpha.prior = 1, resid_err, process_err)
+#set.seed(12)
+#zoop.jags.mod.n <- run_model(run = "long", cons.n, source.n, discr.n, model_filename.n, alpha.prior = 1, resid_err, process_err)
   
 # save RDS object of JAGS model
-saveRDS(zoop.jags.mod.n, file = "output/MixSIAR_models/MixSIAR_nEAA_model/MixSIAR_Model_SampleID_rjags.rds")
+#saveRDS(zoop.jags.mod.n, file = "output/MixSIAR_models/MixSIAR_nEAA_model/MixSIAR_Model_SampleID_rjags.rds")
 
 # code below will read back in the RDS object
 zoop.jags.mod.n <- readRDS(file = "output/MixSIAR_models/MixSIAR_nEAA_model/MixSIAR_Model_SampleID_rjags.rds")
@@ -1714,21 +1718,21 @@ zoop.jags.mod.n <- readRDS(file = "output/MixSIAR_models/MixSIAR_nEAA_model/MixS
 # process diagnostics, summary stats, and posterior plots
 output_options.n <- list(
     summary_save = TRUE,                   
-    summary_name = "output/MixSIAR_models/MixSIAR_nEAA_model/MixSIAR_SampleID_summary_stats",
+    summary_name = "output/MixSIAR_models/MixSIAR_nEAA_model/MixSIAR_SampleID_summary_stats.nEAA",
     sup_post = FALSE,                       
     plot_post_save_pdf = TRUE,              
-    plot_post_name = "output/MixSIAR_models/MixSIAR_nEAA_model/MixSIAR_SampleID_posterior_density",   
+    plot_post_name = "output/MixSIAR_models/MixSIAR_nEAA_model/MixSIAR_SampleID_posterior_density.nEAA",   
     sup_pairs = TRUE,                       
     plot_pairs_save_pdf = TRUE,             
-    plot_pairs_name = "output/MixSIAR_models/MixSIAR_nEAA_model/MixSIAR_SampleID_pairs_plot",         
+    plot_pairs_name = "output/MixSIAR_models/MixSIAR_nEAA_model/MixSIAR_SampleID_pairs_plot.nEAA",         
     sup_xy = FALSE,                          
     plot_xy_save_pdf = TRUE,                
-    plot_xy_name = "output/MixSIAR_models/MixSIAR_nEAA_model/MixSIAR_SampleID_xy_plot",             
+    plot_xy_name = "output/MixSIAR_models/MixSIAR_nEAA_model/MixSIAR_SampleID_xy_plot.nEAA",             
     gelman = TRUE,                         
     heidel = FALSE,                         
     geweke = TRUE,                         
     diag_save = TRUE,                       
-    diag_name = "output/MixSIAR_models/MixSIAR_nEAA_model/MixSIAR_SampleID_diagnostics",
+    diag_name = "output/MixSIAR_models/MixSIAR_nEAA_model/MixSIAR_SampleID_diagnostics.nEAA",
     indiv_effect = FALSE,
     plot_post_save_png = FALSE,            
     plot_pairs_save_png = FALSE,            
@@ -1750,13 +1754,13 @@ zoop.auto.combined.n <- combine_sources(zoop.jags.mod.n, cons.n, source.n, alpha
 
 # print and save the interval plot
 plot_intervals(zoop.auto.combined.n, toplot = "fac1")
-dev.copy(pdf, "output/MixSIAR_models/MixSIAR_nEAA_model/combines_outost_intervals.pdf", width=10, height=10)
+dev.copy(pdf, "output/MixSIAR_models/MixSIAR_nEAA_model/combines_outost_intervals.nEAA.pdf", width=10, height=10)
 dev.off()
 
 # summary statistics for a posteriori aggregation of sources (autochthonous vs allochthonous)
 summary_stat(zoop.auto.combined.n, toprint = "fac1", meanSD = TRUE, savetxt = TRUE,
              quantiles = c(0.025, 0.05, 0.25, 0.5, 0.75, 0.95, 0.975),
-             filename = "output/MixSIAR_models/MixSIAR_nEAA_model/MixSIAR_SampleID_summary_stats_a_posteriori")
+             filename = "output/MixSIAR_models/MixSIAR_nEAA_model/MixSIAR_SampleID_summary_stats_a_posteriori.nEAA")
 ```
 
 ```{r mixsiar by sample results, echo=TRUE, fig.keep='none'}
@@ -1764,7 +1768,7 @@ summary_stat(zoop.auto.combined.n, toprint = "fac1", meanSD = TRUE, savetxt = TR
 ### CLEAN MIXSIAR MODEL BY SAMPLEID RESULTS ###
 
 SAMP.mixSIAR.1.output.n <- read.table(
-  "output/MixSIAR_models/MixSIAR_nEAA_model/MixSIAR_SampleID_summary_stats_a_posteriori.txt",
+  "output/MixSIAR_models/MixSIAR_nEAA_model/MixSIAR_SampleID_summary_stats_a_posteriori.nEAA.txt",
   sep = '\t', header = FALSE, skip = 6)
 
 SAMP.mixSIAR.1.output.n <- as.data.frame(SAMP.mixSIAR.1.output.n)
@@ -1793,7 +1797,7 @@ Samp.out.cleaned.n <- cbind(new.cols.n, samp.mix.1.out.n[1:10])
 Samp.out.cleaned.n <- Samp.out.cleaned.n %>%
   dplyr::select(-factor)
                           
-write.csv(Samp.out.cleaned.n, "output/MixSIAR_models/MixSIAR_nEAA_model/MixSIAR_SampleID_a_posteriori.df.csv", row.names = FALSE)
+write.csv(Samp.out.cleaned.n, "output/MixSIAR_models/MixSIAR_nEAA_model/MixSIAR_SampleID_a_posteriori.df.nEAA.csv", row.names = FALSE)
 
 ```
 
@@ -1830,7 +1834,7 @@ dev.off()
 
 
 #### plot by lake
-Mix.samp.plot.n <- ggplot(data = Mix.samp.n, aes(x = Lake, y = Mean, fill = Source)) +
+Mix.lake.plot.n <- ggplot(data = Mix.samp.n, aes(x = Lake, y = Mean, fill = Source)) +
   geom_boxplot(alpha=0.8)+
   geom_point(aes(color=Source), alpha=0.4, position=position_dodge(0.7))+
   scale_fill_manual(values = c("dodgerblue", "springgreen4")) +
@@ -1839,6 +1843,10 @@ Mix.samp.plot.n <- ggplot(data = Mix.samp.n, aes(x = Lake, y = Mean, fill = Sour
   xlab(NULL) +
   guides(fill = guide_legend(title = expression(paste(AA[ESS], " ", Source)))) +
   theme_classic() + Fig.formatting + guides(color = "none")
+
+Mix.lake.plot.n
+dev.copy(pdf, "figures/Figxx.mixsiar.lake.nEAA.pdf", width=6, height=7)
+dev.off()
 ```
 
 

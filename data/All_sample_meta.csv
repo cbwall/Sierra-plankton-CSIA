@@ -1,0 +1,61 @@
+﻿Group,SampleID,Type,orig.class,Lake
+Zooplankton,SNL-ZOOP-01A,Daphnia,Daphnia,Lukens
+Zooplankton,SNL-ZOOP-02A,Daphnia,Daphnia,Lukens
+Zooplankton,SNL-ZOOP-03A,calanoid,calanoid,Lukens
+Zooplankton,SNL-ZOOP-04A,calanoid,calanoid,Lukens
+Zooplankton,SNL-ZOOP-05A,calanoid,calanoid,MayPond
+Zooplankton,SNL-ZOOP-06A,calanoid,calanoid,MayPond
+Zooplankton,SNL-ZOOP-07A,calanoid,calanoid,MayPond
+Zooplankton,SNL-ZOOP-08A,calanoid_cyclopoid,calanoid_cyclopoid,Blue
+Zooplankton,SNL-ZOOP-09A,calanoid_cyclopoid,calanoid_cyclopoid,Blue
+Zooplankton,SNL-ZOOP-10A,Daphnia,Daphnia,Blue
+Zooplankton,SNL-ZOOP-11A,Daphnia,Daphnia,Blue
+Zooplankton,SNL-ZOOP-13A,Daphnia,Daphnia,Cascade
+Zooplankton,SNL-ZOOP-14A,Daphnia,Daphnia,Cascade
+Zooplankton,SNL-ZOOP-15A,Daphnia,Daphnia,EasternBrook
+Zooplankton,SNL-ZOOP-16A,calanoid_cyclopoid,calanoid_cyclopoid,EasternBrook
+Zooplankton,SNL-ZOOP-17A,calanoid_cyclopoid,calanoid_cyclopoid,EasternBrook
+Zooplankton,SNL-ZOOP-18A,calanoid,calanoid,Granite2
+Zooplankton,SNL-ZOOP-19A,Daphnia,Daphnia,Granite2
+Zooplankton,SNL-ZOOP-20A,Ceriodaphnia,Ceriodaphnia,Granite2
+Zooplankton,SNL-ZOOP-GFF12A,calanoid,calanoid,Sunrise2
+Zooplankton,SNL-ZOOP-GFF47,>350um,>350um,Sunrise2
+Zooplankton,SNL-ZOOP-GFF48,Holopedium,Holopedium,Cascade
+Zooplankton,SNL-ZOOP-GFF49,>350um,>350um,Blue
+Zooplankton,SNL-ZOOP-GFF53,>350um,>350um,EasternBrook
+Zooplankton,SNL-ZOOP-GFF65,>350um,>350um,Lukens
+Zooplankton,SNL-ZOOP-GFF66,>350um,>350um,Greenstone
+Zooplankton,SNL-ZOOP-GFF67,>350um,>350um,Granite2
+Zooplankton,SNL-ZOOP-GFF69,>350um,>350um,MayPond
+Zooplankton,SNL-ZOOP-GFF70,>350um,>350um,Cascade
+Zooplankton,SNL-ZOOP-TA2,>350<1000um,>350um,TB-tanks
+Zooplankton,SNL-ZOOP-TA11,>350<1000um,>350um,TB-tanks
+Zooplankton,SNL-ZOOP-TA13,>350<1000um,>350um,TB-tanks
+Zooplankton,SNL-ZOOP-TA18,>350<1000um,>350um,TB-tanks
+POM,SNL-POM-01,POM <63um,POM,Cascade
+POM,SNL-POM-02,POM <63um,POM,Sunrise2
+POM,SNL-POM-03,POM <63um,POM,Lukens
+POM,SNL-POM-04,POM <63um,POM,Blue
+POM,SNL-POM-05,POM <63um,POM,MayPond
+POM,SNL-POM-GFF55,POM <63um,POM,EasternBrook
+POM,SNL-POM-GFF62,POM <63um,POM,Granite2
+POM,SNL-POM-GFF75,POM <63um,POM,EasternBrook
+Terrestrial Plants,SNL-TERPLA-01,Pinus contorta ssp. murrayana,Terrestrial Plants,Lukens
+Terrestrial Plants,SNL-TERPLA-07,Carex spp. ,Terrestrial Plants,Lukens
+Terrestrial Plants,SNL-TERPLA-08,Carex spp. ,Terrestrial Plants,MayPond
+Terrestrial Plants,SNL-TERPLA-10,Pinus contorta ssp. Murrayana,Terrestrial Plants,MayPond
+Terrestrial Plants,SNL-TERPLA-13,Salix ligulifolia,Terrestrial Plants,Sunrise2
+Terrestrial Plants,SNL-TERPLA-14,Carex spp. ,Terrestrial Plants,Sunrise2
+Terrestrial Plants,SNL-TERPLA-15,Carex spp. ,Terrestrial Plants,Blue
+Terrestrial Plants,SNL-TERPLA-18,Salix spp. ,Terrestrial Plants,Blue
+Terrestrial Plants,SNL-TERPLA-27,Pinus contorta ssp. Murrayana,Terrestrial Plants,Blue
+Terrestrial Plants,SNL-TERPLA-SA,Artemisia tridentata,Terrestrial Plants,Blue
+Algae,ALR-BLUELAKE-30JUL2022-EPILITHIC-1,Epilithic algae,Algae,Blue
+Algae,ALR-BLUELAKE-30JUL2022-EPILITHIC-2,Epilithic algae,Algae,Blue
+Algae,ALR-BLUELAKE-30JUL2022-FILGREEN-1,Filamentous green algae,Algae,Blue
+Algae,ALR-BLUELAKE-30JUL2022-FILGREEN-2,Filamentous green algae,Algae,Blue
+Algae,ALR-BLUELAKE-30JUL2022-FILGREEN-3,Filamentous green algae,Algae,Blue
+Algae,ALR-EASTBROOK-02AUG2022-EPISALMICDIATOMS-1,Epipsammic,Algae,EasternBrook
+Algae,ALR-EASTBROOK-02AUG2022-EPISALMICDIATOMS-2,Epipsammic,Algae,EasternBrook
+Algae,ALR-SUNRISE-31JUL2022-EPISALMIC-1,Epipsammic algae ,Algae,Sunrise2
+Algae,ALR-SUNRISE-31JUL2022-EPISALMIC-2,Epipsammic algae ,Algae,Sunrise2

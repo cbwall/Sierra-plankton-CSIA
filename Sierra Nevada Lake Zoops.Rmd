@@ -204,7 +204,7 @@ SNL.ess$SampleID <- as.character(SNL.ess$SampleID)
 # read in metadata and merge with SNL.ess data frame
 meta <- read.csv("data/All_sample_meta.csv") ### SNL-ZOOP-GFF12A is in the metadata but not our actual data set
 
-SNL.ess.meta <- merge.data.frame(meta, SNL.ess, meta, by.x = "SampleID", by.y = "SampleID")
+SNL.ess.meta <- merge.data.frame(meta, SNL.ess, by.x = "SampleID", by.y = "SampleID")
 SNL.ess.meta <- SNL.ess.meta[!(SNL.ess.meta$Lake == "TB-tanks"),]
 
 # make a new level for "Elevation" (in m), "0" for ordering, but actually is "NA"
@@ -1122,7 +1122,7 @@ samp.mix.1.out<-separate(SAMP.mixSIAR.1.output, full.data,
 # parse the factors here into 3 columns
 new.cols <- stringr::str_split_fixed(samp.mix.1.out$factor, "\\.", 3) %>%
         as.data.frame() %>%
-       setNames(c("proportion", "SampleID", "Source"))
+       setNames(c("proportion", "Source", "SampleID"))
 
 new.cols <- new.cols %>%
   dplyr::select("SampleID", "Source")
@@ -1134,6 +1134,50 @@ Samp.out.cleaned <- Samp.out.cleaned %>%
                           
 write.csv(Samp.out.cleaned, "output/MixSIAR_models/SampleID_models/MixSIAR_SampleID_a_posteriori.df.csv", row.names = FALSE)
 
+```
+
+SampleID Mixsiar plot
+```{r SampleID mixsiar plot}
+
+# model output = 'Samp.out.cleaned'
+# bring in some metadata to make sense of it
+EAA.df.temp <- EAA.df.wide %>% dplyr::select(SampleID, Lake, Group, phy.group, Elevation.m)
+EAA.df.zoop<-EAA.df.temp[(EAA.df.temp$Group=="Zooplankton"),]
+Mix.samp<-merge.data.frame(EAA.df.zoop, Samp.out.cleaned, by.x="SampleID", by.y="SampleID", all=TRUE)
+Mix.samp$Source<-factor(Mix.samp$Source, levels = c("Autochthonous", "Allochthonous"))
+
+# set structure and reorder lakes by elevation
+Mix.samp$Mean<-as.numeric(Mix.samp$Mean)
+Mix.samp$Elevation.m<-as.numeric(Mix.samp$Elevation.m)
+Mix.samp$Lake<-as.factor(reorder(Mix.samp$Lake, Mix.samp$Elevation.m))
+
+
+Mix.samp.plot <- ggplot(data = Mix.samp, aes(x = phy.group, y = Mean, fill = Source)) +
+  geom_boxplot(alpha=0.8)+
+  geom_point(aes(color=Source), alpha=0.4, position=position_dodge(0.7))+
+  scale_fill_manual(values = c("dodgerblue", "springgreen4")) +
+  scale_color_manual(values = c("gray30", "gray30")) +
+  ylab("Proportional Contribution") +
+  xlab(NULL) +
+  guides(fill = guide_legend(title = expression(paste(AA[ESS], " ", Source)))) +
+  theme_classic() + Fig.formatting + guides(color = "none")
+
+#print and save
+Mix.samp.plot
+dev.copy(pdf, "figures/Fig3.mixsiar.pdf", width=6, height=7)
+dev.off()
+
+
+#### plot by lake
+Mix.samp.plot <- ggplot(data = Mix.samp, aes(x = Lake, y = Mean, fill = Source)) +
+  geom_boxplot(alpha=0.8)+
+  geom_point(aes(color=Source), alpha=0.4, position=position_dodge(0.7))+
+  scale_fill_manual(values = c("dodgerblue", "springgreen4")) +
+  scale_color_manual(values = c("gray30", "gray30")) +
+  ylab("Proportional Contribution") +
+  xlab(NULL) +
+  guides(fill = guide_legend(title = expression(paste(AA[ESS], " ", Source)))) +
+  theme_classic() + Fig.formatting + guides(color = "none")
 ```
 
 #### MixSIAR Model Comparisons: Zooplankton Group and Zooplankton Group by Lake
@@ -1474,97 +1518,51 @@ mod3.Lake.fig
 dev.off()
 ```
 
+
 *Combine all data*   
 Now that we have more data, let's combine it with the previous data so that we have a unified dataframe with the sampling information, measured AA~ESS~ data, LD-classification, LD1 coordinate, and mixing model output.
 ```{r generate full data, results='hide'}
 #### by sample
 #check.names=FALSE prevents an "X" being added to the columns that start with a number
-samp.mix.df<-read.csv("output/MixSIAR_Samp.df.csv", check.names=FALSE) 
+samp.mix.df<-read.csv("output/MixSIAR_models/SampleID_models/MixSIAR_SampleID_a_posteriori.df.csv",
+                      check.names=FALSE) 
 
+samp.mix.reduced<- samp.mix.df %>% 
+  dplyr::select(SampleID, Source, Mean, SD)
 
-#### merge data from mixsiar with other data
-# read in the EAA values for zoops (loaded above, "output/SNL_zooplankton_ess_AA_data.csv", and reorganized in "zoop.sub")
+# extract out the df for the two sources
+Auto.mix<-samp.mix.reduced[(samp.mix.reduced$Source=="Autochthonous"),]
+colnames(Auto.mix)<-c("SampleID", "Source", "Auto.mean", "Auto.SD")
+Auto.mix<- Auto.mix %>% dplyr::select(-Source) # remove this column for merge below
+
+Alloch.mix<-samp.mix.reduced[(samp.mix.reduced$Source=="Allochthonous"),]
+colnames(Alloch.mix)<-c("SampleID", "Source", "Alloch.mean", "Alloch.SD")
+Alloch.mix<- Alloch.mix %>% dplyr::select(-Source) # remove this column for merge below
+
+# combine
+Mixes <- merge.data.frame(Auto.mix, Alloch.mix, by.x = "SampleID", by.y = "SampleID", all=TRUE)
 
 # combine zoops and producers, called in from 'EAA.df.wide'
 head(EAA.df.wide)
 
-MSiar.LD.meta <- merge.data.frame(samp.mix.df, LDA.df, by.x = "SampleID", by.y = "SampleID", all=TRUE)
-MSiar.LD.meta.EAA <- merge.data.frame(MSiar.LD.meta, EAA.df.wide, 
+# reduce LDA df for merge
+LDA.df.reduced<- LDA.df %>% 
+  dplyr::select(SampleID, LD.class, LD1, LD2)
+
+# merge LDA and Mixsiar
+MSiar.LD.meta <- merge.data.frame(LDA.df.reduced, Mixes, by.x = "SampleID", by.y = "SampleID", all=TRUE)
+
+# merge with all raw and normalized data
+MSiar.LD.meta.EAA <- merge.data.frame(EAA.df.wide, MSiar.LD.meta,
                                       by.x = "SampleID", by.y = "SampleID", all=TRUE)
 
-#### simplify data
-# select useful columns
-MSiar.LD.meta.EAA<- MSiar.LD.meta.EAA %>%
-  dplyr::select("SampleID", "Source", "Mean", "SD", "Lake.x",
-                "orig.class.x", "phy.group.x", "LD.class", "LD1", "Group.x", 
-                "Ile", "Leu", "Phe", "Thr", "Val")
-
-MSiar.LD.meta.EAA<- MSiar.LD.meta.EAA %>% 
-  dplyr::rename("Lake" = "Lake.x", "orig.class" = "orig.class.x", "phy.group" = "phy.group.x", "Group" = "Group.x")
-
+MSiar.LD.meta.EAA <- MSiar.LD.meta.EAA %>% dplyr::select(-Elevation.m) # duplicate in merge below
 
 # read in environmental data (loaded above, <-read.csv("data/SNL.envdata.csv"), "SNL.env"
-MSiar.data.env<-merge.data.frame(MSiar.LD.meta.EAA, SNL.env, by.x = "Lake", by.y = "Lake",all=TRUE)
-
-# select useful columns
-MSiar.data.env<- MSiar.data.env %>%
-  dplyr::select("Location", "Date", "Lake", "elevation..m", "latitude", "longitude", "depth..m",
-                "secchi..m", "temp..C", "DO..perc", "cond", "pH", "DOC..mg.L",
-                "TDN..ug.L", "TDP..ug.L", "chla..ug.L", "SampleID", "Group", "orig.class", "phy.group", 
-                "Ile", "Leu", "Phe", "Thr", "Val",
-                "LD.class", "LD1", "LD.class", "Source", "Mean", "SD")
-
-# (can't subset data easily above with the NAs for 'Lake Source'
-# separate the 3 Types of data -- a bit messy because of column "mean", which is the proportion of source 1 vs 2
-MSiar.data.env.plant.prop<-na.omit(MSiar.data.env[(MSiar.data.env$Source=="Plants"),])
-MSiar.data.env.POM.prop<-na.omit(MSiar.data.env[(MSiar.data.env$Source=="POM"),])
-MSiar.data.env.Source<-MSiar.data.env[(MSiar.data.env$LD.class=="Source"),]
-
-# rename PLANT prop mean
-MSiar.data.env.plant.prop<- MSiar.data.env.plant.prop %>% 
-       dplyr::rename("prop.plant.mean" = "Mean")
-MSiar.data.env.plant.prop<- MSiar.data.env.plant.prop %>% 
-       dplyr::rename("prop.plant.SD" = "SD")
-
-# rename POM prop mean
-MSiar.data.env.POM.prop<- MSiar.data.env.POM.prop %>% 
-       dplyr::rename("prop.POM.mean" = "Mean")
-MSiar.data.env.POM.prop<- MSiar.data.env.POM.prop %>% 
-       dplyr::rename("prop.POM.SD" = "SD")
-
-
-#### add the Sources back in
-# make dumpy NA columns so the headers match
-
-MSiar.data.env.Source1<-  MSiar.data.env.Source %>% 
-       dplyr::rename("prop.plant.mean" = "Mean")
-MSiar.data.env.Source1<-  MSiar.data.env.Source1 %>% 
-       dplyr::rename("prop.plant.SD" = "SD")
-
-# merge data, has plants and sources
-Pooled1.plant.df <- rbind(MSiar.data.env.Source1, MSiar.data.env.plant.prop)
-
-### do the same for POM to bring in the sources
-# add the Sources back in
-MSiar.data.env.Source2<-  MSiar.data.env.Source %>% 
-       dplyr::rename("prop.POM.mean" = "Mean")
-MSiar.data.env.Source2<-  MSiar.data.env.Source2 %>% 
-       dplyr::rename("prop.POM.SD" = "SD")
-
-# merge data, has POM and sources
-Pooled2.POM.df <- rbind(MSiar.data.env.Source2, MSiar.data.env.POM.prop)
-
-#reduce columns needed for merged data
-Pooled2.POM.select.df<- Pooled2.POM.df %>% dplyr::select (SampleID,  prop.POM.mean, prop.POM.SD)
-
-# merge data, this is all the data, merged by ID, with the new columns for prop POM or plant
-final.df <- merge.data.frame(Pooled1.plant.df, Pooled2.POM.select.df, by.x = "SampleID", by.y = "SampleID")
-
-#remove Source column, which is relic of output from MixSIAR
-final.df<- final.df %>% dplyr::select (-Source)
+SNL.CSIA.fulldata<-merge.data.frame(SNL.env, MSiar.LD.meta.EAA, by.x = "Lake", by.y = "Lake", all=TRUE)
 
 #### export full data for project
-write.csv(final.df, "output/SNL.CSIA.fulldata.csv")
+write.csv(SNL.CSIA.fulldata, "output/SNL.CSIA.fulldata.csv")
 ```
   
   
@@ -1577,11 +1575,10 @@ Use the proportion of AA~ESS~ from terrestrial plants from the mixing model with
 # use 'ESS.mods' to run models
 
 # look at % plant contributions by environmental data
-mod.data<- final.df %>%
+mod.data<- SNL.CSIA.fulldata %>%
   dplyr::select(SampleID, Lake, elevation..m, depth..m, temp..C, DO..perc, pH, DOC..mg.L,
                 TDN..ug.L, TDP..ug.L, chla..ug.L, phy.group, Ile, Leu, Phe, Thr, Val, LD.class, 
-                LD1, prop.plant.mean, prop.plant.SD)
-
+                LD1, Alloch.mean, Alloch.SD)
 
 # remove data where elevation for samples is missing (ie the source samples that were pooled across all sampling sites)
 Plant.nut.env<-mod.data[!(mod.data$LD.class=="Source"),] 
@@ -1614,7 +1611,7 @@ dev.off()
 ```{r all zoop multR2, results='hide', fig.keep='none'}
 # library(MASS)
 # run a full model
-mod.mult<-lm(prop.plant.mean~temp..C+ pH+TDN..ug.L+chla..ug.L,
+mod.mult<-lm(Alloch.mean~temp..C+ pH+TDN..ug.L+chla..ug.L,
              data=Plant.nut.env)
 
 # model fit
@@ -1625,13 +1622,13 @@ hist(mod.mult$residuals)
 qqnorm(mod.mult$residuals)
 qqline(mod.mult$residuals)
 
-sigma(mod.mult)/mean(Plant.nut.env$prop.plant.mean) #70% error rate, not awesome. 
+sigma(mod.mult)/mean(Plant.nut.env$Alloch.mean) #62% error rate, not awesome. 
 
 # run model selection
 all.zoop.mods<-stepAIC(mod.mult, trace=TRUE)
 
-# best model is with chla (p=0.111) and TN (p=0.009), R2-adjust = 0.186, RSE= 0.099
-mod.mult.all<-lm(prop.plant.mean~TDN..ug.L+chla..ug.L,
+# best model is with TDN (p=0.083) and temp (p=0.034), R2-adjust = 0.115, RSE= 0.088
+mod.mult.all<-lm(Alloch.mean~TDN..ug.L+temp..C,
              data=Plant.nut.env)
 summary(mod.mult.all)
 Anova(mod.mult.all, Type=2)
@@ -1645,7 +1642,7 @@ Anova(mod.mult.all, Type=2)
 ### if doing single models, the outcome is the same -- trend for chla and signifiance for DOC, TN, TP (which all correlate)
 
 # TDN, all Groups
-N.prop.plant<-ggplot(Plant.nut.env, aes(x=TDN..ug.L, y=prop.plant.mean)) +
+N.prop.plant<-ggplot(Plant.nut.env, aes(x=TDN..ug.L, y=Alloch.mean)) +
   geom_smooth(method = lm, color="purple", alpha=0.2, fill="purple")+
   geom_point(color="violet", size=2)+
   ylab("Proportion Plant-EAA")+
@@ -1653,8 +1650,8 @@ N.prop.plant<-ggplot(Plant.nut.env, aes(x=TDN..ug.L, y=prop.plant.mean)) +
   ggtitle("All zoops")+
   theme_classic()
 
-# Chloropyll, all Groups
-chla.prop.plant<-ggplot(Plant.nut.env, aes(x=chla..ug.L, y=prop.plant.mean)) +
+# temp, all Groups
+temp.prop.plant<-ggplot(Plant.nut.env, aes(x=temp..C, y=Alloch.mean)) +
   geom_smooth(method = lm, color="purple", alpha=0.2, fill="purple")+
   geom_point(color="violet", size=2)+
   ylab("Proportion Plant-EAA")+
@@ -1670,7 +1667,7 @@ chla.prop.plant<-ggplot(Plant.nut.env, aes(x=chla..ug.L, y=prop.plant.mean)) +
 cladoc.plant<-Plant.nut.env[(Plant.nut.env$phy.group=="cladocera"),]
 
 # run a full model, but 3 not defined because of singularities
-mod.mult.cladoc<-lm(prop.plant.mean~temp..C+ pH+TDN..ug.L+chla..ug.L,
+mod.mult.cladoc<-lm(Alloch.mean~temp..C+ pH+TDN..ug.L+chla..ug.L,
              data=cladoc.plant)
 
 # model fit
@@ -1681,13 +1678,13 @@ hist(mod.mult.cladoc$residuals)
 qqnorm(mod.mult.cladoc$residuals)
 qqline(mod.mult.cladoc$residuals)
 
-sigma(mod.mult.cladoc)/mean(cladoc.plant$prop.plant.mean) #71% error rate 
+sigma(mod.mult.cladoc)/mean(cladoc.plant$Alloch.mean) #55% error rate 
 
 # run model selection
 cladoc.mods<-stepAIC(mod.mult.cladoc, trace=TRUE)
 
-# best model is with pH (p=0.081), Multiple R2 = 0.333, RSE= 0.092
-mod.mult.cladoc.reduced<-lm(prop.plant.mean~pH, data=cladoc.plant)
+# no effects
+mod.mult.cladoc.reduced<-lm(Alloch.mean~pH, data=cladoc.plant)
 summary(mod.mult.cladoc.reduced)
 Anova(mod.mult.cladoc.reduced, Type=2)
 ```
@@ -1698,18 +1695,18 @@ Anova(mod.mult.cladoc.reduced, Type=2)
 
 ```{r cladocera multR2 plots, results='hide', fig.keep='none'}
 # this is best model for mutiple regression, RSE 0.104, R2-adjust =0.176
-mod.mult<-lm(prop.plant.mean~TDN..ug.L+chla..ug.L,
+mod.mult<-lm(Alloch.mean~TDN..ug.L+chla..ug.L,
              data=cladoc.plant)
 summary(mod.mult)
-sigma(mod.mult)/mean(Plant.nut.env$prop.plant.mean) #62% error rate
+sigma(mod.mult)/mean(Plant.nut.env$Alloch.mean) #63% error rate
 
 
 # Cladocera, near signif trend for pH (lower plant nutrition with increase in pH)
-clad.pH.plant<-ggplot(cladoc.plant, aes(x=pH, y=prop.plant.mean)) +
+clad.pH.plant<-ggplot(cladoc.plant, aes(x=TDN..ug.L, y=Alloch.mean)) +
   geom_smooth(method = lm, color="goldenrod4", alpha=0.2, fill="goldenrod4")+
   geom_point(color="goldenrod2", size=2)+
   ylab("Proportion Plant-EAA")+
-  xlab("pH")+
+  xlab("TDN")+
   ggtitle("Cladocera")+
   theme_classic()
 ```
@@ -1722,7 +1719,7 @@ copep.plant<-Plant.nut.env[(Plant.nut.env$phy.group=="copepoda"),]
 #############################
 ##### Copepods
 # run a full model, but 3 not defined because of singularities
-mod.mult.copepod<-lm(prop.plant.mean~temp..C+pH+TDN..ug.L+chla..ug.L,
+mod.mult.copepod<-lm(Alloch.mean~temp..C+pH+TDN..ug.L+chla..ug.L,
              data=copep.plant)
 
 # model fit
@@ -1733,13 +1730,13 @@ hist(mod.mult.copepod$residuals)
 qqnorm(mod.mult.copepod$residuals)
 qqline(mod.mult.copepod$residuals)
 
-sigma(mod.mult.copepod)/mean(copep.plant$prop.plant.mean) #49% error rate. 
+sigma(mod.mult.copepod)/mean(copep.plant$Alloch.mean) #45% error rate. 
 
 # run model selection
 copep.mods<-stepAIC(mod.mult.copepod, trace=TRUE)
 
-# best model is with TN (p=0.041) and temp (0.229), R2-adjust = 0.328, RSE= 0.096
-mod.mult.copepod<-lm(prop.plant.mean~TDN..ug.L+temp..C,
+# best model is with TN (p=0.041) pH, R2-adjust = 0.328, RSE= 0.096
+mod.mult.copepod<-lm(Alloch.mean~TDN..ug.L+ pH,
              data=copep.plant)
 summary(mod.mult.copepod)
 Anova(mod.mult.copepod, Type=2)
@@ -1750,7 +1747,7 @@ Anova(mod.mult.copepod, Type=2)
 
 ```{r Copepoda MultR2 plots, results='hide',  fig.keep='none'}
 # copepods, N significant
-copepod.TN<-ggplot(copep.plant, aes(x=TDN..ug.L, y=prop.plant.mean)) +
+copepod.TN<-ggplot(copep.plant, aes(x=TDN..ug.L, y=Alloch.mean)) +
   geom_smooth(method = lm, color="darkred", alpha=0.2, fill="darkred")+
   geom_point(color="coral", size=2)+
   ylab("Proportion Plant-EAA")+
@@ -1759,7 +1756,7 @@ copepod.TN<-ggplot(copep.plant, aes(x=TDN..ug.L, y=prop.plant.mean)) +
   theme_classic()
 
 # copepods, Temp barely a trend, nothing clear
-copepod.Temp<-ggplot(copep.plant, aes(x=temp..C, y=prop.plant.mean)) +
+copepod.Temp<-ggplot(copep.plant, aes(x=temp..C, y=Alloch.mean)) +
   geom_smooth(method = lm, color="darkred", alpha=0.2, fill="darkred")+
   geom_point(color="coral", size=2)+
   ylab("Proportion Plant-EAA")+

@@ -1525,12 +1525,13 @@ Use the proportion of AA~ESS~ from terrestrial plants from the mixing model with
 
 # look at % plant contributions by environmental data
 mod.data<- SNL.CSIA.fulldata %>%
-  dplyr::select(SampleID, Lake, elevation..m, depth..m, temp..C, DO..perc, pH, DOC..mg.L,
+  dplyr::select(SampleID, Lake, Group, elevation..m, depth..m, temp..C, DO..perc, pH, DOC..mg.L,
                 TDN..ug.L, TDP..ug.L, chla..ug.L, phy.group, Ile, Leu, Phe, Thr, Val, LD.class, 
                 LD1, Alloch.mean, Alloch.SD)
 
-# remove data where elevation for samples is missing (ie the source samples that were pooled across all sampling sites)
+# remove Sources
 Plant.nut.env<-mod.data[!(mod.data$LD.class=="Source"),] 
+Plant.nut.env$Group<- droplevels(Plant.nut.env$Group) # droplevels
 
 ############# ############# ############# ############# 
 ############# look at correlation matrix, what variables strongly correlate?
@@ -1559,6 +1560,7 @@ dev.off()
 **Multiple regressions for ALL zooplankton** = >350 um, cladocerans, copepods
 ```{r all zoop multR2, results='hide', fig.keep='none'}
 # library(MASS)
+
 # run a full model
 mod.mult<-lm(Alloch.mean~temp..C+ pH+TDN..ug.L+chla..ug.L,
              data=Plant.nut.env)
@@ -1571,7 +1573,7 @@ hist(mod.mult$residuals)
 qqnorm(mod.mult$residuals)
 qqline(mod.mult$residuals)
 
-sigma(mod.mult)/mean(Plant.nut.env$Alloch.mean) #62% error rate, not awesome. 
+sigma(mod.mult)/mean(Plant.nut.env$Alloch.mean) #48% error rate, not awesome. 
 
 # run model selection
 all.zoop.mods<-stepAIC(mod.mult, trace=TRUE)
@@ -1580,33 +1582,21 @@ all.zoop.mods<-stepAIC(mod.mult, trace=TRUE)
 mod.mult.all<-lm(Alloch.mean~temp..C + TDN..ug.L,
              data=Plant.nut.env)
 summary(mod.mult.all)
-Anova(mod.mult.all, Type=2)
-```
-
-```{r mod.mult.all}
-Anova(mod.mult.all, Type=2)
-```
-
-```{r all zoop multR2 plots, results='hide', fig.keep='none'}
-### if doing single models, the outcome is the same -- trend for chla and signifiance for DOC, TN, TP (which all correlate)
-
-# TDN, all Groups
-N.prop.plant<-ggplot(Plant.nut.env, aes(x=TDN..ug.L, y=Alloch.mean)) +
-  geom_smooth(method = lm, color="purple", alpha=0.2, fill="purple")+
-  geom_point(color="violet", size=2)+
-  ylab("Proportion Plant-EAA")+
-  xlab("TDN (ug/L)")+
-  ggtitle("All zoops")+
-  theme_classic()
+Anova(mod.mult.all, Type=2) # sinificant temp effect
 
 # temp, all Groups
 temp.prop.plant<-ggplot(Plant.nut.env, aes(x=temp..C, y=Alloch.mean)) +
   geom_smooth(method = lm, color="purple", alpha=0.2, fill="purple")+
-  geom_point(color="violet", size=2)+
+  geom_point(color="violet", size=2.5, aes(shape=phy.group))+
   ylab("Proportion Plant-EAA")+
-  xlab("Temperature (C))")+
-  ggtitle("All zoops")+
+  xlab("Temperature (C)")+
+  ylim(0,0.8)+
   theme_classic()
+
+
+pdf(file = "figures/Figx.temp.regress.pdf", height = 7, width = 7)
+temp.prop.plant
+dev.off()
 ```
 
 **Multiple regressions** *Cladocera alone*
@@ -1627,7 +1617,7 @@ hist(mod.mult.cladoc$residuals)
 qqnorm(mod.mult.cladoc$residuals)
 qqline(mod.mult.cladoc$residuals)
 
-sigma(mod.mult.cladoc)/mean(cladoc.plant$Alloch.mean) #55% error rate 
+sigma(mod.mult.cladoc)/mean(cladoc.plant$Alloch.mean) #59% error rate 
 
 # run model selection
 cladoc.mods<-stepAIC(mod.mult.cladoc, trace=TRUE)
@@ -1636,19 +1626,12 @@ cladoc.mods<-stepAIC(mod.mult.cladoc, trace=TRUE)
 mod.mult.cladoc.reduced<-lm(Alloch.mean~temp..C, data=cladoc.plant)
 summary(mod.mult.cladoc.reduced)
 Anova(mod.mult.cladoc.reduced, Type=2) #NS
-```
 
-```{r mod.mult.cladoc.reduced}
-Anova(mod.mult.cladoc.reduced, Type=2) 
-```
-
-```{r cladocera multR2 plots, results='hide', fig.keep='none'}
 # this is best model for mutiple regression, RSE 0.104, R2-adjust =0.176
 mod.mult<-lm(Alloch.mean~temp..C,
              data=cladoc.plant)
 summary(mod.mult)
 sigma(mod.mult)/mean(Plant.nut.env$Alloch.mean) #49% error rate
-
 
 # Cladocera, near signif trend f
 clad.temp.plant<-ggplot(cladoc.plant, aes(x=temp..C, y=Alloch.mean)) +
@@ -1688,13 +1671,8 @@ copep.mods<-stepAIC(mod.mult.copepod, trace=TRUE)
 mod.mult.copepod<-lm(Alloch.mean~pH,
              data=copep.plant)
 summary(mod.mult.copepod)
-Anova(mod.mult.copepod, Type=2)
-```
-```{r mod.mult.copepod}
-Anova(mod.mult.copepod, Type=2)
-```
+Anova(mod.mult.copepod, Type=2) #NS
 
-```{r Copepoda MultR2 plots, results='hide',  fig.keep='none'}
 # copepods, Temp barely a trend, nothing clear
 copepod.Temp<-ggplot(copep.plant, aes(x=temp..C, y=Alloch.mean)) +
   geom_smooth(method = lm, color="darkred", alpha=0.2, fill="darkred")+
@@ -1703,14 +1681,4 @@ copepod.Temp<-ggplot(copep.plant, aes(x=temp..C, y=Alloch.mean)) +
   xlab("Temperature (C)")+
   ggtitle("Copepoda")+
   theme_classic()
-```
-
-**Plots for multiple regression output**
-```{r regression plots, results='hide', fig.dim=c(8,4),fig.cap="**Figure**. Best-fit terms applied to multiple linear regression models testing relationships between environmental metrics and the proportional contribution of AA~ESS~ from terrestrial plants to zooplankton"}
-multregres.plots<-plot_grid(temp.prop.plant, clad.temp.plant, copepod.Temp,
-                            ncol=3, nrow=1)
-
-multregres.plots
-dev.copy(pdf, "figures/Fig4.Multregrss.pdf", height=3.5, width=9)
-dev.off()
 ```

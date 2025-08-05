@@ -310,6 +310,23 @@ EAA.df.long$Group<-as.factor(EAA.df.long$Group)
 EAA.df.long$EAA<-as.factor(EAA.df.long$EAA)
 EAA.df.long$d13C<-as.numeric(EAA.df.long$d13C)
 EAA.df.long$d13C.n<-as.numeric(EAA.df.long$d13C.n)
+
+EAA.summary.table <- EAA.df.wide %>%
+  group_by(phy.group) %>%
+  reframe(n = n(),
+            mean_Ile = mean(Ile),
+            stdev_Ile = sd(Ile),
+            mean_Leu = mean(Leu),
+            stdev_Leu = sd(Leu),
+            mean_Phe = mean(Phe),
+            stdev_Phe = sd(Phe),
+            mean_Thr = mean(Thr),
+            stdev_Thr = sd(Thr),
+            mean_Val = mean(Val),
+            stdev_Val = sd(Val))
+
+write.csv(EAA.summary.table, "output/EAA.mean.stdev.summary.table.csv")
+
 ```
 
 

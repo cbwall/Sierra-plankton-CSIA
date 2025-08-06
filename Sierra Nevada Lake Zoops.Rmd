@@ -1,7 +1,7 @@
 ---
 title: "Zooplankton reliance on autochthonous and allochthonous resources across alpine lakes revealed through essential amino acid δ^13^C analysis"
 author: "Wall and Besser et al in *review*"
-date: "05/10/2025"
+date: "08/5/2025"
 output:
   html_document:
     code_folding: hide
@@ -33,7 +33,7 @@ Terrestrial energy channels (known as allochthonous energy channels in aquatic s
 
 Here, we used CSIA-AA to ask whether zooplankton in high elevation alpine Lakes of the Sierra Nevada Mountains obtain their AA~ESS~ from in-water producers (particulate organic matter dominated by microalgae and benthic algae) or from terrestrial C~3~ plants (sedges, pines, and broadleaf deciduous trees). We sampled 7 Lakes and 1 dystropic pond across an elevation gradient (2500-3200m) and measured environmental conditions (temperature, pH, DOC, TN, TP, chlorophyll-*a*). We analyzed the AA~ESS~ carbon isotope values of three primary producer groups and zooplankton consumers as both a community size-fraction (>350um) and individual taxa. 
 
-```{r setup chunk, setup, include = FALSE, cache=FALSE}
+```{r setup chunk, setup, include = FALSE, cache=TRUE}
 
 if (!require('knitr')) install.packages('knitr'); library('knitr')
 knitr::opts_chunk$set(warning=FALSE, message=FALSE, fig.align='center', collapse=TRUE)
@@ -152,13 +152,15 @@ In this study, they sampled fish, grass, pines, zooplankton, and POM for bulk ti
 # read in the bulk tissue stable isotope data set from Symons et al. 2019
 bulk.iso <- read.csv("data/Symons iso data/Symons_Yos_bulkSIA.csv")
 
+bulk.iso$Type<-factor(bulk.iso$Type, levels=c("fish", "zooplankton", "POM", "grass", "pine"))
+
 # make a biplot (d13C vs d15N)
 d13C.d15N <- ggplot(bulk.iso, aes(x = d13C, y = d15N, fill = Type, shape = Type)) +
   geom_point(size = 3, color = "black", alpha=0.8) +
-  scale_shape_manual(values = c(22,25,25,24,21)) +
-  scale_fill_manual(values = c("orchid", "lightgoldenrod3", "lightsalmon3", "dodgerblue", "gray40")) +
+  scale_shape_manual(values = c(22,21,25,24,24)) +
+  scale_fill_manual(values = c("orchid", "gray40", "dodgerblue", "lightgoldenrod3", "lightsalmon3")) +
   stat_ellipse(aes(color = Type)) +
-  scale_color_manual(values =c ("orchid", "lightgoldenrod3", "lightsalmon3", "dodgerblue", "gray40")) +
+  scale_color_manual(values =c ("orchid", "gray40", "dodgerblue", "lightgoldenrod3", "lightsalmon3")) +
   xlab(expression(paste(delta^{13}, C, " ("^o,"/"[o][o],", V-PDB)"))) +
   ylab(expression(paste(delta^{15}, N, " ("^o,"/"[o][o],", Air)"))) +
   coord_cartesian(xlim = c(-45, -5), ylim = c(-6, 10)) +
@@ -336,7 +338,7 @@ We see clear effects of sample **Lake** and **Type** that reflect elevation (pos
 Mean normalization of essential amino acid carbon isotope values is recommended to handle such variation and allow for group comparisons:  
 `Larsen, T., T. Hansen, and J. Dierking. 2020. Characterizing niche differentiation among marine consumers with amino acid δ13C fingerprinting. Ecol. Evol. 10: 7768–7782. doi:10.1002/ece3.6502`. 
 
-```{r EssAA boxplot, fig.dim=c(5,4), results='hide', fig.cap="**Figure S3**. Boxplot of *(A)* measured and *(B)* mean-normalized essential amino acids (AA~EES~) δ^13^C values for benthic algae, terrestrial plants, particulate organic matter (POM), and zooplankton in aquatic habitats in the Eastern Sierras Nevada mountains."}
+```{r EssAA boxplot, fig.dim=c(5,4), results='hide', fig.cap="**Figure S4**. Boxplot of *(A)* measured and *(B)* mean-normalized essential amino acids (AA~EES~) δ^13^C values for benthic algae, terrestrial plants, particulate organic matter (POM), and zooplankton in aquatic habitats in the Eastern Sierras Nevada mountains."}
 
 # now that the data is appropriately structured, make boxplots of AA~ESS~ carbon isotope values as a function of Group (algae, POM, terrestrial plants, zooplankton) 
 
@@ -345,7 +347,7 @@ colors2 <- c("springgreen4", "dodgerblue", "lightsalmon3", "gray50")
 
 # create boxplots of raw essential amino acid carbon isotope values (Fig. S3A)
 EAA.box <- ggplot(EAA.df.long, aes(x = EAA, y = d13C, fill = Group))+
-  geom_boxplot(color = "black", alpha =0.9)+
+  geom_boxplot(color = "black", alpha =0.8)+
   scale_fill_manual(values = colors2)+ 
   ylab(expression(paste(delta^{13}, C, " ("^o,"/"[o][o],")"),)) +
   xlab(element_blank()) +
@@ -356,7 +358,7 @@ EAA.box <- ggplot(EAA.df.long, aes(x = EAA, y = d13C, fill = Group))+
 # create boxplots of mean-normalized essential amino acid carbon isotope values (Fig. S3B)
 # check order if setting label names, levels(EAA.df.long$Group)
 EAA.box.nrm <- ggplot(EAA.df.long, aes(x = EAA, y = d13C.n, fill = Group))+
-  geom_boxplot(color = "black", alpha=0.9)+
+  geom_boxplot(color = "black", alpha=0.8)+
   scale_fill_manual(values = colors2,
                     labels = c("Benthic Algae", "POM", "Terrestrial Plants", "Zooplankton")) + 
   ylab(expression(paste(delta^{13}, C[norm]," ("^o,"/"[o][o],")"),)) +
@@ -369,7 +371,7 @@ EAA.box.raw.nrm <- plot_grid(EAA.box, EAA.box.nrm, rel_widths = c(1.65, 2.2), la
 
 ### VIEW FIGURE S3 ###
 EAA.box.raw.nrm
-dev.copy(pdf, "figures/FigS3.SNL.EssAA.Boxplot_rev.pdf", width = 11, height = 5)
+dev.copy(pdf, "figures/FigS4.SNL.EssAA.Boxplot_rev.pdf", width = 11, height = 5)
 dev.off()
 
 #if jpeg
@@ -399,7 +401,7 @@ EAA.long.grouped <- EAA.df.long %>%
 # set dodge parameters
 dodge = position_dodge(width = 0.40)
 
-# plot the raw essential amino acid carbon isotope values (Fig. S4A)
+# plot the raw essential amino acid carbon isotope values (Fig. S3A)
 indiv.EAA.plot <- ggplot(EAA.long.grouped, aes(x = EAA, y = Mean.d13C, fill = Lake)) +
   facet_wrap(. ~ Group)+
   theme_bw() +
@@ -419,7 +421,7 @@ indiv.EAA.plot <- ggplot(EAA.long.grouped, aes(x = EAA, y = Mean.d13C, fill = La
   guides(fill = 'none') +
   guides(color = 'none')
 
-# plot the mean-normalized essential amino acid carbon isotope values (Fig. S4B)
+# plot the mean-normalized essential amino acid carbon isotope values (Fig. S3B)
 indiv.EAA.plot.norm <- ggplot(EAA.long.grouped, aes(x = EAA, y = Mean.d13C.n, fill = Lake)) +
   facet_wrap(. ~ Group) +
   theme_bw() +
@@ -445,7 +447,7 @@ EAA.raw.nrm.lines <- plot_grid(indiv.EAA.plot, indiv.EAA.plot.norm, rel_widths =
 
 ### VIEW FIGURE S4 ###
 EAA.raw.nrm.lines
-dev.copy(pdf, "figures/FigS4.indivAA_Lines_rev.pdf", height = 8, width = 11)
+dev.copy(pdf, "figures/FigS3.indivAA_Lines_rev.pdf", height = 8, width = 11)
 dev.off()
 
 # if want jpeg
@@ -907,7 +909,7 @@ LDA.scat.phygroup <- ggplot(LDA.df, aes(x = LD1, y = LD2)) +
 
 ### VIEW and SAVE FIGURE 2 ###
 LDA.scat.phygroup
-dev.copy(pdf, "figures/Fig2_LDA_biplot.pdf", height = 6, width = 7)
+dev.copy(pdf, "figures/Fig2.LDA_biplot.pdf", height = 6, width = 7)
 dev.off()
 
 # if want jpeg
@@ -1046,12 +1048,18 @@ discr.EAA <- load_discr_data(filename = "data/MixSIAR_EAA_TDFs.csv", cons.EAA)
   process_err <- TRUE
   write_JAGS_model(model_filename.EAA, resid_err, process_err, cons.EAA, source.EAA)
   
-# run the JAGS model
+############# run the JAGS model, 
+  
+#code is "#" out to avoid running it again, data loaded in below
+
 set.seed(12)
 zoop.jags.mod.EAA <- run_model(run = "normal", cons.EAA, source.EAA, discr.EAA, model_filename.EAA, alpha.prior = 1, resid_err, process_err)
   
 # save RDS object of JAGS model
 saveRDS(zoop.jags.mod.EAA, file = "output/MixSIAR_models/EAA_SampleID_model/MixSIAR_Model_SampleID_rjags.rds")
+
+# if loading it back in
+# zoop.jags.mod.EAA<-readRDS("output/MixSIAR_models/EAA_SampleID_model/MixSIAR_Model_SampleID_rjags.rds")
 
 # code below will read back in the RDS object
 zoop.jags.mod.EAA <- readRDS(file = "output/MixSIAR_models/EAA_SampleID_model/MixSIAR_Model_SampleID_rjags.rds")
@@ -1162,8 +1170,8 @@ Mix.samp.EAA$Lake <- as.factor(reorder(Mix.samp.EAA$Lake, Mix.samp.EAA$elevation
 #Mix.samp$phy.group<-droplevels(Mix.samp$phy.group)
 
 Mix.samp.plot.EAA <- ggplot(data = Mix.samp.EAA, aes(x = phy.group, y = Mean, fill = Source)) +
-  geom_boxplot(alpha = 1, color = "black")+
-  geom_point(aes(fill = Source), pch = 21, alpha = 0.5, color = "black", position = position_dodge(0.7))+
+  geom_boxplot(alpha = 0.9, color = "black")+
+  geom_point(aes(fill = Source), pch = 21, alpha = 0.5, color = "black", position = position_dodge(0.75))+
   scale_fill_manual(values = c("dodgerblue", "springgreen4")) +
   #scale_color_manual(values = c("dodgerblue", "springgreen4")) +
   ylab("Proportional Contribution") +
@@ -1180,8 +1188,8 @@ dev.off()
 
 #### plot by lake
 Mix.lake.plot.EAA <- ggplot(data = Mix.samp.EAA, aes(x = Lake, y = Mean, fill = Source)) +
-  geom_boxplot(alpha = 1, color = "black")+
-  geom_point(aes(fill = Source), pch = 21, alpha = 0.4, color = "black", position = position_dodge(0.7))+
+  geom_boxplot(alpha = 0.9, color = "black")+
+  geom_point(aes(fill = Source), pch = 21, alpha = 0.4, color = "black", position = position_dodge(0.75))+
   scale_fill_manual(values = c("dodgerblue", "springgreen4")) +
   ylab("Proportional Contribution") +
   xlab(NULL) +
@@ -1191,7 +1199,7 @@ Mix.lake.plot.EAA <- ggplot(data = Mix.samp.EAA, aes(x = Lake, y = Mean, fill = 
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
 Mix.lake.plot.EAA
-dev.copy(pdf, "figures/FigSX.mixsiar.lake.EAA.pdf", width = 10, height = 7)
+dev.copy(pdf, "figures/FigS7.mixsiar.lake.EAA.pdf", width = 10, height = 7)
 dev.off()
 
 
@@ -1280,8 +1288,8 @@ Mix.samp.EAA.3$elevation..m <- as.numeric(Mix.samp.EAA.3$elevation..m)
 Mix.samp.EAA.3$Lake <- as.factor(reorder(Mix.samp.EAA.3$Lake, Mix.samp.EAA.3$elevation..m))
 
 Mix.samp.plot.EAA.3 <- ggplot(data = Mix.samp.EAA.3, aes(x = phy.group, y = Mean, fill = Source)) +
-  geom_boxplot(alpha = 1, color = "black")+
-  geom_point(aes(fill = Source), pch = 21, alpha = 0.5, color = "black", position = position_dodge(0.7))+
+  geom_boxplot(alpha = 0.9, color = "black")+
+  geom_point(aes(fill = Source), pch = 21, alpha = 0.5, color = "black", position = position_dodge(0.75))+
   scale_fill_manual(values = c("dodgerblue", "springgreen4", "lightsalmon3")) +
   ylab("Proportional Contribution") +
   xlab(NULL) +
@@ -1425,7 +1433,7 @@ sigma(mod.mult)/mean(Plant.nut.env$Alloch.mean) #34% error rate, not awesome.
 all.zoop.mods<-stepAIC(mod.mult, trace=TRUE)
 
 # best model is with elevation (p=0.001), pH (p=NS), chla (p<0.001) R2-adjust = 0.682, RSE= 0.047
-mod.mult.all<-lm(Alloch.mean~elevation..m + pH + chla..ug.L,
+mod.mult.all<-lm(Alloch.mean~elevation..m + chla..ug.L,
              data=Plant.nut.env)
 summary(mod.mult.all)
 Anova(mod.mult.all, Type=2) # sinificant temp effect
@@ -1487,20 +1495,9 @@ sigma(mod.mult.cladoc)/mean(cladoc.plant$Alloch.mean) #31% error rate
 cladoc.mods<-stepAIC(mod.mult.cladoc, trace=TRUE)
 
 # chla best
-mod.mult.cladoc.reduced<-lm(Alloch.mean~chla..ug.L, data=cladoc.plant)
+mod.mult.cladoc.reduced<-lm(Alloch.mean~elevation..m+chla..ug.L, data=cladoc.plant)
 summary(mod.mult.cladoc.reduced) # R2 = 0.378, RSE = 0.061
 Anova(mod.mult.cladoc.reduced, Type=2) # chla effect
-
-# Cladocera, decline with chla
-clad.chla.plant<-ggplot(cladoc.plant, aes(x=chla..ug.L, y=Alloch.mean)) +
-  geom_smooth(method = lm, color="goldenrod4", alpha=0.2, fill="goldenrod4")+
-  geom_point(color="goldenrod2", size=2)+
-  ylab("Proportion Plant-EAA")+
-  xlab("chlorophyll (ug/L)")+
-  ylim(-0.05,0.4)+
-  annotate("text", x = 0.5, y = 0.4, label = "R2=0.378, p=0.034", size = 3) +
-  ggtitle("Cladocera")+
-  theme_classic()
 
 # Cladocera, elevation (NS)
 clad.elevat.plant<-ggplot(cladoc.plant, aes(x=elevation..m, y=Alloch.mean)) +
@@ -1512,6 +1509,17 @@ clad.elevat.plant<-ggplot(cladoc.plant, aes(x=elevation..m, y=Alloch.mean)) +
   annotate("text", x = 2500, y = 0.4, label = "NS", size = 3) +
   ggtitle("Cladocera")+
   theme_classic()
+
+# Cladocera, decline with chla
+clad.chla.plant<-ggplot(cladoc.plant, aes(x=chla..ug.L, y=Alloch.mean)) +
+  geom_smooth(method = lm, color="goldenrod4", alpha=0.2, fill="goldenrod4")+
+  geom_point(color="goldenrod2", size=2)+
+  ylab("Proportion Plant-EAA")+
+  xlab("chlorophyll (ug/L)")+
+  ylim(-0.05,0.4)+
+  annotate("text", x = 0.5, y = 0.4, label = "R2=0.378, p=0.034", size = 3) +
+  theme_classic()
+
 ```
 
 **Multiple regressions** *Copepods alone*
@@ -1570,17 +1578,16 @@ copepod.chla<-ggplot(copep.plant, aes(x=chla..ug.L, y=Alloch.mean)) +
   geom_point(color="coral", size=2)+
   ylab("Proportion Plant-EAA")+
   xlab("chlorophyll (ug/L)")+
-  ggtitle("Copepoda")+
-  ylim(-0.05,0.4)+
+  ylim(-0.06,0.4)+
   annotate("text", x = 0.65, y = 0.4, label = "R2=0.487, p=0.015", size = 3) +
   theme_classic()
 ```
 
-```{r}
+```{r regrssion plot, fig.cap="*Fig 4*.Best-fit terms applied to multiple linear regression models testing relationships between geography and water physiochemical metrics and the proportional contribution of allochthony from terrestrial plant AAESS to zooplankton consumers." fig.dim=c(7,10)}
 #combine plot
 
 plot_grid(elevat.prop.plant, clad.elevat.plant, copepod.elevat, chl.prop.plant, clad.chla.plant, copepod.chla, nrow=2, ncol=3)
-dev.copy(pdf, "figures/Figxx.Temp.3group.regress.pdf", height=7, width=9)
+dev.copy(pdf, "figures/Fig4.Temp.3group.regress.pdf", height=6.5, width=9)
 dev.off()
 
 ```

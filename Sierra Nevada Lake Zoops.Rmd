@@ -33,7 +33,7 @@ Terrestrial energy channels (known as allochthonous energy channels in aquatic s
 
 Here, we used CSIA-AA to ask whether zooplankton in high elevation alpine Lakes of the Sierra Nevada Mountains obtain their AA~ESS~ from in-water producers (particulate organic matter dominated by microalgae and benthic algae) or from terrestrial C~3~ plants (sedges, pines, and broadleaf deciduous trees). We sampled 7 Lakes and 1 dystropic pond across an elevation gradient (2500-3200m) and measured environmental conditions (temperature, pH, DOC, TN, TP, chlorophyll-*a*). We analyzed the AA~ESS~ carbon isotope values of three primary producer groups and zooplankton consumers as both a community size-fraction (>350um) and individual taxa. 
 
-```{r setup chunk, include = FALSE}
+```{r setup chunk, setup, include = FALSE}
 if (!require('knitr')) install.packages('knitr'); library('knitr')
 knitr::opts_chunk$set(warning=FALSE, message=FALSE, fig.align='center', cache=TRUE)
 ```
@@ -147,7 +147,7 @@ dev.off()
 Tissue carbon and nitrogen values from Symons et al. 2019.  
   
 Data here is from:  
-`Symons, C. C., M. A. Schulhof, H. B. Cavalheri, and J. B. Shurin. 2019. Antagonistic effects of temperature and dissolved organic carbon on fish growth in California mountain Lakes. Oecologia 189: 231–241. doi:10.1007/s00442-018-4298-9`
+**Symons, C. C., M. A. Schulhof, H. B. Cavalheri, and J. B. Shurin. 2019.** *Antagonistic effects of temperature and dissolved organic carbon on fish growth in California mountain Lakes. Oecologia 189: 231–241. doi:10.1007/s00442-018-4298-9*
 
 In this study, they sampled fish, grass, pines, zooplankton, and POM for bulk tissue carbon and nitrogen isotope analyses. The figure shows that there is considerable overlap and high variance in the isotopic composition of these groups, making it difficult to determine relative allochthonous and autochthonous contributions to consumers.
 
@@ -341,7 +341,7 @@ write.csv(EAA.summary.table, "output/EAA.mean.stdev.summary.table.csv")
 We see clear effects of sample **Lake** and **Type** that reflect elevation (possibly in interaction with other environmental factors) as well as biology, notably in benthic algae.  *This is Figure S3A-B*.
 
 Mean normalization of essential amino acid carbon isotope values is recommended to handle such variation and allow for group comparisons:  
-`Larsen, T., T. Hansen, and J. Dierking. 2020. Characterizing niche differentiation among marine consumers with amino acid δ13C fingerprinting. Ecol. Evol. 10: 7768–7782. doi:10.1002/ece3.6502`. 
+**Larsen, T., T. Hansen, and J. Dierking. 2020.** *Characterizing niche differentiation among marine consumers with amino acid δ13C fingerprinting. Ecol. Evol. 10: 7768–7782. doi:10.1002/ece3.6502*  
 
 ```{r EssAA boxplot, fig.dim=c(12,6), results='hide', fig.cap="**Figure S4**. Boxplot of *(A)* measured and *(B)* mean-normalized essential amino acids (AA~EES~) δ^13^C values for benthic algae, terrestrial plants, particulate organic matter (POM), and zooplankton in aquatic habitats in the Eastern Sierras Nevada mountains."}
 
@@ -462,29 +462,101 @@ dev.off()
 ```
 
 
-#### Linear models: AA~ESS-norm~ 
-Test for differences in individual EAA carbon isotope values among the four **Groups** (primary producers [benthic algae, POM, terrestrial plants], zooplankton).   
+#### Linear models
+Use measured and normalized EAAs and test for differences in individual EAA carbon isotope values among the four **Groups** (primary producers [benthic algae, POM, terrestrial plants], zooplankton).   
 
 Which amino acids are different across Groups?  
 
 - These models are combined into Table S4 in the supporting information for the manuscript.  
-- Plots of individual AA~ESS-norm~ carbon isotope values by site are displayed in Figure S4.  
+- Plots of individual AA~ESS~ (measured and normalized) carbon isotope values are displayed in Figure S4.  
 
-```{r linear models, results='hide', fig.show='hide', collapse=TRUE}
+##### AA~ESS~ measured
+testing differences in EAA among Groups using linear models
+```{r linear models measured, fig.show='hide'}
 
-##################### MEAN-NORMALIZED DATA ####################
+##################### MEASURED DATA ####################
 # testing differences in EAA among Groups using linear models #
 ###############################################################
 
 # first, set the factor levels and make factors for columns
 make.fac <- c("Group", "orig.class", "phy.group", "Lake")
 EAA.df.wide[make.fac] <- lapply(EAA.df.wide[make.fac], factor)
-str(EAA.df.wide)
+# str(EAA.df.wide)
 
 # get the raw data frame re-organized for the analyses
 ESS.df.raw <- EAA.df.wide %>%
   dplyr::select(SampleID, Lake, elevation..m, Group, Type, orig.class, phy.group,
                 Ile, Leu, Phe, Thr, Val)
+
+#####################
+# look at assumptions
+# for(i in c(8:12)){
+#  Y <- ESS.df.raw[,i]
+#  full <- lm(Y ~ Group, data = ESS.df.raw, na.action = na.exclude)
+#  R <- resid(full) #save glm residuals
+  
+#  op <- par(mfrow = c(2,2), mar = c(5,4,1,2), pty = "sq")
+#  plot(full, add.smooth = FALSE, which = 1)
+#  QQ <- qqnorm(R, main = colnames(ESS.df.raw)[i]) 
+#  QQline <- qqline(R)
+#  hist(R, xlab = "Residuals", main = colnames(ESS.df.raw)[i])}
+
+##############################################################
+# run the linear models to see which EAA differ among Groups #
+##############################################################
+
+### Table S4 ###
+
+# Isoleucine
+Ile.mod <- lm(Ile ~ Group, data = ESS.df.raw)
+print(anova(Ile.mod), digits = 6) # p=0.0126
+#plot(allEffects(Ile.mod), ylab = "Ile", par.strip.text = list(cex = 0.7))
+
+posthoc.Ile <- emmeans(Ile.mod, ~ Group)
+#multcomp::cld(posthoc.Ile, Letters = letters) # POM (A), Zoop (A), Plants (AB), Algae (B)
+
+
+# Leucine
+Leu.mod <- lm(Leu ~ Group, data = ESS.df.raw)
+print(anova(Leu.mod), digits = 6) # p<0.001
+#plot(allEffects(Leu.mod), ylab = "Leu", par.strip.text = list(cex = 0.7))
+
+posthoc.Leu <- emmeans(Leu.mod, ~ Group)
+#multcomp::cld(posthoc.Leu, Letters = letters) # Plants (A), Zoop (A), POM (A), Algae (B)
+
+
+# Phenylalanine
+Phe.mod <- lm(Phe ~ Group, data = ESS.df.raw)
+print(anova(Phe.mod), digits = 6) # p<0.001
+#plot(allEffects(Phe.mod), ylab = "Phe", par.strip.text = list(cex = 0.7))
+
+posthoc.Phe <- emmeans(Phe.mod, ~ Group)
+#multcomp::cld(posthoc.Phe, Letters = letters) # Zoop (A), POM (A), Plants (B), Algae (B)
+
+
+# Threonine
+Thr.mod <- lm(Thr ~ Group, data = ESS.df.raw)
+print(anova(Thr.mod), digits = 4) # p<0.001
+#plot(allEffects(Thr.mod), ylab = "Thr", par.strip.text = list(cex = 0.7))
+
+posthoc.Thr <- emmeans(Thr.mod, ~ Group)
+#multcomp::cld(posthoc.Thr, Letters = letters) # POM (A), Zoop (AB), Plants (B), Algae (B)
+
+
+# Valine 
+Val.mod <- lm(Val ~ Group, data = ESS.df.raw)
+print(anova(Val.mod), digits = 4) # p=0.329
+#plot(allEffects(Val.mod), ylab = "Val", par.strip.text = list(cex = 0.7))
+
+```
+
+#### AA~ESS-norm~ 
+testing differences in EAA among Groups using linear models
+```{r linear models normalized, fig.show='hide'}
+
+##################### MEAN-NORMALIZED DATA ####################
+# testing differences in EAA among Groups using linear models #
+###############################################################
 
 # get the mean-normalized data frame re-organized for the analyses
 ESS.df.norm <- EAA.df.wide %>%
@@ -493,17 +565,17 @@ ESS.df.norm <- EAA.df.wide %>%
 
 #####################
 # look at assumptions
-for(i in c(8:12)){
-  Y <- ESS.df.norm[,i]
-  full <- lm(Y ~ Group, data = ESS.df.norm, na.action = na.exclude)
-  R <- resid(full) #save glm residuals
+
+# for(i in c(8:12)){
+#  Y <- ESS.df.norm[,i]
+#  full <- lm(Y ~ Group, data = ESS.df.norm, na.action = na.exclude)
+#  R <- resid(full) #save glm residuals
   
-  op <- par(mfrow = c(2,2), mar = c(5,4,1,2), pty = "sq")
-  plot(full, add.smooth = FALSE, which = 1)
-  QQ <- qqnorm(R, main = colnames(ESS.df.norm)[i]) 
-  QQline <- qqline(R)
-  hist(R, xlab = "Residuals", main = colnames(ESS.df.norm)[i])
-}
+#  op <- par(mfrow = c(2,2), mar = c(5,4,1,2), pty = "sq")
+#  plot(full, add.smooth = FALSE, which = 1)
+#  QQ <- qqnorm(R, main = colnames(ESS.df.norm)[i]) 
+#  QQline <- qqline(R)
+#  hist(R, xlab = "Residuals", main = colnames(ESS.df.norm)[i])}
 
 ##############################################################
 # run the linear models to see which EAA differ among Groups #
@@ -514,64 +586,60 @@ for(i in c(8:12)){
 # Isoleucine
 Ile.n.mod <- lm(Ile.n ~ Group, data = ESS.df.norm)
 print(anova(Ile.n.mod), digits = 4) # p=0.027
-plot(allEffects(Ile.n.mod), ylab = "Ile.n", par.strip.text = list(cex = 0.7))
+#plot(allEffects(Ile.n.mod), ylab = "Ile.n", par.strip.text = list(cex = 0.7))
 
-posthoc.Ile <- emmeans(Ile.n.mod, ~ Group)
-multcomp::cld(posthoc.Ile, Letters = letters) # Plants (A), Algae (A), POM (A), Zoop (A)
+posthoc.Ile.n <- emmeans(Ile.n.mod, ~ Group)
+#multcomp::cld(posthoc.Ile.n, Letters = letters) # Plants (A), Algae (A), POM (A), Zoop (A)
 
 
 # Leucine
 Leu.n.mod <- lm(Leu.n ~ Group, data = ESS.df.norm)
 print(anova(Leu.n.mod), digits = 4) # p<0.001
-plot(allEffects(Leu.n.mod), ylab = "Leu.n", par.strip.text = list(cex = 0.7))
+#plot(allEffects(Leu.n.mod), ylab = "Leu.n", par.strip.text = list(cex = 0.7))
 
 posthoc.Leu.n <- emmeans(Leu.n.mod, ~ Group)
-multcomp::cld(posthoc.Leu.n, Letters = letters) # Plants (A), Zoop (B), POM (C), Algae (C)
+#multcomp::cld(posthoc.Leu.n, Letters = letters) # Plants (A), Zoop (B), POM (C), Algae (C)
 
 
 # Phenylalanine
 Phe.n.mod <- lm(Phe.n ~ Group, data = ESS.df.norm)
 print(anova(Phe.n.mod), digits = 4) # p<0.001
-plot(allEffects(Phe.n.mod), ylab = "Phe.n", par.strip.text = list(cex = 0.7))
+#plot(allEffects(Phe.n.mod), ylab = "Phe.n", par.strip.text = list(cex = 0.7))
 
 posthoc.Phe.n <- emmeans(Phe.n.mod, ~ Group)
-multcomp::cld(posthoc.Phe.n, Letters = letters) # Zoop (A), POM (B), Algae (B), Plants (B)
+#multcomp::cld(posthoc.Phe.n, Letters = letters) # Zoop (A), POM (B), Algae (B), Plants (B)
 
 
 # Threonine
 Thr.n.mod <- lm(Thr.n ~ Group, data = ESS.df.norm)
 print(anova(Thr.n.mod), digits = 4) # p<0.001
-plot(allEffects(Thr.n.mod), ylab = "Thr.n", par.strip.text = list(cex = 0.7))
+#plot(allEffects(Thr.n.mod), ylab = "Thr.n", par.strip.text = list(cex = 0.7))
 
 posthoc.Thr.n <- emmeans(Thr.n.mod, ~ Group)
-multcomp::cld(posthoc.Thr.n, Letters = letters) # POM (A), Algae (AB), Zoop (B), Plants (C)
+#multcomp::cld(posthoc.Thr.n, Letters = letters) # POM (A), Algae (AB), Zoop (B), Plants (C)
 
 
 # Valine 
 Val.n.mod <- lm(Val.n ~ Group, data = ESS.df.norm)
 print(anova(Val.n.mod), digits = 4) # p<0.001
-plot(allEffects(Val.n.mod), ylab = "Val.n", par.strip.text = list(cex = 0.7))
+#plot(allEffects(Val.n.mod), ylab = "Val.n", par.strip.text = list(cex = 0.7))
 
 posthoc.Val.n <- emmeans(Val.n.mod, ~ Group)
-multcomp::cld(posthoc.Val.n, Letters = letters) # Algae (A), Plants (B), Zoop (B), POM (B)
+#multcomp::cld(posthoc.Val.n, Letters = letters) # Algae (A), Plants (B), Zoop (B), POM (B)
 
 ```
 
 ### Multivariate analyses
 Using the AA~ESS-norm~ δ^13^C data, we will use a PERMANOVA to test whether the four Groups (POM, algae, terrestrial plants, zooplankton) differ in multivariate space. Considering we observed significant site-level differences due to isotopic variation at the base of the food web, we use mean-normalized data.  
 
-#### Permanova: **Group** effects 
-Use Permanova to test for differences among sites in normalized δ^13^C values of sources and zooplankton.  
-
-*Group effects*   
-
+#### Permanova
+This PERMANOVA `EAA.norm.perm.Group` uses *normalized data* to test for differences among benthic algae, POM, terrestrial plants, and zooplankton (pooled).  
+ 
 - Investigate mean-normalized data.  
-- Test using all four Groups: are there differences among zooplankton, algae, POM and/or terrestrial plants?  
+- Test using all 3 Groups: are there differences among benthic algae, POM and/or terrestrial plants?  
 - Run PERMANOVA to test for Group effects.  
-- This is part of Table S4.  
 
-This PERMANOVA `EAA.norm.perm.Group` uses *normalized data* to test for differences among benthic algae, POM, terrestrial plants, and zooplankton (pooled).
-```{r permanova normalized groups, results='hide'}
+```{r permanova normalized groups}
 # create a new data frame by dropping Lake and phy.group
 ESS.norm.perm <- ESS.df.norm %>% dplyr::select(-c(SampleID, elevation..m, orig.class))
 
@@ -586,23 +654,6 @@ ESS.n.dat <- ESS.norm.perm %>%
 ################### NORMALIZED DATA ####################
 # run a PERMANOVA to test for differences among Groups #
 ########################################################
-
-# run PERMANOVA
-set.seed(51)
-EAA.norm.perm.Group <- adonis2(ESS.n.dat ~ Group, data = Group.n.fac, 
-                               permutations = 999, method = "euclidian", by = "terms")
-EAA.norm.perm.Group # Groups: different at p=0.001, R2=0.54
-
-# run pairwise
-set.seed(51)
-all.group.pairw<-pairwise.adonis(ESS.n.dat, factors = c(Group.n.fac$Group), sim.method = "euclidian", p.adjust.m = "none")
-# all groups differ from each other
-```
-
-```{r permanova normalized sources only, results='hide'}
-###########################################################
-# what if just the three sources? (spoiler: same outcome) #
-###########################################################
 
 # drop zooplankton
 ESS.norm.perm.source <- ESS.norm.perm[!(ESS.norm.perm$Group == "Zooplankton"),]
@@ -1097,123 +1148,6 @@ summary_stat(zoop.auto.combined.EAA, toprint = "fac1", meanSD = TRUE, savetxt = 
              filename = "output/MixSIAR_models/EAA_SampleID_model/MixSIAR_SampleID_summary_stats_a_posteriori.EAA")
 ```
 
-Clean Mixsiar model output for plotting
-```{r EAA mixsiar by sample results, echo=TRUE, fig.keep='none'}
-
-### CLEAN MIXSIAR MODEL BY SAMPLEID RESULTS ###
-
-SAMP.mixSIAR.EAA.output <- read.table(
-  "output/MixSIAR_models/EAA_SampleID_model/MixSIAR_SampleID_summary_stats_a_posteriori.EAA.txt",
-  sep = '\t', header = FALSE, skip = 6)
-
-SAMP.mixSIAR.EAA.output <- as.data.frame(SAMP.mixSIAR.EAA.output)
-colnames(SAMP.mixSIAR.EAA.output) <- "full.data"
-
-# remove all extra spaces using "squish", make them 1 space only
-library(stringr)
-SAMP.mixSIAR.EAA.output$full.data <- str_squish(SAMP.mixSIAR.EAA.output$full.data)
-
-# rename columns
-library(plyr)
-samp.mix.EAA.out <- separate(SAMP.mixSIAR.EAA.output, full.data,  
-                         into = c("factor", "Mean", "SD", "2.5.perc", "5.perc", "25.perc", "50.perc",
-                                  "75.perc", "95.perc", "97.5.perc"), sep=" ")
-
-# parse the factors here into 3 columns
-new.cols.EAA <- stringr::str_split_fixed(samp.mix.EAA.out$factor, "\\.", 3) %>%
-        as.data.frame() %>%
-       setNames(c("proportion", "Source", "SampleID"))
-
-new.cols.EAA <- new.cols.EAA %>%
-  dplyr::select("SampleID", "Source")
-
-# combine the new, separated columns with the data, verify the levels match, then remove "factor"
-Samp.out.cleaned.EAA <- cbind(new.cols.EAA, samp.mix.EAA.out[1:10])
-Samp.out.cleaned.EAA <- Samp.out.cleaned.EAA %>%
-  dplyr::select(-factor)
-                          
-write.csv(Samp.out.cleaned.EAA, "output/MixSIAR_models/EAA_SampleID_model/MixSIAR_SampleID_a_posteriori.df.EAA.csv", row.names = FALSE)
-```
-
-Plot of Mixsiar model *pooled across locations*, using measured data % allochthony in zooplankton and 2 sources. This is *Figure 3.*
-```{r SampleID EAA mixsiar plot, fig.cap="**Figure 3.** Boxplot of proportional contributions of two AAESS source channels (autochthonous in water production [POM + benthic algae] and allochthonous production [terrestrial plants]) to zooplankton consumers.", fig.dim=c(6,5), results='hide'}
-# model output = 'EAA.df.wide' = is the full EAA data
-
-# bring in some metadata to make sense of it
-EAA.df.temp <- EAA.df.wide %>% dplyr::select(SampleID, Lake, Group, phy.group, elevation..m)
-EAA.df.zoop <- EAA.df.temp[(EAA.df.temp$Group == "Zooplankton"),]
-Mix.samp.EAA <- merge.data.frame(EAA.df.zoop, Samp.out.cleaned.EAA, by.x = "SampleID", by.y = "SampleID", all = TRUE)
-Mix.samp.EAA <- Mix.samp.EAA[-1,]
-Mix.samp.EAA$Source <- factor(Mix.samp.EAA$Source, levels = c("Autochthonous", "Allochthonous"))
-
-# set structure and reorder lakes by elevation
-Mix.samp.EAA$Mean <- as.numeric(Mix.samp.EAA$Mean)
-Mix.samp.EAA$elevation..m <- as.numeric(Mix.samp.EAA$elevation..m)
-Mix.samp.EAA$Lake <- as.factor(reorder(Mix.samp.EAA$Lake, Mix.samp.EAA$elevation..m))
-#Mix.samp$phy.group<-droplevels(Mix.samp$phy.group)
-
-Mix.samp.plot.EAA <- ggplot(data = Mix.samp.EAA, aes(x = phy.group, y = Mean, fill = Source)) +
-  geom_boxplot(alpha = 0.9, color = "black")+
-  geom_point(aes(fill = Source), pch = 21, alpha = 0.5, color = "black", position = position_dodge(0.75))+
-  scale_fill_manual(values = c("dodgerblue", "springgreen4")) +
-  #scale_color_manual(values = c("dodgerblue", "springgreen4")) +
-  ylab("Proportional Contribution") +
-  xlab(NULL) +
-  ylim(0,1) +
-  guides(fill = guide_legend(title = expression(paste(AA[ESS], " ", Source)))) +
-  theme_classic() + Fig.formatting + guides(color = "none")
-
-#print and save
-Mix.samp.plot.EAA
-dev.copy(pdf, "figures/Fig3.mixsiar.EAA.pdf", width = 6, height = 7)
-dev.off()
-```
-
-Plot Mixing model *for each lake*, using measured data % allochthony in zooplankton and 2 sources. This is *Figure S7*. 
-```{r SampleID EAA mixsiar plot by lake, fig.cap="**Figure S7.** Boxplots of proportional contributions of two AAESS sources (autochthonous in water production [POM + benthic algae] and allochthonous production [terrestrial plants]) to all zooplankton samples", fig.dim=c(7,5.5), results='hide'}
-#### plot by lake
-Mix.lake.plot.EAA <- ggplot(data = Mix.samp.EAA, aes(x = Lake, y = Mean, fill = Source)) +
-  geom_boxplot(alpha = 0.9, color = "black")+
-  geom_point(aes(fill = Source), pch = 21, alpha = 0.4, color = "black", position = position_dodge(0.75))+
-  scale_fill_manual(values = c("dodgerblue", "springgreen4")) +
-  ylab("Proportional Contribution") +
-  xlab(NULL) +
-  ylim(0,1) +
-  guides(fill = guide_legend(title = expression(paste(AA[ESS], " ", Source)))) +
-  theme_classic() + Fig.formatting + guides(color = "none") +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
-
-Mix.lake.plot.EAA
-dev.copy(pdf, "figures/FigS6.mixsiar.lake.EAA.pdf", width = 10, height = 7)
-dev.off()
-
-
-############### plot as mean-SE
-alloch.mean.EAA <- aggregate(Mean ~ Source + phy.group, data = Mix.samp.EAA, FUN = mean)
-
-alloch.EAA <- aggregate(Mean ~ Source + phy.group, data = Mix.samp.EAA, FUN = length)
-colnames(alloch.EAA) <- c("Source", "phy.group", "n")
-
-alloch.SD.EAA <- aggregate(Mean ~ Source + phy.group, data = Mix.samp.EAA, FUN = sd)
-colnames(alloch.SD.EAA) <- c("Source", "phy.group", "SD")
-
-alloch.df.EAA <- cbind(alloch.mean.EAA, (alloch.SD.EAA$SD/sqrt(alloch.EAA$n)))
-colnames(alloch.df.EAA) <- c("Source", "phy.group", "mean", "SE")
-
-# plot it
-pd <- position_dodge(0.71) #offset for error bars and columns
-
-# probably won't use this fig anywhere
-alloch.mean.plot.EAA <- ggplot(alloch.df.EAA, aes(x = phy.group, y = mean, color = Source)) +
-  geom_point(position = pd, size=3) +
-  scale_color_manual(values = c("dodgerblue", "springgreen4")) +
-  geom_errorbar(aes(ymin = mean-SE, ymax = mean+SE), size = 0.5, width = 0, position = pd) +
-  ylab("Proportional Contribution") +
-  ylim(0,1)+
-  xlab("") + theme_bw()
-
-```
-
 Plot of Mixsiar model using measured data - all three sources for SI figure. This is *Figure S6.*
 ```{r SampleID EAA mixsiar SI plot, fig.cap="**Figure S6.** Boxplots of proportional contributions of three AAESS sources (POM, benthic algae, and terrestrial plants) to zooplankton consumers estimated from MixSIAR.", fig.dim=c(6,5), results='hide'}
 
@@ -1265,6 +1199,7 @@ Mix.samp.EAA.3$Source <- factor(Mix.samp.EAA.3$Source, levels = c("POM", "Algae"
 Mix.samp.EAA.3$Mean <- as.numeric(Mix.samp.EAA.3$Mean)
 Mix.samp.EAA.3$elevation..m <- as.numeric(Mix.samp.EAA.3$elevation..m)
 Mix.samp.EAA.3$Lake <- as.factor(reorder(Mix.samp.EAA.3$Lake, Mix.samp.EAA.3$elevation..m))
+Mix.samp.EAA.3$phy.group<-droplevels(Mix.samp.EAA.3$phy.group)
 
 Mix.samp.plot.EAA.3 <- ggplot(data = Mix.samp.EAA.3, aes(x = phy.group, y = Mean, fill = Source)) +
   geom_boxplot(alpha = 0.9, color = "black")+
@@ -1280,6 +1215,145 @@ Mix.samp.plot.EAA.3 <- ggplot(data = Mix.samp.EAA.3, aes(x = phy.group, y = Mean
 Mix.samp.plot.EAA.3
 dev.copy(pdf, "figures/FigS6.mixsiar.3sources.EAA.pdf", width = 6, height = 7)
 dev.off()
+
+### test a model of %source diff : no differences among zooplankton groups but difference among producer types
+channels<-lm(Mean~ Source, data=Mix.samp.EAA.3)
+posthoc.chan <- emmeans(channels, ~ Source)
+#multcomp::cld(posthoc.chan, Letters = letters) # plants (A), algae (B), POM (C)
+
+
+alg<-Mix.samp.EAA.3[(Mix.samp.EAA.3$Source=="Algae"),]
+anova(lm(Mean~ phy.group, data=alg))
+
+POM<-Mix.samp.EAA.3[(Mix.samp.EAA.3$Source=="POM"),]
+anova(lm(Mean~ phy.group, data=POM))
+
+ter.Pl<-Mix.samp.EAA.3[(Mix.samp.EAA.3$Source=="Plants"),]
+anova(lm(Mean~ phy.group, data=ter.Pl))
+
+mean.df.3source<-aggregate(Mean~ Source, data=Mix.samp.EAA.3, FUN=mean)
+sd.df.3source<-aggregate(Mean~ Source, data=Mix.samp.EAA.3, FUN=sd); colnames(sd.df.3source)<-c("Source", "sd")
+n.df.3source<-aggregate(Mean~ Source, data=Mix.samp.EAA.3, FUN=length); colnames(n.df.3source)<-c("Source", "n")
+
+sum.df<-cbind(mean.df.3source, sd.df.3source$sd/sqrt(n.df.3source$n)); colnames(sum.df)<-c("Source", "mean", "se")
+
+```
+
+Clean Mixsiar model output for plotting using a posteriori aggregration
+```{r EAA mixsiar by sample results, echo=TRUE, fig.keep='none'}
+
+### CLEAN MIXSIAR MODEL BY SAMPLEID RESULTS ###
+
+SAMP.mixSIAR.EAA.output <- read.table(
+  "output/MixSIAR_models/EAA_SampleID_model/MixSIAR_SampleID_summary_stats_a_posteriori.EAA.txt",
+  sep = '\t', header = FALSE, skip = 6)
+
+SAMP.mixSIAR.EAA.output <- as.data.frame(SAMP.mixSIAR.EAA.output)
+colnames(SAMP.mixSIAR.EAA.output) <- "full.data"
+
+# remove all extra spaces using "squish", make them 1 space only
+library(stringr)
+SAMP.mixSIAR.EAA.output$full.data <- str_squish(SAMP.mixSIAR.EAA.output$full.data)
+
+# rename columns
+library(plyr)
+samp.mix.EAA.out <- separate(SAMP.mixSIAR.EAA.output, full.data,  
+                         into = c("factor", "Mean", "SD", "2.5.perc", "5.perc", "25.perc", "50.perc",
+                                  "75.perc", "95.perc", "97.5.perc"), sep=" ")
+
+# parse the factors here into 3 columns
+new.cols.EAA <- stringr::str_split_fixed(samp.mix.EAA.out$factor, "\\.", 3) %>%
+        as.data.frame() %>%
+       setNames(c("proportion", "Source", "SampleID"))
+
+new.cols.EAA <- new.cols.EAA %>%
+  dplyr::select("SampleID", "Source")
+
+# combine the new, separated columns with the data, verify the levels match, then remove "factor"
+Samp.out.cleaned.EAA <- cbind(new.cols.EAA, samp.mix.EAA.out[1:10])
+Samp.out.cleaned.EAA <- Samp.out.cleaned.EAA %>%
+  dplyr::select(-factor)
+                          
+write.csv(Samp.out.cleaned.EAA, "output/MixSIAR_models/EAA_SampleID_model/MixSIAR_SampleID_a_posteriori.df.EAA.csv", row.names = FALSE)
+```
+
+Plot of Mixsiar model *pooled across locations*, using measured data % allochthony in zooplankton and **2 sources**.  
+This is *Figure 3.*
+```{r SampleID EAA mixsiar plot, fig.cap="**Figure 3.** Boxplot of proportional contributions of two AAESS source channels (autochthonous in water production [POM + benthic algae] and allochthonous production [terrestrial plants]) to zooplankton consumers.", fig.dim=c(6,5), results='hide'}
+# model output = 'EAA.df.wide' = is the full EAA data
+
+# bring in some metadata to make sense of it
+EAA.df.temp <- EAA.df.wide %>% dplyr::select(SampleID, Lake, Group, phy.group, elevation..m)
+EAA.df.zoop <- EAA.df.temp[(EAA.df.temp$Group == "Zooplankton"),]
+Mix.samp.EAA <- merge.data.frame(EAA.df.zoop, Samp.out.cleaned.EAA, by.x = "SampleID", by.y = "SampleID", all = TRUE)
+Mix.samp.EAA <- Mix.samp.EAA[-1,]
+Mix.samp.EAA$Source <- factor(Mix.samp.EAA$Source, levels = c("Autochthonous", "Allochthonous"))
+
+# set structure and reorder lakes by elevation
+Mix.samp.EAA$Mean <- as.numeric(Mix.samp.EAA$Mean)
+Mix.samp.EAA$elevation..m <- as.numeric(Mix.samp.EAA$elevation..m)
+Mix.samp.EAA$Lake <- as.factor(reorder(Mix.samp.EAA$Lake, Mix.samp.EAA$elevation..m))
+#Mix.samp$phy.group<-droplevels(Mix.samp$phy.group)
+
+Mix.samp.plot.EAA <- ggplot(data = Mix.samp.EAA, aes(x = phy.group, y = Mean, fill = Source)) +
+  geom_boxplot(alpha = 0.9, color = "black")+
+  geom_point(aes(fill = Source), pch = 21, alpha = 0.5, color = "black", position = position_dodge(0.75))+
+  scale_fill_manual(values = c("dodgerblue", "springgreen4")) +
+  #scale_color_manual(values = c("dodgerblue", "springgreen4")) +
+  ylab("Proportional Contribution") +
+  xlab(NULL) +
+  ylim(0,1) +
+  guides(fill = guide_legend(title = expression(paste(AA[ESS], " ", Source)))) +
+  theme_classic() + Fig.formatting + guides(color = "none")
+
+#print and save
+Mix.samp.plot.EAA
+dev.copy(pdf, "figures/Fig3.mixsiar.EAA.pdf", width = 6, height = 7)
+dev.off()
+```
+ 
+Plot Mixing model *for each lake*, using measured data % allochthony in zooplankton and 2 sources. This is *Figure S7*. 
+```{r SampleID EAA mixsiar plot by lake, fig.cap="**Figure S7.** Boxplots of proportional contributions of two AAESS sources (autochthonous in water production [POM + benthic algae] and allochthonous production [terrestrial plants]) to all zooplankton samples", fig.dim=c(7,5.5), results='hide'}
+#### plot by lake
+Mix.lake.plot.EAA <- ggplot(data = Mix.samp.EAA, aes(x = Lake, y = Mean, fill = Source)) +
+  geom_boxplot(alpha = 0.9, color = "black")+
+  geom_point(aes(fill = Source), pch = 21, alpha = 0.4, color = "black", position = position_dodge(0.75))+
+  scale_fill_manual(values = c("dodgerblue", "springgreen4")) +
+  ylab("Proportional Contribution") +
+  xlab(NULL) +
+  ylim(0,1) +
+  guides(fill = guide_legend(title = expression(paste(AA[ESS], " ", Source)))) +
+  theme_classic() + Fig.formatting + guides(color = "none") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+Mix.lake.plot.EAA
+dev.copy(pdf, "figures/FigS7.mixsiar.lake.EAA.pdf", width = 10, height = 7)
+dev.off()
+
+
+############### plot as mean-SE
+alloch.mean.EAA <- aggregate(Mean ~ Source + phy.group, data = Mix.samp.EAA, FUN = mean)
+
+alloch.EAA <- aggregate(Mean ~ Source + phy.group, data = Mix.samp.EAA, FUN = length)
+colnames(alloch.EAA) <- c("Source", "phy.group", "n")
+
+alloch.SD.EAA <- aggregate(Mean ~ Source + phy.group, data = Mix.samp.EAA, FUN = sd)
+colnames(alloch.SD.EAA) <- c("Source", "phy.group", "SD")
+
+alloch.df.EAA <- cbind(alloch.mean.EAA, (alloch.SD.EAA$SD/sqrt(alloch.EAA$n)))
+colnames(alloch.df.EAA) <- c("Source", "phy.group", "mean", "SE")
+
+# plot it
+pd <- position_dodge(0.71) #offset for error bars and columns
+
+# probably won't use this fig anywhere
+alloch.mean.plot.EAA <- ggplot(alloch.df.EAA, aes(x = phy.group, y = mean, color = Source)) +
+  geom_point(position = pd, size=3) +
+  scale_color_manual(values = c("dodgerblue", "springgreen4")) +
+  geom_errorbar(aes(ymin = mean-SE, ymax = mean+SE), linewidth = 0.5, width = 0, position = pd) +
+  ylab("Proportional Contribution") +
+  ylim(0,1)+
+  xlab("") + theme_bw()
 
 ```
 

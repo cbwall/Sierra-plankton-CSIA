@@ -602,3 +602,73 @@ dev.off()
 
 ```
 
+```{r}
+#### PCA
+This PCA (`PC.norm.sorc`) uses mean-normalized data to examine patterns across sources (benthic algae, POM, terrestrial plants). *This is Figure S5*
+```{r PCA sources, results='hide', fig.dim=c(6,5), fig.cap="**Figure S5**. Principal component analysis (PCA) for mean-normalized AA~ESS~ δ^13^C values (AA~ESS-norm~) for sources (POM, terrestrial plants). Ellipses represent 95% confidence intervals."}
+
+# reorder factors
+ESS.norm.perm$phy.group <- factor(ESS.norm.perm$phy.group, 
+                                levels = c("Algae", "POM", "Plants", "cladocera", "copepoda", ">350um"))
+ESS.norm.perm$category <- ifelse(ESS.norm.perm$Group == "Zooplankton", "Zooplankton", "Producer")
+ESS.norm.perm$category <- as.factor(ESS.norm.perm$category)
+
+# create a new data frame for only the three sources 
+ESS.norm.source <- ESS.norm.perm[(ESS.norm.perm$category == "Producer"),]
+
+# factors: Group (algae, POM, terrestrial plants)
+PC.n.fac.sorc <- ESS.norm.source  %>% 
+  dplyr::select(Group)
+
+# response variables: each EAA
+ESS.n.dat.sorc <- ESS.norm.source  %>% 
+  dplyr::select(Ile.n, Leu.n, Phe.n, Thr.n, Val.n)
+
+# run the PCA on scaled and centered data
+set.seed(508)
+PC.norm.sorc <- prcomp(ESS.n.dat.sorc, center = TRUE, scale = TRUE) 
+
+PC.norm.summ.sorc <- summary(PC.norm.sorc)
+PC.norm.summ.sorc
+# plot(PC.norm, type = "l", main = "PC.area eigenvalues")
+# 2 PCs explain 63.2% of the variation, 4 PCs explain 100%
+
+# assign colors for algae, POM, and terrestrial plants, respectively
+pca.3.colors <- c("springgreen4", "dodgerblue", "lightsalmon3")
+
+# plot PCA (PC1 and PC2)
+PCA.norm.sorc.plot <- ggbiplot::ggbiplot(PC.norm.sorc, choices = 1:2, obs.scale = 1, var.scale = 1, 
+                                         groups = PC.n.fac.sorc$Group,
+                                         varname.color = "saddlebrown", varname.adjust = 1.5,
+                                         ellipse = TRUE, ellipse.fill = FALSE, ellipse.alpha = 0.05, 
+                                         ellipse.prob = 0.90, ellipse.linewidth = 1, circle = FALSE) +
+  geom_point(size = 3.5, color = "black",
+             aes(fill = PC.n.fac.sorc$Group, shape = PC.n.fac.sorc$Group)) +
+  scale_color_manual(values = pca.3.colors) +
+  scale_fill_manual(values = pca.3.colors) +
+  scale_shape_manual(values = c(24,24,25)) +
+  ggtitle(expression(paste(AA[ESS], " ", delta^{13}, C[normalized]))) +
+  coord_cartesian(xlim = c(-3, 3)) +
+  theme_classic() +
+  Fig.formatting +
+  guides(shape = 'none') + guides(fill = 'none') + guides(color = 'none') +
+  annotate("text", x = -0.3, y = -3.5, label = "Terrestrial Plants", 
+           color = "lightsalmon3", size = 5, fontface = "bold") +
+  annotate("text", x = 0.6, y = 2.4, label = "POM", 
+           color = "dodgerblue", size = 5, fontface = "bold") +
+  annotate("text", x = 2.3, y = -2.6, label = "Benthic Algae", 
+           color = "springgreen4", size = 5, fontface = "bold")
+
+### VIEW and SAVE FIGURE S5 ###
+PCA.norm.sorc.plot
+dev.copy(pdf, "figures/FigS5.PCA.Sources.pdf", height = 7, width = 6.5)
+dev.off()
+
+#if want jpeg
+#jpeg("figures/FigS5.PCA.Sources.jpeg", height = 7, width = 6.5, units = "in", res = 300)
+#PCA.norm.sorc.plot
+#dev.off()
+```
+
+```
+

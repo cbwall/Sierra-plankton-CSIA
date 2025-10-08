@@ -161,7 +161,7 @@ bulk.iso$Type<-factor(bulk.iso$Type, levels=c("fish", "zooplankton", "POM", "gra
 # make a biplot (d13C vs d15N)
 d13C.d15N <- ggplot(bulk.iso, aes(x = d13C, y = d15N, fill = Type, shape = Type)) +
   geom_point(size = 3, color = "black", alpha=0.8) +
-  scale_shape_manual(values = c(22,21,25,24,24)) +
+  scale_shape_manual(values = c(22,21,24,25,25)) +
   scale_fill_manual(values = c("orchid", "gray40", "dodgerblue", "lightgoldenrod3", "lightsalmon3")) +
   stat_ellipse(aes(color = Type)) +
   scale_color_manual(values =c ("orchid", "gray40", "dodgerblue", "lightgoldenrod3", "lightsalmon3")) +
@@ -1182,8 +1182,8 @@ summary_stat(zoop.auto.combined.EAA, toprint = "fac1", meanSD = TRUE, savetxt = 
              filename = "output/MixSIAR_models/EAA_SampleID_model/MixSIAR_SampleID_summary_stats_a_posteriori.EAA")
 ```
 
-Plot of Mixsiar model using measured data - all three sources for SI figure. This is *Figure S6.*
-```{r SampleID EAA mixsiar SI plot, fig.cap="**Figure S6.** Boxplots of proportional contributions of three AAESS sources (POM, benthic algae, and terrestrial plants) to zooplankton consumers estimated from MixSIAR.", fig.dim=c(6,5), results='hide'}
+Plot of Mixsiar model using measured data - all three sources for SI figure. This is *Figure S7.*
+```{r SampleID EAA mixsiar SI plot, fig.cap="**Figure S7.** Boxplots of proportional contributions of three AAESS sources (POM, benthic algae, and terrestrial plants) to zooplankton consumers estimated from MixSIAR.", fig.dim=c(6,5), results='hide'}
 ### CLEAN MIXSIAR MODEL BY SAMPLEID RESULTS ###
 
 SAMP.mixSIAR.EAA.output.3 <- read.table(
@@ -1276,7 +1276,7 @@ Mix.samp.plot.EAA.3.cope.out <-
 
 #print and save
 Mix.samp.plot.EAA.3.cope.out
-dev.copy(pdf, "figures/FigS6.mixsiar.3sources.EAA.pdf", width = 8, height = 7)
+dev.copy(pdf, "figures/FigS7.mixsiar.3sources.EAA.pdf", width = 8, height = 7)
 dev.off()
 ```
 
@@ -1517,8 +1517,8 @@ multcomp::cld(posthoc.chan.auto.cope.sep, Letters = letters)
 # authochthony least in cal_cyclo (=Neocopepoda) (A) =76%, then >cladocera (AB), >350um (BC), calanoida (C) = 93%
 ```
  
-Plot Mixing model *for each lake*, using measured data % allochthony in zooplankton and 2 sources. This is *Figure S7*. 
-```{r SampleID EAA mixsiar plot by lake, fig.cap="**Figure S7.** Boxplots of proportional contributions of two AAESS sources (autochthonous in water production [POM + benthic algae] and allochthonous production [terrestrial plants]) to all zooplankton samples", fig.dim=c(7,5.5), results='hide'}
+Plot Mixing model *for each lake*, using measured data % allochthony in zooplankton and 2 sources. This is *Figure S8*. 
+```{r SampleID EAA mixsiar plot by lake, fig.cap="**Figure S8.** Boxplots of proportional contributions of two AAESS sources (autochthonous in water production [POM + benthic algae] and allochthonous production [terrestrial plants]) to all zooplankton samples", fig.dim=c(7,5.5), results='hide'}
 #### plot by lake
 Mix.lake.plot.EAA <- ggplot(data = Mix.samp.EAA, aes(x = Lake, y = Mean, fill = Source)) +
   geom_boxplot(alpha = 0.9, color = "black")+
@@ -1532,7 +1532,7 @@ Mix.lake.plot.EAA <- ggplot(data = Mix.samp.EAA, aes(x = Lake, y = Mean, fill = 
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
 Mix.lake.plot.EAA
-dev.copy(pdf, "figures/FigS7.mixsiar.lake.EAA.pdf", width = 10, height = 7)
+dev.copy(pdf, "figures/FigS8.mixsiar.lake.EAA.pdf", width = 10, height = 7)
 dev.off()
 
 

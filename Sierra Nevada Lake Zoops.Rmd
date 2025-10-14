@@ -470,11 +470,6 @@ EAA.raw.nrm.lines <- plot_grid(indiv.EAA.plot, indiv.EAA.plot.norm, rel_widths =
 EAA.raw.nrm.lines
 dev.copy(pdf, "figures/FigS3.indivAA_Lines_rev.pdf", height = 8, width = 11)
 dev.off()
-
-# if want jpeg
-#jpeg("figures/FigS4.indivAA_Lines_rev.jpeg", height = 7, width = 12, units = "in", res = 300)
-#EAA.raw.nrm.lines
-#dev.off()
 ```
 
 
@@ -757,7 +752,176 @@ dev.off()
 ```
 
 ### LDA 
-Use a linear discriminant analysis (LDA) to characterize the fingerprints of primary producers (e.g., AA~ESS~ sources) and classify zooplankton with one of these AA~ESS~ sources: *benthic algae, POM, terestrial plants*.    
+Use a linear discriminant analysis (LDA) in two ways. 
+- First, compare the POM collected in our study with literature values for cultured microalgae. This will address the Q "is POM an appropriate end member for microalgae?" 
+- Second, characterize the fingerprints of primary producers (e.g., AA~ESS~ sources) and classify zooplankton with one of these AA~ESS~ sources: *benthic algae, POM, terestrial plants*.    
+
+#### LDA: POM vs. Literature
+We use cultured and commercially sourced microalgae found in the literature. These are found in:  
+`Arsenault, et al. 2022. Ecol. Lett. 25: 2624–2636.`
+`Larsen, et al. 2013. PLoS One 8: e73441.`
+`Thorp and Bowes. 2017. Ecosystems 20: 1029–1041.`
+
+```{r LDA POM and microalgae comparison}
+############################################################################
+############################################################################
+# Pooled food sources: algae, plants, microbes, fungi
+############################################################################
+############################################################################
+
+# this is all the food source data
+# includes: Besser et al. 2022, Arsenault et al. 2022, Thorp & Bowes 2017,
+# code will add in the data from the present study 
+micro.source.df<-read.csv("data/Producers_microalgae_lit.csv")
+micro.source.df<-na.omit(micro.source.df)
+
+#make ID column to run the normalization
+micro.source.df$SampleID<-1:nrow(micro.source.df)
+for(i in 1:length(micro.source.df$SampleID)){
+  micro.source.df$Ile.n[i] <- (micro.source.df$Ile[i]-mean(as.numeric(micro.source.df[i,11:15])))
+  micro.source.df$Leu.n[i] <- (micro.source.df$Leu[i]-mean(as.numeric(micro.source.df[i,11:15])))
+  micro.source.df$Phe.n[i] <- (micro.source.df$Phe[i]-mean(as.numeric(micro.source.df[i,11:15])))
+  micro.source.df$Thr.n[i] <- (micro.source.df$Thr[i]-mean(as.numeric(micro.source.df[i,11:15])))
+  micro.source.df$Val.n[i] <- (micro.source.df$Val[i]-mean(as.numeric(micro.source.df[i,11:15])))
+}
+
+micro.source.df.norm<- micro.source.df %>% 
+  dplyr::select(Source, Group, Culture_Wild, Ile.n, Leu.n, Phe.n, Thr.n, Val.n)
+
+micro.source.df.meas<- micro.source.df %>% 
+  dplyr::select(Source, Group, Ile, Leu, Phe, Thr, Val)
+
+
+#### #### #### #### #### #### #### #### #### 
+#### #### #### #### #### #### #### #### #### 
+#### lests check out the PCA first, ust to see waht this looks like
+# the response variables
+PCA.pool.norm.micro<- micro.source.df.norm %>%
+  dplyr::select(Ile.n, Leu.n, Phe.n, Thr.n, Val.n)
+
+# the factors 
+PCA.pool.norm.micro.fac<- micro.source.df.norm %>%
+  dplyr::select(Group, Source)
+
+# run the PCA on scaled and centered data
+PC.pooled.norm.micro<- prcomp(PCA.pool.norm.micro, center = TRUE, scale= TRUE) 
+
+PC.pooled.norm.sum<-summary(PC.pooled.norm.micro) #61% in 2 PCs
+#plot(PC.pooled.norm, type="lines", main="PC.area eigenvalues")
+
+PCA.pool.norm.micro.fac$Group<-factor(PCA.pool.norm.micro.fac$Group,
+                                           levels=c("POM", "Benthic algae", "Terrestrial plants", "Microalgae"))
+
+
+###### plot for PCA by Lake
+# colors for 3 groups
+phy.3.colors<-c("dodgerblue", "springgreen4", "lightsalmon3")
+
+# colors for 4 groups
+phy.4.colors<-c("dodgerblue", "springgreen4", "lightsalmon3", "orchid")
+
+## PC1 and PC2
+PCA.pooled.norm <- ggbiplot::ggbiplot(PC.pooled.norm.micro, choices = 1:2, obs.scale = 1, var.scale = 1, 
+                            groups=PCA.pool.norm.micro.fac$Group,
+                            varname.color = "saddlebrown", varname.adjust = 1.5,
+                            ellipse = TRUE, ellipse.fill = FALSE, ellipse.alpha = 0.05, 
+                            ellipse.prob = 0.95, ellipse.linewidth = 1, circle = FALSE) + #alpha = zero makes points clear
+  geom_point(aes(color=PCA.pool.norm.micro.fac$Group), size=2.5) +
+  scale_x_continuous(breaks=pretty_breaks(n=5))+
+  scale_color_manual(values=phy.4.colors)+
+  scale_shape_manual(values=c(1,1,1,16))+
+  theme(axis.ticks.length=unit(-0.25, "cm"), axis.text.y=element_text(margin=unit(c(0.5, 0.5, 0.5, 0.5), "cm")),
+        axis.text.x=element_text(margin=unit(c(0.5, 0.5, 0.5, 0.5), "cm"))) +
+  ggtitle("ESS-norm")+
+  theme_classic()+
+  theme(legend.text=element_text(size=10), legend.title=element_blank(), 
+        aspect.ratio=1, axis.ticks.length=unit(-0.25, "cm"),
+        axis.text.y=element_text(margin=unit(c(0.5, 0.5, 0.5, 0.5), "cm")),
+        axis.text.x=element_text(margin=unit(c(0.5, 0.5, 0.5, 0.5), "cm")))
+
+
+#### #### #### #### #### #### #### #### #### 
+# LDA for POM
+#### #### #### #### #### #### #### #### #### 
+
+micro.source.df.meas$Group<-factor(micro.source.df.meas$Group,
+                                      levels=c("POM", "Microalgae", "Benthic algae", "Terrestrial plants"))
+
+prod.micro <- micro.source.df.meas[!(micro.source.df.meas$Group == "POM"),]
+prod.micro$Group<-droplevels(prod.micro$Group) # drop POM level
+
+
+#Run an LDA with a jackknifing model fit to look at error rate
+#'CV = TRUE' makes the LDA run a jackknifed - leave one out - model fit
+All.lda.micro <- lda(Group ~ Ile + Leu + Phe + Thr + Val, data = prod.micro, CV = TRUE)
+
+#Create a table which compares the classification from the LDA model to the actual classification
+All.reclass.micro <- table(prod.micro$Group, All.lda.micro$class)
+
+#Total percent of samples correctly classified is the sum of the diagonal of this table: 82%
+sum(diag(prop.table(All.reclass.micro)))
+
+mean(All.lda.micro$class == prod.micro$Group) # mean accuracy
+
+#Percent of each producer Group correctly reclassified: 81% microalgae, 67% benthic algae, 100% plants,
+diag(prop.table(All.reclass.micro, 1))
+
+#Create a training LDA function from the library data
+All.train.micro <- lda(Group~ Ile + Leu + Phe + Thr + Val, data = prod.micro)
+All.train.micro
+
+#plot LD1 and LD2 to show the sources
+Source.LDA.micro <- ggord(All.train.micro, prod.micro$Group, arrow=0,
+                    txt = NULL, veclsz = 0, vectyp="blank",# remove vectors and arrows
+                    cols = c("orchid","springgreen4", "lightsalmon3"), grp_title = "Producers",
+                    ellipse_pro = 0.95, xlim = c(-6,6), ylim = c(-5,5)) + theme_classic() + theme(legend.position = 'top')
+
+
+#Create a data frame with these LDA coordinates
+AllProdPredict.micro <- data.frame(Source=prod.micro$Source, Group = prod.micro$Group, class="Producer", predict(All.train.micro)$x)
+
+############### Now classiify POM
+POM.micro <- micro.source.df[(micro.source.df$Group == "POM"),]
+
+#Classify POM
+POM.predict <- predict(object = All.train.micro, newdata = POM.micro)
+POM.predict.data <- data.frame(Source = POM.micro$Source, Group = POM.micro$Group, 
+                              class= POM.predict$class, POM.predict$x)
+
+POM.All.reclass <- table(POM.micro$Group, POM.predict.data$class) 
+# POM = 7 microalgae, 1 as benthic algae, 0 as plants !!
+
+#### #### #### #### #### #### #### #### #### 
+####### plot consumers
+# Producers == 'AllProdPredict.micro'
+# POM == `POM.predict.data`
+
+####### bind the producer and zooplankton data frames
+Micro.LDA.df<-rbind(AllProdPredict.micro, POM.predict.data)
+Micro.LDA.df$Group<-factor(Micro.LDA.df$Group,
+                                   levels=c("Microalgae", "Benthic algae", "Terrestrial plants", "POM"))
+
+# colors for 4 groups
+lda.4.colors.micro<-c( "orchid", "springgreen4", "lightsalmon3", "dodgerblue")
+
+#### #### #### #### #### #### #### #### #### 
+# LDA with POM assigned and the producers
+LDA.micro.Group <- ggplot(Micro.LDA.df, aes(x = LD1, y = LD2))+
+  geom_point(size = 3.5, color="black",
+             aes(fill = Group, color = Group, shape = Group), alpha = 0.9) +
+  stat_ellipse(type = "norm", level = 0.95, linewidth = 0.5, aes(lty = Group, color = Group))+
+  scale_color_manual(values = lda.4.colors.micro)+
+  scale_fill_manual(values = lda.4.colors.micro)+
+  scale_shape_manual(values = c(24, 24, 25 ,21))+
+  scale_linetype_manual(values = c(2,2,2,0))+
+  xlab("LD1 (87.0%)") + ylab("LD2 (13.0%)") +
+  theme_classic() + guides(lty = "none")
+
+LDA.micro.Group
+dev.copy(pdf, "figures/FigS6.LDA.micro_biplot.pdf", height = 6, width = 6)
+dev.off()
+
+```
 
 #### LDA: Train Primary Producers
 LDA has an internal normalization procedure (there is no difference in output for data that are mean-normalized versus those that are not). Therefore, we use the measured (NOT mean-normalized) data for all subsequent analyses, including LDA and mixing models. We first train the LDA using the primary producers only, and inspect the error rate/model accuracy using a jackknifed, leave-one-out cross-validation procedure.  

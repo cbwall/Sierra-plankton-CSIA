@@ -1,7 +1,7 @@
 ---
 title: "Zooplankton reliance on autochthonous and allochthonous resources across alpine lakes revealed through essential amino acid δ^13^C analysis"
 author: "Wall and Besser et al in *review*"
-date: "08/5/2025"
+date: "10/5/2025"
 output:
   html_document:
     code_folding: hide
@@ -758,11 +758,14 @@ Use a linear discriminant analysis (LDA) in two ways.
 
 #### LDA: POM vs. Literature
 We use cultured and commercially sourced microalgae found in the literature. These are found in:  
-`Arsenault, et al. 2022. Ecol. Lett. 25: 2624–2636.`
-`Larsen, et al. 2013. PLoS One 8: e73441.`
+`Arsenault, et al. 2022. Ecol. Lett. 25: 2624–2636.`. 
+`Larsen, et al. 2013. PLoS One 8: e73441.`.  
 `Thorp and Bowes. 2017. Ecosystems 20: 1029–1041.`
-
-```{r LDA POM and microalgae comparison}
+  
+- We find 81% model correct reassignment, overall
+- Percent of each producer Group correctly reclassified: 81% microalgae, 67% benthic algae, 100% plants
+- POM classified as = 7 microalgae, 1 as benthic algae, 0 as plants
+```{r LDA POM and microalgae comparison, results='hide', results='hide'}
 ############################################################################
 ############################################################################
 # Pooled food sources: algae, plants, microbes, fungi
@@ -861,7 +864,7 @@ All.reclass.micro <- table(prod.micro$Group, All.lda.micro$class)
 #Total percent of samples correctly classified is the sum of the diagonal of this table: 82%
 sum(diag(prop.table(All.reclass.micro)))
 
-mean(All.lda.micro$class == prod.micro$Group) # mean accuracy
+#mean(All.lda.micro$class == prod.micro$Group)  = mean accuracy
 
 #Percent of each producer Group correctly reclassified: 81% microalgae, 67% benthic algae, 100% plants,
 diag(prop.table(All.reclass.micro, 1))
@@ -890,7 +893,9 @@ POM.predict.data <- data.frame(Source = POM.micro$Source, Group = POM.micro$Grou
 
 POM.All.reclass <- table(POM.micro$Group, POM.predict.data$class) 
 # POM = 7 microalgae, 1 as benthic algae, 0 as plants !!
+```
 
+```{r LDA POM and microalgae plot, fig.cap="**Figure S6**. Linear discriminant analysis on the δ^13^C values of five AA~EES~ (Ile, Leu, Phe, Thr, Val) for three AA~EES~ sources from the literature (microalgae) and within the present study (benthic algae, terrestrial plants). Particulate organic matter (POM) was assigned to producer groups to determine its AAEES source.", fig.dim=c(6,5), results='hide'}
 #### #### #### #### #### #### #### #### #### 
 ####### plot consumers
 # Producers == 'AllProdPredict.micro'
@@ -927,6 +932,7 @@ dev.off()
 LDA has an internal normalization procedure (there is no difference in output for data that are mean-normalized versus those that are not). Therefore, we use the measured (NOT mean-normalized) data for all subsequent analyses, including LDA and mixing models. We first train the LDA using the primary producers only, and inspect the error rate/model accuracy using a jackknifed, leave-one-out cross-validation procedure.  
 
 - Training LDA for three AA~ESS sources (benthic algae, POM, terrestrial plants)
+- We show percent of each producer Group correctly reclassified: 77.8% algae, 100% plants, 87.5% POM
 ```{r LDA primary producers training, results='hide', fig.cap="**Figure NA**. Plot of LDA Sources and their separation."}
 
 # full data = 'EAA.df.wide'
@@ -954,7 +960,7 @@ All.train <- lda(Group~ Ile + Leu + Phe + Thr + Val, data = prod)
 All.train
 
 # save as txt file
-sink("output/LDA_Train_Info.txt")
+sink("output/LDA_models/LDA_Train_Info.txt")
 print(All.train)
 sink()
 
@@ -969,18 +975,20 @@ Source.LDA
 
 #Write a csv file for the coefficients of LD1/2
 lda.info <- as.data.frame(All.train$scaling)
-write.csv(lda.info, "output/SNL_Producers_LDA_loadings_NMX.csv", row.names=FALSE)
+write.csv(lda.info, "output/LDA_models/SNL_Producers_LDA_loadings_NMX.csv", row.names=FALSE)
 
 #Create a data frame with these LDA coordinates
 AllProdPredict <- data.frame(Group = prod$Group, SampleID = prod$SampleID, predict(All.train)$x)
 
 #Write a csv file for the LDA coordinates
-write.csv(AllProdPredict, "output/SNL_Producers_LDA_coords_NMX.csv", row.names = FALSE)
+#write.csv(AllProdPredict, "output/SNL_Producers_LDA_coords_NMX.csv", row.names = FALSE)
 ```
 
 
 #### LDA: Classify zooplankton
-Classify zooplankton within this LDA model. Zooplankton will classify with benthic algae, POM, or terrestrial plants. LDA coordinates (LD1 and LD2) can be used in subsequent mixing models, however, using the actual data (mean-normalized data here) directly in mixing model is advisable, albeit the 2 approaches often yeild similar results.
+Classify zooplankton within this LDA model. Zooplankton will classify with benthic algae, POM, or terrestrial plants. LDA coordinates (LD1 and LD2) can be used in subsequent mixing models, however, using the actual data (mean-normalized data here) directly in mixing model is advisable, albeit the 2 approaches often yeild similar results.  
+
+- We find zooplankton classification to be: 3 as algae, 25 as POM, 0 as plants
 ```{r LDA Zoop1}
 
 # full data for zoops only = 'zoops'
@@ -995,7 +1003,7 @@ zoop.predict.data <- data.frame(SampleID = zoops.raw$SampleID, Type = zoops.raw$
 All.reclass <- table(zoops.raw$Group, zoop.predict$class) # 3 as algae, 25 as POM, 0 as plants
 
 #Write a csv file for the zooplankton LDA info
-write.csv(zoop.predict.data, "output/SNL_Zooplankton_LDA_info_NMX.csv", row.names=FALSE)
+#write.csv(zoop.predict.data, "output/SNL_Zooplankton_LDA_info_NMX.csv", row.names=FALSE)
 
 ```
 
@@ -1057,7 +1065,7 @@ LDA.df.simple<- LDA.df %>%
 
 # combine with raw and mean-normalized data
 raw.norm.LD.data <- merge(SNL.ess.meta.ordered, LDA.df.simple, by = "SampleID", all.x = TRUE)
-write.csv(raw.norm.LD.data, "output/All.essAA.LDA.data.compiled.csv")
+#write.csv(raw.norm.LD.data, "output/All.essAA.LDA.data.compiled.csv")
 
 ############################## select data and arrange
 LDA.df<- raw.norm.LD.data %>%
@@ -1078,7 +1086,7 @@ LDA.df$orig.class<-factor(LDA.df$orig.class, levels=c("Algae", "POM", "Terrestri
 ```
 
 Plot the LDA. *This is Figure 2.*
-```{r LD biplot, results='hide'}
+```{r LD biplot, results='hide', fig.cap="**Figure 2**. Linear discriminant analysis on the δ^13^C values of five AA~EES~ (Ile, Leu, Phe, Thr, Val) for three AA~EES~ sources (particulate organic matter [POM], benthic algae, and terrestrial plants) and four zooplankton consumer groups (>350 μm size fraction, Cladocera, Calanoida, and Neocopepoda).", fig.dim=c(6,5)}
 
 LDA.df$Group <- as.factor(LDA.df$Group)
 LDA.df$phy.group <- factor(LDA.df$phy.group, 
@@ -1139,7 +1147,6 @@ dev.off()
 # if want jpeg
 #ggsave("figures/Fig2_LDA_biplot.jpeg", height = 6, width = 7)
 #LDA.scat.phygroup
-
 ```
 
 ### MixSIAR on measured EAA 
@@ -1161,12 +1168,12 @@ Mix.df.EAA <- EAA.df.wide %>%
                 "Ile", "Leu", "Phe", "Thr", "Val")
 
 # remove algae, POM, and plants from the data frame
-Mix.df.EAA.zoop <- Mix.df.EAA[!(Mix.df.EAA$orig.class == "Algae" | Mix.df.EAA$orig.class == "POM" |
+MixSIAR.df.EAA.zoop <- Mix.df.EAA[!(Mix.df.EAA$orig.class == "Algae" | Mix.df.EAA$orig.class == "POM" |
                          Mix.df.EAA$orig.class == "Terrestrial Plants"),]
 #Mix.df.zoop$orig.class <- droplevels(Mix.df.zoop$orig.class)
 
 # write and export a csv of the zooplankton data frame
-write.csv(Mix.df.EAA.zoop, "output/Mix.df.EAA.zoop.csv", row.names = FALSE)
+write.csv(MixSIAR.df.EAA.zoop, "output/MixSIAR_models/loaded data/MixSIAR.df.EAA.zoop.csv", row.names = FALSE)
 
 ###########
 # SOURCES #
@@ -1242,12 +1249,12 @@ colnames(source.agg.df.EAA) <- c("", "n", "MeanIle", "SDIle", "MeanLeu", "SDLeu"
                                "MeanPhe", "SDPhe", "MeanThr", "SDThr", "MeanVal", "SDVal")
 
 # write and export a csv of the source data frame
-write.csv(source.agg.df.EAA, "output/source.agg.df.EAA.csv", row.names = FALSE, na = "")
+write.csv(source.agg.df.EAA, "output/MixSIAR_models/loaded data/source.agg.df.EAA.csv", row.names = FALSE, na = "")
 
 
 # load zooplankton (consumer/mixture) data and assign factors
 # SampleID is a fixed factor
-cons.EAA <- load_mix_data(filename = "output/Mix.df.EAA.zoop.csv",
+cons.EAA <- load_mix_data(filename = "output/MixSIAR_models/loaded data/MixSIAR.df.EAA.zoop.csv",
                           iso_names = c("Ile", "Leu", "Phe", "Thr", "Val"),
                           factors = "SampleID",
                           fac_random = FALSE,
@@ -1255,14 +1262,14 @@ cons.EAA <- load_mix_data(filename = "output/Mix.df.EAA.zoop.csv",
                           cont_effects = NULL)
 
 # load source data
-source.EAA <- load_source_data(filename = "output/source.agg.df.EAA.csv",
+source.EAA <- load_source_data(filename = "output/MixSIAR_models/loaded data/source.agg.df.EAA.csv",
                              source_factors = NULL,
                              conc_dep = FALSE,
                              data_type = "means",
                              cons.EAA)
 
 #Load TDF data
-discr.EAA <- load_discr_data(filename = "data/MixSIAR_EAA_TDFs.csv", cons.EAA)
+discr.EAA <- load_discr_data(filename = "output/MixSIAR_models/loaded data/MixSIAR_EAA_TDFs.csv", cons.EAA)
 ```
 
 ```{r EAA mixsiar by sample setup}
@@ -1385,7 +1392,6 @@ Samp.out.cleaned.EAA.3<-Samp.out.cleaned.EAA.3[-1,]
 write.csv(Samp.out.cleaned.EAA.3, "output/MixSIAR_models/EAA_SampleID_model/MixSIAR_SampleID.df.EAA.3sources.csv", row.names = FALSE)
 
 ############# make plot of 3 sources
-
 # model output = 'Samp.out.cleaned.n' = the mean-normalized EAA data
 
 # bring in some metadata to make sense of it
@@ -1410,10 +1416,6 @@ Mix.samp.plot.EAA.3 <- ggplot(data = Mix.samp.EAA.3, aes(x = phy.group, y = Mean
   guides(fill = guide_legend(title = expression(paste(AA[ESS], " ", Source)))) +
   theme_classic() + Fig.formatting + guides(color = "none")
 
-#print and save
-Mix.samp.plot.EAA.3
-dev.copy(pdf, "figures/Figx.mixsiar.3sour.EAA.pdf", width = 6, height = 7)
-dev.off()
 
 ########## separate copepods out 
 Mix.samp.EAA.3$group4<-Mix.samp.EAA.3$orig.class
@@ -1580,7 +1582,7 @@ SNL.CSIA.fulldata <- merge.data.frame(SNL.env, MSiar.LD.meta.EAA, by.x = "Lake",
 duplicated(SNL.CSIA.fulldata$SampleID) # CONFIRM no duplicate sampleIDs
 
 #### export full data for project
-write.csv(SNL.CSIA.fulldata, "output/SNL.CSIA.fulldata.csv")
+write.csv(SNL.CSIA.fulldata, "output/SNL.CSIA.fulldata.csv", row.names=FALSE)
 
 ```
 
@@ -1605,8 +1607,7 @@ Mix.samp.EAA$Lake <- as.factor(reorder(Mix.samp.EAA$Lake, Mix.samp.EAA$elevation
 # drop levels and make a new factor
 Mix.samp.EAA$orig.class<-droplevels(Mix.samp.EAA$orig.class)
 
-
-########### plot
+########### plot as 3 groups
 Mix.samp.plot.EAA.grouped <- ggplot(data = Mix.samp.EAA, aes(x = phy.group, y = Mean, fill = Source)) +
   geom_boxplot(alpha = 0.9, color = "black")+
   geom_point(aes(fill = Source), pch = 21, alpha = 0.5, color = "black", position = position_dodge(0.75))+
@@ -1617,11 +1618,6 @@ Mix.samp.plot.EAA.grouped <- ggplot(data = Mix.samp.EAA, aes(x = phy.group, y = 
   ylim(0,1) +
   guides(fill = guide_legend(title = expression(paste(AA[ESS], " ", Source)))) +
   theme_classic() + Fig.formatting + guides(color = "none")
-
-#print and save grouped with 3 categories
-Mix.samp.plot.EAA.grouped
-dev.copy(pdf, "figures/Figx.mixsiar.2sour.EAA.pdf", width = 6, height = 7)
-dev.off()
 
 
 ############ parse apart the copepods to calanoids and pooled cal+cyclo
@@ -1646,7 +1642,12 @@ Mix.samp.plot.EAA.copep <- ggplot(data = Mix.samp.EAA, aes(x = group4, y = Mean,
   xlab(NULL) +
   ylim(0,1) +
   guides(fill = guide_legend(title = expression(paste(AA[ESS], " ", Source)))) +
-  theme_classic() + Fig.formatting + guides(color = "none")
+  theme_classic() + Fig.formatting + guides(color = "none") +
+  # add text for posthocs
+  annotate("text", x = 1.2, y = 0.2, label = "AB", size = 4) +
+  annotate("text", x = 2.2, y = 0.33, label = "BC", size = 4) +
+  annotate("text", x = 3.2, y = 0.1, label = "A", size = 4) +
+  annotate("text", x = 4.2, y = 0.31, label = "C", size = 4)
 
 #print and save
 Mix.samp.plot.EAA.copep
@@ -1654,7 +1655,7 @@ dev.copy(pdf, "figures/Fig3.mixsiar.EAA.pdf", width = 7.5, height = 7)
 dev.off()
 ```
 
-Test whether there are differences in %allochthony among groups of zooplankton. THis is effectively the same test above using %allocht from the mixing model with 3 sources.
+Test whether there are differences in %allochthony among groups of zooplankton. This is the same test above using %allocht from the mixing model with 3 sources.  
 ```{r mixsiar lm}
 ### test a model of %source diff : no differences among zooplankton groups but difference among producer types
 Mix.samp.EAA.cope.sep.alloch<-Mix.samp.EAA[(Mix.samp.EAA$Source=="Allochthonous"),]
@@ -1703,23 +1704,23 @@ dev.off()
 ############### plot as mean-SE
 Mix.samp.EAA.alloch<-Mix.samp.EAA[(Mix.samp.EAA$Source=="Allochthonous"),]
 
-alloch.mean.EAA <- aggregate(Mean ~ Source + phy.group, data = Mix.samp.EAA, FUN = mean)
+alloch.mean.EAA <- aggregate(Mean ~ Source + group4, data = Mix.samp.EAA, FUN = mean)
 
-alloch.EAA <- aggregate(Mean ~ Source + phy.group, data = Mix.samp.EAA, FUN = length)
-colnames(alloch.EAA) <- c("Source", "phy.group", "n")
+alloch.EAA <- aggregate(Mean ~ Source + group4, data = Mix.samp.EAA, FUN = length)
+colnames(alloch.EAA) <- c("Source", "group4", "n")
 
-alloch.SD.EAA <- aggregate(Mean ~ Source + phy.group, data = Mix.samp.EAA, FUN = sd)
-colnames(alloch.SD.EAA) <- c("Source", "phy.group", "SD")
+alloch.SD.EAA <- aggregate(Mean ~ Source + group4, data = Mix.samp.EAA, FUN = sd)
+colnames(alloch.SD.EAA) <- c("Source", "group4", "SD")
 
 alloch.df.EAA <- cbind(alloch.mean.EAA, (alloch.SD.EAA$SD/sqrt(alloch.EAA$n)))
-colnames(alloch.df.EAA) <- c("Source", "phy.group", "mean", "SE")
+colnames(alloch.df.EAA) <- c("Source", "group4", "mean", "SE")
 
 # plot it
 pd <- position_dodge(0.71) #offset for error bars and columns
 
 # probably won't use this fig anywhere
-alloch.mean.plot.EAA <- ggplot(alloch.df.EAA, aes(x = phy.group, y = mean, color = Source)) +
-  geom_point(position = pd, size=3) +
+alloch.mean.plot.EAA <- ggplot(alloch.df.EAA, aes(x = group4, y = mean, color = Source)) +
+  geom_point(position = pd, size=4) +
   scale_color_manual(values = c("dodgerblue", "springgreen4")) +
   geom_errorbar(aes(ymin = mean-SE, ymax = mean+SE), linewidth = 0.5, width = 0, position = pd) +
   ylab("Proportional Contribution") +
@@ -1739,7 +1740,7 @@ Use the proportion of AA~ESS~ from terrestrial plants/allochthony from the Mixsi
 
 # look at % plant contributions by environmental data
 mod.data<- SNL.CSIA.fulldata %>%
-  dplyr::select(SampleID, Lake, Group, elevation..m, depth..m, temp..C, DO..perc, pH, DOC..mg.L,
+  dplyr::select(SampleID, Lake, Group, group4, elevation..m, depth..m, temp..C, DO..perc, pH, DOC..mg.L,
                 TDN..ug.L, TDP..ug.L, chla..ug.L, phy.group, Ile, Leu, Phe, Thr, Val, LD.class, 
                 LD1, LD2, Alloch.mean, Alloch.SD)
 
@@ -1776,21 +1777,30 @@ dev.off()
 
 **Multiple regressions for ALL zooplankton** = >350 um, cladocerans, copepods.  
 
-- examine if there are any geographic or spatial effects. Elevation/temp matters. 
-- is % allochthony different among groups? No.
-- examine physicochemical traits (nutrients, chlorophyll, pH). Chlorophyll matters
+*Take homes*. 
+
+- Examine if there are any geographic or spatial effects. *Elevation matters!*   
+- Is % allochthony different among groups? *YES! when you separate the 4 taxa groups*. 
+- Examine in-water traits (nutrients, chlorophyll, pH). *Chlorophyll matters!*. 
+  
 ```{r spatial effects, results='hide', fig.keep='none'}
 # library(MASS)
 
 # any effect of depth or elevation?
 mod.mult.spat<-lm(Alloch.mean~elevation..m+ depth..m,
              data=Plant.nut.env)
-Anova(mod.mult.spat, Type=2) # significant elevation effect, corresponds with temp effects
+Anova(mod.mult.spat, Type=2) # significant elevation effect
 
 # differences among groups?
-mod.mult.phy<-lm(Alloch.mean~phy.group+LD.class,
+mod.mult.phy<-lm(Alloch.mean~phy.group,
              data=Plant.nut.env)
-Anova(mod.mult.phy, Type=2) # no
+Anova(mod.mult.phy) # not at the "3 group level"
+
+# try at 4 groups
+mod.mult.4group<-lm(Alloch.mean~ group4,
+             data=Plant.nut.env)
+Anova(mod.mult.4group) # YES at the "4 group level"
+
 
 #### environment
 # run a full model
@@ -1853,7 +1863,9 @@ chl.prop.plant<-ggplot(Plant.nut.env, aes(x=chla..ug.L, y=Alloch.mean)) +
 Anova(mod.mult.all, Type=2)
 ```
 
-**Multiple regressions** *Cladocera alone*
+**Multiple regressions** *Cladocera alone*.  
+
+- significant decrease in allochthony with increasing primary production.  
 ```{r cladocera multR2, results='hide', fig.keep='none'}
 #############################
 ##### Cladocerans
@@ -1916,6 +1928,9 @@ Anova(clad.best.mod, Type=2) # chla effect
 ```
 
 **Multiple regressions** *Copepods alone*
+
+- significant decrease in allochthony with increasing primary production.  
+- significant increase in allochthony with elevation (as primary production falls).  
 ```{r Copepoda MultR2, results='hide', fig.keep='none'}
 ### separate dataframes
 copep.plant<-Plant.nut.env[(Plant.nut.env$phy.group=="copepoda"),]
@@ -1982,7 +1997,7 @@ Anova(copepod.best.mod, Type=2) # chla and temp signif
 ```
 
 Plot combined figure for elevation and chlorophyll for all 3 groups.
-```{r regression plot, fig.cap="**Figure 4**.Best-fit terms applied to multiple linear regression models testing relationships between geography and water physiochemical metrics and the proportional contribution of allochthony from terrestrial plant AAESS to zooplankton consumers.", fig.dim=c(14,9), results='hide'}
+```{r regression plot, fig.cap="**Figure 4**.Best-fit terms applied to multiple linear regression models testing relationships between geography and water physiochemical metrics and the proportional contribution of allochthony from terrestrial plant A~ESS~ to zooplankton consumers.", fig.dim=c(12,9), results='hide'}
 #combine plot
 
 plot_grid(elevat.prop.plant, clad.elevat.plant, copepod.elevat, chl.prop.plant, clad.chla.plant, copepod.chla, nrow=2, ncol=3)

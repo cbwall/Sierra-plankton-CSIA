@@ -31,7 +31,7 @@ Certain amino acids can only be synthesized *de novo* by primary producers (e.g.
 
 Terrestrial energy channels (known as allochthonous energy channels in aquatic systems) are a resource of energy and nutrients for aquatic consumers and ecosystems, although their significance can vary greatly across space and time. Zooplankton prefer (and require) the high fatty acid content of microalgae, which are a vital nutritional source and considered the base of an important autochthonous energy channel in most aquatic systems.Terrestrial resources entering lakes can lead to browning through the leaching dissolved organic matter and subsequently, a decrease in microalgae productivity as light is attenuated. In such a case, allochthonous energy channels may limit primary production, decreasing the importance of autochthonous energy channels, and provide an important alternative resource for consumers that are able to utilize the abundant (although potentially low quality) terrestrial nutritional sources.
 
-Here, we used CSIA-AA to ask whether zooplankton in high elevation alpine Lakes of the Sierra Nevada Mountains obtain their AA~ESS~ from in-water producers (particulate organic matter dominated by microalgae and benthic algae) or from terrestrial C~3~ plants (sedges, pines, and broadleaf deciduous trees). We sampled 7 Lakes and 1 dystropic pond across an elevation gradient (2500-3200m) and measured environmental conditions (temperature, pH, DOC, TN, TP, chlorophyll-*a*). We analyzed the AA~ESS~ carbon isotope values of three primary producer groups and zooplankton consumers as both a community size-fraction (>350um) and individual taxa. 
+Here, we used CSIA-AA to ask whether zooplankton in high elevation alpine Lakes of the Sierra Nevada Mountains obtain their AA~ESS~ from in-water producers (particulate organic matter dominated by microalgae and benthic algae) or from terrestrial C~3~ plants (sedges, pines, and broadleaf deciduous trees). We sampled 7 Lakes and 1 pond across an elevation gradient (2500-3200m) and measured environmental conditions (temperature, pH, DOC, TDN, TDP, chlorophyll-*a*). We analyzed the AA~ESS~ carbon isotope values of three primary producer groups and zooplankton consumers as both a community size-fraction (>350um) and individual taxa. 
 
 ```{r setup chunk, setup, include = FALSE}
 if (!require('knitr')) install.packages('knitr'); library('knitr')
@@ -1333,7 +1333,6 @@ out.JAGS <- output_JAGS(zoop.jags.mod.EAA, cons.EAA, source.EAA, output_options_
 
 # get the output stats for the model
 # output_stats(zoop.jags.mod.EAA, cons.EAA, source.EAA, output_options_EAA)
-
 # a posteriori aggregation of sources
 # combine benthic algae and POM into one autochthonous source
 zoop.auto.combined.EAA <- combine_sources(zoop.jags.mod.EAA, cons.EAA, source.EAA, alpha.prior = 1,
@@ -1445,6 +1444,31 @@ Mix.samp.plot.EAA.3.cope.out
 dev.copy(pdf, "figures/FigS7.mixsiar.3sources.EAA.pdf", width = 8, height = 7)
 dev.off()
 ```
+
+```{r, eval=FALSE}
+# test plot for mean +/- SD for each point estiamate
+Mix.samp.EAA.3$SD<-as.numeric(Mix.samp.EAA.3$SD)
+
+##### alternative with posterior SD
+Alloch.box.point.3source.GROUP<-
+  ggplot(data = Mix.samp.EAA.3, aes(x = group4, y = Mean)) +
+  geom_boxplot(aes(color=Source, fill=Source, x= group4:Source), alpha = 0.2, size=0.6)+
+  geom_pointrange(aes(color=Source, x= group4:Source, ymin=Mean-SD, ymax=Mean+SD), 
+                  position = position_jitter(width=0.2), alpha=0.4) +
+  scale_color_manual(values = c("dodgerblue", "springgreen4", "lightsalmon3")) +
+  scale_fill_manual(values = c("dodgerblue", "springgreen4", "lightsalmon3")) +
+  ylab("Proportional Contribution") +
+  xlab(NULL) +
+  ylim(0,1) +
+  guides(fill = guide_legend(title = expression(paste(AA[ESS], " ", Source)))) +
+  theme_classic() + Fig.formatting + guides(fill = "none") 
+
+Alloch.box.point.3source.GROUP
+dev.copy(pdf, "figures/FigS7xrev.mixsiar.3sources.EAA.pdf", width = 8, height = 7)
+dev.off()
+
+```
+
 
 See if there is a difference between the contribution of the 3 sources and the consumer plankton
 ```{r mixsiar 3 source lms}
@@ -1607,7 +1631,7 @@ Mix.samp.EAA$Lake <- as.factor(reorder(Mix.samp.EAA$Lake, Mix.samp.EAA$elevation
 # drop levels and make a new factor
 Mix.samp.EAA$orig.class<-droplevels(Mix.samp.EAA$orig.class)
 
-########### plot as 3 groups
+########### plot as 3 group s########### plot as 3 groups
 Mix.samp.plot.EAA.grouped <- ggplot(data = Mix.samp.EAA, aes(x = phy.group, y = Mean, fill = Source)) +
   geom_boxplot(alpha = 0.9, color = "black")+
   geom_point(aes(fill = Source), pch = 21, alpha = 0.5, color = "black", position = position_dodge(0.75))+
@@ -1655,6 +1679,34 @@ dev.copy(pdf, "figures/Fig3.mixsiar.EAA.pdf", width = 7.5, height = 7)
 dev.off()
 ```
 
+```{r, eval=FALSE}
+# test with 2 sources
+Mix.samp.EAA$SD<-as.numeric(Mix.samp.EAA$SD)
+
+Alloch.box.point.2source<-
+  ggplot(data = Mix.samp.EAA, aes(x = group4, y = Mean)) +
+  geom_pointrange(aes(color=Source, x= group4:Source, ymin=Mean-SD, ymax=Mean+SD), 
+                  position = position_jitter(width=0.2), alpha=0.2) +
+  geom_boxplot(aes(color=Source, fill=Source, x= group4:Source), alpha = 0.2, size=0.6)+
+  scale_color_manual(values = c("dodgerblue", "lightsalmon3")) +
+  scale_fill_manual(values = c("dodgerblue", "lightsalmon3")) +
+  ylab("Proportional Contribution") +
+  xlab(NULL) +
+  ylim(0,1) +
+  guides(fill = guide_legend(title = expression(paste(AA[ESS], " ", Source)))) +
+  theme_classic() + Fig.formatting + guides(fill = "none") +
+  # add text for posthocs
+  annotate("text", x = 2, y = 0.2, label = "AB", size = 4) +
+  annotate("text", x = 4, y = 0.33, label = "BC", size = 4) +
+  annotate("text", x = 6, y = 0.1, label = "A", size = 4) +
+  annotate("text", x = 8, y = 0.31, label = "C", size = 4)
+
+#print and save
+Alloch.box.point.2source
+dev.copy(pdf, "figures/Fig3.revx.mixsiar.EAA.pdf", width = 7.5, height = 7)
+dev.off()
+```
+
 Test whether there are differences in %allochthony among groups of zooplankton. This is the same test above using %allocht from the mixing model with 3 sources.  
 ```{r mixsiar lm}
 ### test a model of %source diff : no differences among zooplankton groups but difference among producer types
@@ -1688,7 +1740,7 @@ Plot Mixing model *for each lake*, using measured data % allochthony in zooplank
 Mix.lake.plot.EAA <- ggplot(data = Mix.samp.EAA, aes(x = Lake, y = Mean, fill = Source)) +
   geom_boxplot(alpha = 0.9, color = "black")+
   geom_point(aes(fill = Source), pch = 21, alpha = 0.4, color = "black", position = position_dodge(0.75))+
-  scale_fill_manual(values = c("dodgerblue", "springgreen4")) +
+  scale_fill_manual(values = c("dodgerblue", "lightsalmon3")) +
   ylab("Proportional Contribution") +
   xlab(NULL) +
   ylim(0,1) +
@@ -1701,6 +1753,26 @@ dev.copy(pdf, "figures/FigS8.mixsiar.lake.EAA.pdf", width = 10, height = 7)
 dev.off()
 
 
+##### alternative with posterior SD
+Alloch.box.point.2source.LAKE<-
+  ggplot(data = Mix.samp.EAA, aes(x = Lake, y = Mean)) +
+  geom_boxplot(aes(color=Source, fill=Source, x= Lake:Source), alpha = 0.2)+
+  geom_pointrange(aes(color=Source, x= Lake:Source, ymin=Mean-SD, ymax=Mean+SD), 
+                  position = position_jitter(width=0.2), alpha=0.4, size=0.6) +
+  scale_color_manual(values = c("dodgerblue", "lightsalmon3")) +
+  scale_fill_manual(values = c("dodgerblue", "lightsalmon3")) +
+  ylab("Proportional Contribution") +
+  xlab(NULL) +
+  ylim(0,1) +
+  guides(fill = guide_legend(title = expression(paste(AA[ESS], " ", Source)))) +
+  theme_classic() + Fig.formatting + guides(fill = "none") 
+
+Alloch.box.point.2source.LAKE
+dev.copy(pdf, "figures/FigS8xrev.mixsiar.lake.EAA.pdf", width = 10, height = 7)
+dev.off()
+```
+
+```{r, eval=FALSE}
 ############### plot as mean-SE
 Mix.samp.EAA.alloch<-Mix.samp.EAA[(Mix.samp.EAA$Source=="Allochthonous"),]
 
@@ -1740,7 +1812,7 @@ Use the proportion of AA~ESS~ from terrestrial plants/allochthony from the Mixsi
 
 # look at % plant contributions by environmental data
 mod.data<- SNL.CSIA.fulldata %>%
-  dplyr::select(SampleID, Lake, Group, group4, elevation..m, depth..m, temp..C, DO..perc, pH, DOC..mg.L,
+  dplyr::select(SampleID, Lake, Group, group4, elevation..m, depth..m, lake.area..ha, temp..C, DO..mg.L, pH, DOC..mg.L,
                 TDN..ug.L, TDP..ug.L, chla..ug.L, phy.group, Ile, Leu, Phe, Thr, Val, LD.class, 
                 LD1, LD2, Alloch.mean, Alloch.SD)
 
@@ -1758,7 +1830,7 @@ Plant.nut.env$Alloch.mean<-as.numeric(Plant.nut.env$Alloch.mean)
 
 # Keep predictors for the model
 reduced_data <- Plant.nut.env %>%
-  dplyr::select(elevation..m, temp..C, pH,
+  dplyr::select(elevation..m, lake.area..ha, temp..C, pH,
                 TDN..ug.L, TDP..ug.L, chla..ug.L, DOC..mg.L)
 
 # Compute correlation at 2 decimal places
@@ -1786,8 +1858,8 @@ dev.off()
 ```{r spatial effects, results='hide', fig.keep='none'}
 # library(MASS)
 
-# any effect of depth or elevation?
-mod.mult.spat<-lm(Alloch.mean~elevation..m+ depth..m,
+# any effect of depth or elevation or area?
+mod.mult.spat<-lm(Alloch.mean~elevation..m+ depth..m + lake.area..ha, 
              data=Plant.nut.env)
 Anova(mod.mult.spat, Type=2) # significant elevation effect
 
@@ -1821,7 +1893,7 @@ sigma(mod.mult)/mean(Plant.nut.env$Alloch.mean) #34% error rate, not awesome.
 all.zoop.mods<-stepAIC(mod.mult, trace=TRUE)
 
 # best model is with elevation (p=0.001), pH (p=NS), chla (p<0.001) R2-adjust = 0.682, RSE= 0.047
-mod.mult.all<-lm(Alloch.mean~elevation..m + chla..ug.L,
+mod.mult.all<-lm(Alloch.mean~elevation..m + chla..ug.L, 
              data=Plant.nut.env)
 summary(mod.mult.all)
 Anova(mod.mult.all, Type=2) # sinificant temp effect
@@ -1830,6 +1902,11 @@ Anova(mod.mult.all, Type=2) # sinificant temp effect
 mod.mult.all.elev<-lm(Alloch.mean~elevation..m,data=Plant.nut.env)
 summary(mod.mult.all.elev) # R2 = 0.392, RSE = 0.064, p<0.001
 Anova(mod.mult.all.elev, Type=2) # signif temp effect
+
+# as a mixed effect model
+mod.mult.all.lme<-lmer(Alloch.mean~ elevation..m+chla..ug.L + (1|phy.group),  data=Plant.nut.env)
+summary(mod.mult.all.lme)
+anova(mod.mult.all.lme, type=2)
 
 # elevation, all Groups
 elevat.prop.plant<-ggplot(Plant.nut.env, aes(x=elevation..m, y=Alloch.mean)) +

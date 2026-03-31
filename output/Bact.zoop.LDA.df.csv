@@ -1,0 +1,88 @@
+"","Source","Sample.names","Lake","Group","group4","class","LD1","LD2","LD3"
+"1","Wall and Besser (this study)","ALR-BLUELAKE-30JUL2022-FILGREEN-1","Blue","Benthic algae","Algae","Producer",-0.699526433016299,-1.81060589486668,0.944922404025912
+"2","Wall and Besser (this study)","ALR-BLUELAKE-30JUL2022-FILGREEN-2","Blue","Benthic algae","Algae","Producer",-2.03397624873513,-0.51603858304784,1.5921439744011
+"3","Wall and Besser (this study)","ALR-BLUELAKE-30JUL2022-EPILITHIC-1","Blue","Benthic algae","Algae","Producer",-0.153082305642793,-0.89434586883309,1.70183537449903
+"4","Wall and Besser (this study)","ALR-BLUELAKE-30JUL2022-EPILITHIC-2","Blue","Benthic algae","Algae","Producer",-0.519281073217794,-0.542975534016676,1.82141015225204
+"5","Wall and Besser (this study)","ALR-BLUELAKE-30JUL2022-FILGREEN-3","Blue","Benthic algae","Algae","Producer",-0.341518989404203,-0.474813906139449,3.40714674952199
+"6","Wall and Besser (this study)","ALR-EASTBROOK-02AUG2022-EPISALMICDIATOMS-2","EasternBrook","Benthic algae","Algae","Producer",-1.48656226026069,-1.28079019222613,1.17695248645706
+"7","Wall and Besser (this study)","ALR-EASTBROOK-02AUG2022-EPISALMICDIATOMS-1","EasternBrook","Benthic algae","Algae","Producer",-2.10218467885736,-2.37798470522978,1.29744957716219
+"8","Wall and Besser (this study)","ALR-SUNRISE-31JUL2022-EPISALMIC-2","Sunrise2","Benthic algae","Algae","Producer",-2.01014699749853,-0.608400792102937,-0.00875680919717059
+"9","Wall and Besser (this study)","ALR-SUNRISE-31JUL2022-EPISALMIC-1","Sunrise2","Benthic algae","Algae","Producer",-1.99279143156554,-2.43582641388339,-0.0637298461526106
+"10","Wall and Besser (this study)","SNL-POM-04","Blue","POM","POM","Producer",-0.99879042384625,-2.03029964428253,-1.13302098845965
+"11","Wall and Besser (this study)","SNL-POM-01","Cascade","POM","POM","Producer",0.388984688207959,-2.87229693138926,-1.72141147382342
+"12","Wall and Besser (this study)","SNL-POM-GFF75","EasternBrook","POM","POM","Producer",-0.20998965403992,-1.18798375770408,-1.13449178107699
+"13","Wall and Besser (this study)","SNL-POM-GFF55","EasternBrook","POM","POM","Producer",-0.397118640048858,-1.52166639383188,-1.3745991949956
+"14","Wall and Besser (this study)","SNL-POM-GFF62","Granite2","POM","POM","Producer",-0.918857306491046,-1.54330882612367,0.32549625835362
+"15","Wall and Besser (this study)","SNL-POM-03","Lukens","POM","POM","Producer",-0.465330205846683,-2.1057408321059,-2.19924633614722
+"16","Wall and Besser (this study)","SNL-POM-05","MayPond","POM","POM","Producer",-0.759327291248276,-1.72603890433129,-1.51032214147159
+"17","Wall and Besser (this study)","SNL-POM-02","Sunrise2","POM","POM","Producer",0.269756425368213,-0.461236794634335,-2.03590207675136
+"18","Wall and Besser (this study)","SNL-TERPLA-15","Blue","Terrestrial plants","Plants","Producer",-0.920403681161686,2.02625123964371,-1.15275042042809
+"19","Wall and Besser (this study)","SNL-TERPLA-27","Blue","Terrestrial plants","Plants","Producer",-0.813884282840099,1.31067323985697,-0.829077573186292
+"20","Wall and Besser (this study)","SNL-TERPLA-SA","Blue","Terrestrial plants","Plants","Producer",-2.46109814778103,0.468838442232268,-0.740697407460003
+"21","Wall and Besser (this study)","SNL-TERPLA-18","Blue","Terrestrial plants","Plants","Producer",-4.03301598331111,1.58885471137085,0.465856503998057
+"22","Wall and Besser (this study)","SNL-TERPLA-01","Lukens","Terrestrial plants","Plants","Producer",-4.56390176281704,-0.0805829977981926,-0.189261754362671
+"23","Wall and Besser (this study)","SNL-TERPLA-07","Lukens","Terrestrial plants","Plants","Producer",-0.413015434395641,2.77132246173416,-1.1193491757137
+"24","Wall and Besser (this study)","SNL-TERPLA-08","MayPond","Terrestrial plants","Plants","Producer",-2.6985718945733,1.1825270793546,0.344927638777734
+"25","Wall and Besser (this study)","SNL-TERPLA-10","MayPond","Terrestrial plants","Plants","Producer",-1.69573323535774,2.04906558121882,-0.016419978626203
+"26","Wall and Besser (this study)","SNL-TERPLA-14","Sunrise2","Terrestrial plants","Plants","Producer",-2.16647377045241,1.08485127694451,-1.13611858036984
+"27","Wall and Besser (this study)","SNL-TERPLA-13","Sunrise2","Terrestrial plants","Plants","Producer",-4.34140589880806,0.974039592757533,1.02690730691157
+"56","Besser et al. (2025)","RIO-CULTURE-SED-10(-5)-B","Culture","Bacteria","Bacteria","Producer",1.19658943238414,0.0394739235697548,-0.844661219490323
+"57","Besser et al. (2025)","RIO-CULTURE-SED-10(-5)-A","Culture","Bacteria","Bacteria","Producer",1.28897162208326,0.913894608342387,-1.30953706604274
+"58","Besser et al. (2025)","RIO-CULTURE-LEAFB10(-5)-1","Culture","Bacteria","Bacteria","Producer",1.74754553944538,1.96961487161707,0.275522851137705
+"59","Besser et al. (2025)","RIO-CULTURE-LEAFB10(-5)-B","Culture","Bacteria","Bacteria","Producer",0.429150297641433,0.614532120856207,-1.16666190263504
+"60","Besser et al. (2025)","RIO-CULTURE-RIVERB-1","Culture","Bacteria","Bacteria","Producer",0.63080444059133,0.266224499367421,0.530344889341597
+"61","Besser et al. (2025)","RIO-CULTURE-RIVERA-2","Culture","Bacteria","Bacteria","Producer",0.877485667062405,0.482674582634302,0.660676356618996
+"62","Besser et al. (2025)","RIO-CULTURE-LEAFB10(-5)-A","Culture","Bacteria","Bacteria","Producer",0.0160013596114431,-1.65226437024358,0.429384381401768
+"63","Besser et al. (2025)","RIO-CULTURE-RIVER2-10(-5)-A","Culture","Bacteria","Bacteria","Producer",0.565003521574381,2.31937104383444,-0.49525312770086
+"64","Besser et al. (2025)","RIO-CULTURE-LEAFB10(-4)-B","Culture","Bacteria","Bacteria","Producer",-0.10298653260899,1.63338370000393,-0.00026792455350344
+"65","Besser et al. (2025)","RIO-CULTURE-RIVER2-10(-2)-E","Culture","Bacteria","Bacteria","Producer",1.50450999588423,0.85609477790052,-0.708469941608475
+"66","Besser et al. (2025)","RIO-CULTURE-RIVER2-10(-1)-F","Culture","Bacteria","Bacteria","Producer",1.11849287941378,-0.156433073439573,0.0376422363798836
+"67","Besser et al. (2025)","RIO-CULTURE-RIVER2-A","Culture","Bacteria","Bacteria","Producer",1.0834438927705,1.2604052508217,0.589168319277303
+"68","Besser et al. (2025)","RIO-CULTURE-RIVERA-1","Culture","Bacteria","Bacteria","Producer",1.20440825700768,0.247214419655016,-0.106003746960008
+"69","Besser et al. (2025)","RIO-CULTURE-LEAFB10(-4)-A","Culture","Bacteria","Bacteria","Producer",0.176115998157365,0.755140436691016,-0.251261496602054
+"70","Besser et al. (2025)","RIO-CULTURE-RIVER2-10(-3)-D","Culture","Bacteria","Bacteria","Producer",-0.445608309599117,0.127960846161547,-0.689428770451427
+"71","Besser et al. (2025)","RIO-CULTURE-RIVER2-10(-1)-E","Culture","Bacteria","Bacteria","Producer",1.94755075575853,1.12743716835815,-1.0562116949543
+"72","Besser et al. (2025)","RIO-CULTURE-RIVER2-10(-4)-A","Culture","Bacteria","Bacteria","Producer",0.969197923697765,1.57248873608668,-0.156906920593889
+"73","Besser et al. (2025)","RIO-CULTURE-RIVERC","Culture","Bacteria","Bacteria","Producer",-0.309527440517638,1.1932894463529,0.485598621362146
+"74","Besser et al. (2025)","RIO-CULTURE-RIVERD","Culture","Bacteria","Bacteria","Producer",0.726228710874587,1.11760897828477,0.377305448002277
+"75","Besser et al. (2025)","RIO-CULTURE-RIVER2-10(-2)-H","Culture","Bacteria","Bacteria","Producer",1.50228811247519,1.51984792669337,0.967890150689039
+"76","Besser et al. (2025)","RIO-CULTURE-RIVER1-MIX","Culture","Bacteria","Bacteria","Producer",1.3057157609489,1.23131074865126,-1.35885072301222
+"77","Besser et al. (2025)","RIO-CULTURE-SED-MIX","Culture","Bacteria","Bacteria","Producer",1.12164055736722,0.105215893690434,-1.4610040543814
+"78","Larsen et al. (2009)",NA,"Culture","Bacteria","Bacteria","Producer",0.53598086814554,-0.236722545137189,0.305103344785538
+"79","Larsen et al. (2009)",NA,"Culture","Bacteria","Bacteria","Producer",0.748731201328409,-0.311240476423417,0.177566122230035
+"80","Larsen et al. (2009)",NA,"Culture","Bacteria","Bacteria","Producer",1.75201903858553,-0.500971698278453,0.527298589571076
+"81","Larsen et al. (2009)",NA,"Culture","Bacteria","Bacteria","Producer",1.70190028717435,0.504405170627088,1.99142483443963
+"82","Larsen et al. (2009)",NA,"Culture","Bacteria","Bacteria","Producer",3.89019370689202,-0.287967554074844,1.8335983313424
+"83","Larsen et al. (2009)",NA,"Culture","Bacteria","Bacteria","Producer",1.48621001242923,-1.251219658035,2.51460645596129
+"84","Larsen et al. (2009)",NA,"Culture","Bacteria","Bacteria","Producer",1.97199728014165,0.188013433262961,2.67061331007128
+"85","Larsen et al. (2009)",NA,"Culture","Bacteria","Bacteria","Producer",2.47597522907273,-2.6976252010921,-1.51180001377513
+"86","Larsen et al. (2009)",NA,"Culture","Bacteria","Bacteria","Producer",2.49281933597075,-2.21897497402683,-0.496057085275449
+"87","Larsen et al. (2009)",NA,"Culture","Bacteria","Bacteria","Producer",2.92839751587731,0.282330314721773,-0.501261442713023
+"28","Wall and Besser (this study)","SNL-ZOOP-GFF49","Blue","Zooplankton",">350um","POM",-1.36317561427271,-2.74153912057206,-1.91649604194223
+"29","Wall and Besser (this study)","SNL-ZOOP-GFF70","Cascade","Zooplankton",">350um","POM",-1.5964918750033,-2.90002185176182,-1.62689320555228
+"30","Wall and Besser (this study)","SNL-ZOOP-GFF53","EasternBrook","Zooplankton",">350um","POM",-0.954112916414618,-2.17483385726085,-1.81843518983311
+"31","Wall and Besser (this study)","SNL-ZOOP-GFF67","Granite2","Zooplankton",">350um","Benthic algae",-1.00300028500272,-1.52185254765706,0.225668747935908
+"32","Wall and Besser (this study)","SNL-ZOOP-GFF66","Greenstone","Zooplankton",">350um","POM",-1.22819583967094,-2.14175242431291,-1.2161078418646
+"33","Wall and Besser (this study)","SNL-ZOOP-GFF65","Lukens","Zooplankton",">350um","POM",-1.69122407427431,-3.14099791560463,-2.18333525295718
+"34","Wall and Besser (this study)","SNL-ZOOP-GFF69","MayPond","Zooplankton",">350um","POM",-1.28157802894187,-2.41697834476907,-2.80751847418259
+"35","Wall and Besser (this study)","SNL-ZOOP-GFF47","Sunrise2","Zooplankton",">350um","POM",-1.91451505829402,-2.73861337628645,-1.80636095633075
+"36","Wall and Besser (this study)","SNL-ZOOP-18A","Granite2","Zooplankton","Calanoida","Benthic algae",-2.20461478236845,-0.918383728849469,-0.0621745687008812
+"37","Wall and Besser (this study)","SNL-ZOOP-03A","Lukens","Zooplankton","Calanoida","POM",-2.18301527033758,-2.42144156292218,-2.06717464534942
+"38","Wall and Besser (this study)","SNL-ZOOP-04A","Lukens","Zooplankton","Calanoida","POM",-1.39217511720294,-2.39090765726705,-2.43368220454941
+"39","Wall and Besser (this study)","SNL-ZOOP-07A","MayPond","Zooplankton","Calanoida","POM",-1.19262619361614,-0.536523677580677,-2.10451178411821
+"40","Wall and Besser (this study)","SNL-ZOOP-05A","MayPond","Zooplankton","Calanoida","POM",-1.30930936860129,-1.99676781321623,-2.63245864261623
+"41","Wall and Besser (this study)","SNL-ZOOP-06A","MayPond","Zooplankton","Calanoida","POM",-1.66560813672964,-0.392639875217211,-2.31454793433938
+"42","Wall and Besser (this study)","SNL-ZOOP-10A","Blue","Zooplankton","Cladocera","POM",-2.34564544488173,-2.06928170961161,-0.4865037421034
+"43","Wall and Besser (this study)","SNL-ZOOP-11A","Blue","Zooplankton","Cladocera","POM",-1.68459835451457,-1.03065354198384,-0.821996185902314
+"44","Wall and Besser (this study)","SNL-ZOOP-14A","Cascade","Zooplankton","Cladocera","POM",-1.83966597843833,-2.27883634519269,-1.61719671310002
+"45","Wall and Besser (this study)","SNL-ZOOP-GFF48","Cascade","Zooplankton","Cladocera","POM",-1.60392629888331,-2.62800279351858,-0.477330199231248
+"46","Wall and Besser (this study)","SNL-ZOOP-13A","Cascade","Zooplankton","Cladocera","POM",-2.95211240158604,-1.83746644539533,-1.15730115762984
+"47","Wall and Besser (this study)","SNL-ZOOP-15A","EasternBrook","Zooplankton","Cladocera","POM",-1.4702507883893,-0.7052843120312,-1.04451592165493
+"48","Wall and Besser (this study)","SNL-ZOOP-19A","Granite2","Zooplankton","Cladocera","Benthic algae",-1.80636063100308,-0.885705773291739,0.403850670027717
+"49","Wall and Besser (this study)","SNL-ZOOP-20A","Granite2","Zooplankton","Cladocera","Benthic algae",-1.45671753721912,-0.531917489932231,0.577057106414885
+"50","Wall and Besser (this study)","SNL-ZOOP-01A","Lukens","Zooplankton","Cladocera","POM",-1.50439428967672,-2.95503041666659,-2.10621616431124
+"51","Wall and Besser (this study)","SNL-ZOOP-02A","Lukens","Zooplankton","Cladocera","POM",-1.3834117921589,-2.76702718805125,-1.6830649183029
+"52","Wall and Besser (this study)","SNL-ZOOP-09A","Blue","Zooplankton","Neocopepoda","Bacteria",-0.642374143282541,-0.0288974435125366,-1.08213350948439
+"53","Wall and Besser (this study)","SNL-ZOOP-08A","Blue","Zooplankton","Neocopepoda","POM",-1.35928625761817,-0.688328363593832,-1.42455173430847
+"54","Wall and Besser (this study)","SNL-ZOOP-16A","EasternBrook","Zooplankton","Neocopepoda","POM",-1.98196164852163,-2.14915937956879,-1.75174483405453
+"55","Wall and Besser (this study)","SNL-ZOOP-17A","EasternBrook","Zooplankton","Neocopepoda","POM",-2.17732065709406,-1.45194779694969,-1.08746117859205

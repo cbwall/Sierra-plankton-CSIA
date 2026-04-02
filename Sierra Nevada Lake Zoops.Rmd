@@ -1148,6 +1148,7 @@ dev.off()
 #LDA.scat.phygroup
 ```
 
+
 Use data from present study with  δ^13^C values of five AA~EES~ in bacteria from Besser et al (2025) and Larsen et al. (2009). Are bacteria significantly contributing to zooplankton? If so, which?  
 - 1 zooplankton (Neocopepodan, Blue Lake) assigned as Bacteria. 
 - 4 zooplankton assigned as Benthic algae vs. 3 in training dataset without bacteria.  
@@ -1158,9 +1159,8 @@ Use data from present study with  δ^13^C values of five AA~EES~ in bacteria fro
 ############################################################################
 ############################################################################
 
-# data from present study + microbes from Larsen et al (2009) and Besser et al (2025)
-
-bact.source.df<-read.csv("data/producers lit/SNL_wMicrobes.csv")
+# data from present study + microbes from Larsen et al. (2009) Besser et al. (2025)
+bact.source.df<-read.csv("data/producers lit/SNL_wBacteriaOnly.csv")
 
 make.numeric <- c("Ile", "Leu", "Phe", "Thr", "Val")
 bact.source.df[make.numeric] <- lapply(bact.source.df[make.numeric], as.numeric)
@@ -1180,7 +1180,6 @@ bact.source.df.norm<- bact.source.df %>%
 
 bact.source.df.meas<- bact.source.df %>% 
   dplyr::select(Source, Lake, Sample.names, Group, group4, Ile, Leu, Phe, Thr, Val)
-
 
 ##############
 # LDA
@@ -1223,25 +1222,25 @@ All.train.bact <- lda(Group~ Ile + Leu + Phe + Thr + Val, data = prod.bact)
 All.train.bact
 
 #plot LD1 and LD2 to show the sources
-Source.LDA.bact <- ggord(All.train.bact, prod.bact$Group, arrow=0,
-                    txt = NULL, veclsz = 0, vectyp="blank",# remove vectors and arrows
-                    cols = c("dodgerblue","springgreen4", "lightsalmon3", "goldenrod"), grp_title = "Producers",
-                    ellipse_pro = 0.95, xlim = c(-8,6), ylim = c(-5,5)) + theme_classic() + theme(legend.position = 'top')
+# Source.LDA.bact <- ggord(All.train.bact, prod.bact$Group, arrow=0,
+#                     txt = NULL, veclsz = 0, vectyp="blank",# remove vectors and arrows
+#                     cols = c("dodgerblue","springgreen4", "lightsalmon3", "goldenrod"), grp_title = "Producers",
+#                     ellipse_pro = 0.95, xlim = c(-8,6), ylim = c(-5,5)) + theme_classic() + theme(legend.position = 'top')
 
 
 #Create a data frame with these LDA coordinates
-AllZoopPredict.bact <- data.frame(Source=prod.bact$Source, 
+AllZoopPredict.bact <- data.frame(Source = prod.bact$Source, 
                                   Sample.names = prod.bact$Sample.names,
                                   Lake = prod.bact$Lake,
                                   Group = prod.bact$Group, 
                                   group4 = prod.bact$group4,
-                                  class="Producer", 
+                                  class = "Producer", 
                                   predict(All.train.bact)$x)
 
 ############### Now clasiify Zooplankton
 Zoop.bact <- bact.source.df.meas[(bact.source.df.meas$Group == "Zooplankton"),]
-Zoop.bact$Group<-droplevels(Zoop.bact$Group)
-Zoop.bact$group4<-droplevels(Zoop.bact$group4)
+Zoop.bact$Group <- droplevels(Zoop.bact$Group)
+Zoop.bact$group4 <- droplevels(Zoop.bact$group4)
 
 #Classify Zoop
 Zoop.predict <- predict(object = All.train.bact, newdata = Zoop.bact)
@@ -1250,17 +1249,21 @@ Zoop.predict.data <- data.frame(Source = Zoop.bact$Source,
                                 Lake = Zoop.bact$Lake,
                                 Group = Zoop.bact$Group, 
                                 group4 = Zoop.bact$group4, 
-                                class= Zoop.predict$class, 
+                                class = Zoop.predict$class, 
                                 Zoop.predict$x)
 
 Zoop.All.reclass <- table(Zoop.bact$Group, Zoop.predict.data$class) 
-# Zooplankton =  23 POM, 4 benthic algae, 0 terrestrial plants, 1 as bacteria
+# Zooplankton:  24 POM, 4 benthic algae, 0 terrestrial plants, 0 as bacteria
 
 Zoop.group4.reclass <- table(Zoop.bact$group4, Zoop.predict.data$class) 
-# Zooplankton =  23 POM, 4 benthic algae, 0 terrestrial plants, 1 as bacteria
+#               POM       Benthic algae   Terrestrial plants    Microbes
+ # >350um        7             1                  0               0
+ # Calanoida     5             1                  0               0
+ # Cladocera     8             2                  0               0
+ # Neocopepoda   4             0                  0               0
 
 ########## output data
-Bact.zoop.LDA.df<-rbind(AllZoopPredict.bact, Zoop.predict.data)
+Bact.zoop.LDA.df <- rbind(AllZoopPredict.bact, Zoop.predict.data)
 write.csv(Bact.zoop.LDA.df, "output/Bact.zoop.LDA.df.csv")
 
 ####### ####### ####### 
@@ -1270,14 +1273,14 @@ write.csv(Bact.zoop.LDA.df, "output/Bact.zoop.LDA.df.csv")
 # Zoop == `Zoop.predict.data`
 
 ####### bind the producer and zooplankton data frames
-Bact.zoop.LDA.df$Group<-factor(Bact.zoop.LDA.df$Group,
-                           levels=c("POM", "Benthic algae", "Terrestrial plants", "Bacteria", "Zooplankton"))
-Bact.zoop.LDA.df$group4<-factor(Bact.zoop.LDA.df$group4, 
-                                levels=c("POM", "Benthic algae", "Terrestrial plants", "Bacteria",
+Bact.zoop.LDA.df$Group <- factor(Bact.zoop.LDA.df$Group,
+                           levels = c("POM", "Benthic algae", "Terrestrial plants", "Bacteria", "Zooplankton"))
+Bact.zoop.LDA.df$group4 <- factor(Bact.zoop.LDA.df$group4, 
+                                levels = c("POM", "Benthic algae", "Terrestrial plants", "Bacteria",
                                          ">350um", "Cladocera", "Calanoida", "Neocopepoda"))
 
 # colors for 5 groups
-lda.5.colors.bact<-c("dodgerblue","springgreen4", "lightsalmon3", "goldenrod", "coral")
+lda.5.colors.bact <- c("dodgerblue","springgreen4", "lightsalmon3", "goldenrod", "coral")
 
 # version 1 with pooled plankton 
 LDA.bact.Group <- ggplot(Bact.zoop.LDA.df, aes(x = LD1, y = LD2))+
@@ -1297,56 +1300,66 @@ LDA.bact.Group <- ggplot(Bact.zoop.LDA.df, aes(x = LD1, y = LD2))+
 lda.8.colors.main <- c("dodgerblue", "springgreen4", "lightsalmon3", "khaki3", "gray55", "orange", "brown3", "coral1")
 
 # version 2 with separated plankton 
-LDA.bact.group4 <- ggplot(Bact.zoop.LDA.df, aes(x = LD1, y = LD2))+
-  geom_point(size = 3.5, color="black",
+LDA.bact.group4.LD1.LD2 <- ggplot(Bact.zoop.LDA.df, aes(x = LD1, y = LD2))+
+  geom_point(size = 3.5, color = "black",
              aes(fill = group4, color = group4, shape = group4), alpha = 0.9) +
   stat_ellipse(type = "norm", level = 0.95, linewidth = 0.5, aes(lty = group4, color = group4))+
   scale_color_manual(values = lda.8.colors.main) +
   scale_fill_manual(values = lda.8.colors.main,
-                    labels = c("POM", "Benthic algae", "Terrestrial plants", "Bacteria",
+                    labels = c("POM", "Benthic Algae", "Terrestrial Plants", "Bacteria",
                                "> 350 \u03bcm",
-                               "Cladocera", "Calanoida", "Neocopepoda"), name=NULL) +
+                               "Cladocera", "Calanoida", "Neocopepoda"), name = NULL) +
   scale_shape_manual(values = c(24, 24, 25, 23, 21, 21, 21, 21),
-                     labels = c("POM", "Benthic algae", "Terrestrial plants", "Bacteria",
+                     labels = c("POM", "Benthic Algae", "Terrestrial Plants", "Bacteria",
                                 "> 350 \u03bcm",
-                                "Cladocera", "Calanoida", "Neocopepoda"), name=NULL) +
+                                "Cladocera", "Calanoida", "Neocopepoda"), name = NULL) +
   scale_linetype_manual(values = c(2, 2, 2, 2, 0, 0, 0, 0), name = NULL) +
-  xlab("LD1 (57.4%)") + ylab("LD2 (27.6%)") +
-  coord_cartesian(xlim = c(-7, 4), ylim = c(-5, 5)) +
-  theme_classic() + guides(lty="none", color="none")
+  xlab("LD1 (59.6%)") + ylab("LD2 (26.4%)") +
+  coord_cartesian(xlim = c(-7, 5), ylim = c(-4, 4)) +
+  theme_classic() + guides(lty = "none", color = "none")
 
 #########
-LDA.bact.group4.LD3 <- ggplot(Bact.zoop.LDA.df, aes(x = LD1, y = LD3))+
-  geom_point(size = 3.5, color="black",
+LDA.bact.group4.LD1.LD3 <- ggplot(Bact.zoop.LDA.df, aes(x = LD1, y = LD3))+
+  geom_point(size = 3.5, color = "black",
              aes(fill = group4, color = group4, shape = group4), alpha = 0.9) +
   stat_ellipse(type = "norm", level = 0.95, linewidth = 0.5, aes(lty = group4, color = group4))+
   scale_color_manual(values = lda.8.colors.main) +
   scale_fill_manual(values = lda.8.colors.main,
-                    labels = c("POM", "Benthic algae", "Terrestrial plants", "Bacteria",
+                    labels = c("POM", "Benthic Algae", "Terrestrial Plants", "Bacteria",
                                "> 350 \u03bcm",
-                               "Cladocera", "Calanoida", "Neocopepoda"), name=NULL) +
+                               "Cladocera", "Calanoida", "Neocopepoda"), name = NULL) +
   scale_shape_manual(values = c(24, 24, 25, 23, 21, 21, 21, 21),
-                     labels = c("POM", "Benthic algae", "Terrestrial plants", "Bacteria",
+                     labels = c("POM", "Benthic Algae", "Terrestrial Plants", "Bacteria",
                                 "> 350 \u03bcm",
-                                "Cladocera", "Calanoida", "Neocopepoda"), name=NULL) +
+                                "Cladocera", "Calanoida", "Neocopepoda"), name = NULL) +
   scale_linetype_manual(values = c(2, 2, 2, 2, 0, 0, 0, 0), name = NULL) +
-  xlab("LD1 (57.4%)") + ylab("LD3 (15.0%)") +
-  coord_cartesian(xlim = c(-7, 4), ylim = c(-5, 5)) +
-  theme_classic() + guides(lty="none", color="none")
+  xlab("LD1 (59.6%)") + ylab("LD3 (14.0%)") +
+  coord_cartesian(xlim = c(-7, 5), ylim = c(-4, 4)) +
+  theme_classic() + guides(lty = "none", color = "none")
 
-## get legend
-extract.legend <- get_legend(
-  # create some space to the left of the legend
-  LDA.bact.group4.LD3 + theme(legend.box.margin = margin(0, 0, 0, 10)))
+########
+LDA.bact.group4.LD2.LD3 <- ggplot(Bact.zoop.LDA.df, aes(x = LD2, y = LD3))+
+  geom_point(size = 3.5, color = "black",
+             aes(fill = group4, color = group4, shape = group4), alpha = 0.9) +
+  stat_ellipse(type = "norm", level = 0.95, linewidth = 0.5, aes(lty = group4, color = group4))+
+  scale_color_manual(values = lda.8.colors.main) +
+  scale_fill_manual(values = lda.8.colors.main,
+                    labels = c("POM", "Benthic Algae", "Terrestrial Plants", "Bacteria",
+                               "> 350 \u03bcm",
+                               "Cladocera", "Calanoida", "Neocopepoda"), name = NULL) +
+  scale_shape_manual(values = c(24, 24, 25, 23, 21, 21, 21, 21),
+                     labels = c("POM", "Benthic Algae", "Terrestrial Plants", "Bacteria",
+                                "> 350 \u03bcm",
+                                "Cladocera", "Calanoida", "Neocopepoda"), name = NULL) +
+  scale_linetype_manual(values = c(2, 2, 2, 2, 0, 0, 0, 0), name = NULL) +
+  xlab("LD2 (26.4%)") + ylab("LD3 (14.0%)") +
+  coord_cartesian(xlim = c(-7, 5), ylim = c(-4, 4)) +
+  theme_classic() + guides(lty = "none", color = "none")
 
-######### combined plot
-Bact.LD1_3<-plot_grid(LDA.bact.group4+ guides(lty="none", color="none", fill="none", shape="none"), 
-          LDA.bact.group4.LD3 + guides(lty="none", color="none", fill="none", shape="none"),
-          extract.legend, 
-          ncol=3,  labels = c('A', 'B', ""), rel_widths = c(1,1,0.7))
+ggpubr::ggarrange(LDA.bact.group4.LD1.LD2, LDA.bact.group4.LD1.LD3, LDA.bact.group4.LD2.LD3,
+                  nrow = 1, common.legend = TRUE, legend = "right")
 
-Bact.LD1_3
-dev.copy(pdf, "figures/FigS13.LDA.EAA.bact_biplot.pdf", height = 5.5, width = 11)
+dev.copy(pdf, "figures/FigS13.LDA.EAA.bacteria_biplot.pdf", height = 5.5, width = 11)
 dev.off()
 ```
 

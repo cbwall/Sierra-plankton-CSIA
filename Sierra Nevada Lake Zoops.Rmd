@@ -1152,8 +1152,8 @@ dev.off()
 Use data from present study with  δ^13^C values of five AA~EES~ in bacteria from Besser et al (2025) and Larsen et al. (2009). Are bacteria significantly contributing to zooplankton? If so, which?  
 - 1 zooplankton (Neocopepodan, Blue Lake) assigned as Bacteria. 
 - 4 zooplankton assigned as Benthic algae vs. 3 in training dataset without bacteria.  
-- This is *Figure Sx*
-```{r pooled bacteria, results='hide', fig.cap="**Figure Sx**. Linear discriminant analysis on the δ^13^C values of five AA~EES~ (Ile, Leu, Phe, Thr, Val) for three AA~EES~ sources (particulate organic matter [POM], benthic algae,  terrestrial plants, bacteria) and four zooplankton consumer groups (>350 μm size fraction, Cladocera, Calanoida, and Neocopepoda).", fig.dim=c(6,5)}
+- This is *Figure S13*
+```{r pooled bacteria, results='hide', fig.cap="**Figure S13**. Linear discriminant analysis on the δ^13^C values of five AA~EES~ (Ile, Leu, Phe, Thr, Val) for three AA~EES~ sources (particulate organic matter [POM], benthic algae,  terrestrial plants, bacteria) and four zooplankton consumer groups (>350 μm size fraction, Cladocera, Calanoida, and Neocopepoda).", fig.dim=c(12,5)}
 ############################################################################
 # Pooled food sources: algae, plants, microbes, fungi
 ############################################################################
@@ -1614,21 +1614,11 @@ Mix.samp.EAA.3$Source <- factor(Mix.samp.EAA.3$Source, levels = c("POM", "Algae"
 
 # set structure and reorder lakes by elevation
 Mix.samp.EAA.3$Mean <- as.numeric(Mix.samp.EAA.3$Mean)
+Mix.samp.EAA.3$SD<-as.numeric(Mix.samp.EAA.3$SD)
+
 Mix.samp.EAA.3$elevation..m <- as.numeric(Mix.samp.EAA.3$elevation..m)
 Mix.samp.EAA.3$Lake <- as.factor(reorder(Mix.samp.EAA.3$Lake, Mix.samp.EAA.3$elevation..m))
 Mix.samp.EAA.3$phy.group<-droplevels(as.factor(Mix.samp.EAA.3$phy.group))
-
-# plot it
-Mix.samp.plot.EAA.3 <- ggplot(data = Mix.samp.EAA.3, aes(x = phy.group, y = Mean, fill = Source)) +
-  geom_boxplot(alpha = 0.9, color = "black")+
-  geom_point(aes(fill = Source), pch = 21, alpha = 0.5, color = "black", 
-             position = position_dodge(0.75))+
-  scale_fill_manual(values = c("dodgerblue", "springgreen4", "lightsalmon3")) +
-  ylab("Proportional Contribution") +
-  xlab(NULL) +
-  ylim(0,1) +
-  guides(fill = guide_legend(title = expression(paste(AA[ESS], " ", Source)))) +
-  theme_classic() + Fig.formatting + guides(color = "none")
 
 
 ########## separate copepods out 
@@ -1642,29 +1632,6 @@ Mix.samp.EAA.3$group4<-recode_factor(Mix.samp.EAA.3$group4,
 Mix.samp.EAA.3$group4<-factor(Mix.samp.EAA.3$group4, 
                             levels=c(">350um", "Cladocera", "Calanoida", "Neocopepoda"))
 # plot it
-Mix.samp.plot.EAA.3.cope.out <- 
-  ggplot(data = Mix.samp.EAA.3, aes(x = group4, y = Mean, fill = Source)) +
-  geom_boxplot(alpha = 0.9, color = "black")+
-  geom_point(aes(fill = Source), pch = 21, alpha = 0.5, color = "black", 
-             position = position_dodge(0.75))+
-  scale_fill_manual(values = c("dodgerblue", "springgreen4", "lightsalmon3")) +
-  ylab("Proportional Contribution") +
-  xlab(NULL) +
-  ylim(0,1) +
-  guides(fill = guide_legend(title = expression(paste(AA[ESS], " ", Source)))) +
-  theme_classic() + Fig.formatting + guides(color = "none")
-
-#print and save
-Mix.samp.plot.EAA.3.cope.out
-dev.copy(pdf, "figures/FigS7.mixsiar.3sources.EAA.pdf", width = 8, height = 7)
-dev.off()
-```
-
-```{r, eval=FALSE}
-# test plot for mean +/- SD for each point estiamate
-Mix.samp.EAA.3$SD<-as.numeric(Mix.samp.EAA.3$SD)
-
-##### alternative with posterior SD
 Alloch.box.point.3source.GROUP<-
   ggplot(data = Mix.samp.EAA.3, aes(x = group4, y = Mean)) +
   geom_boxplot(aes(color=Source, fill=Source, x= group4:Source), alpha = 0.2, size=0.6)+
@@ -1673,17 +1640,19 @@ Alloch.box.point.3source.GROUP<-
   scale_color_manual(values = c("dodgerblue", "springgreen4", "lightsalmon3")) +
   scale_fill_manual(values = c("dodgerblue", "springgreen4", "lightsalmon3")) +
   ylab("Proportional Contribution") +
+  scale_x_discrete(labels=c("", "> 350 \u03bcm", "", 
+                   "", "Cladocera", "",
+                   "", "Calanoida", "",
+                   "", "Neocopepoda", ""))+
   xlab(NULL) +
   ylim(0,1) +
   guides(fill = guide_legend(title = expression(paste(AA[ESS], " ", Source)))) +
   theme_classic() + Fig.formatting + guides(fill = "none") 
 
 Alloch.box.point.3source.GROUP
-dev.copy(pdf, "figures/FigS7xrev.mixsiar.3sources.EAA.pdf", width = 8, height = 7)
+dev.copy(pdf, "figures/FigS7.rev.mixsiar.3sources.EAA.pdf", width = 8, height = 7)
 dev.off()
-
 ```
-
 
 See if there is a difference between the contribution of the 3 sources and the consumer plankton
 ```{r mixsiar 3 source lms}
@@ -1694,16 +1663,10 @@ POM<-Mix.samp.EAA.3[(Mix.samp.EAA.3$Source=="POM"),]
 POM.mod<-lm(Mean~ group4, data=POM)
 anova(POM.mod) # p=0.088
 
-posthoc.POM.chan <- emmeans(POM.mod, ~ group4)
-multcomp::cld(posthoc.POM.chan, Letters = letters) # all (A)
-
-
 #### benthic algae
 alg<-Mix.samp.EAA.3[(Mix.samp.EAA.3$Source=="Algae"),]
 alg.mod<-lm(Mean~ group4, data=alg)
-anova(alg.mod) #p=NS
-
-posthoc.alg.chan <- emmeans(alg.mod, ~ group4)
+anova(alg.mod) #p=NS, p=0.264
 
 #### Terrestrial plants
 ter.Pl<-Mix.samp.EAA.3[(Mix.samp.EAA.3$Source=="Plants"),]
@@ -1727,6 +1690,35 @@ colnames(n.df.3source)<-c("Source", "n")
 sum.df<-cbind(mean.df.3source, sd.df.3source$sd/sqrt(n.df.3source$n))
 colnames(sum.df)<-c("Source", "mean", "se")
 
+############### summmary as mean-SE
+Mix.samp.EAA.auto<-Mix.samp.EAA[(Mix.samp.EAA$Source=="Autochthonous"),]
+Mix.samp.EAA.alloch<-Mix.samp.EAA[(Mix.samp.EAA$Source=="Allochthonous"),]
+
+mean.df.2source<-aggregate(Mean~ Source, data=Mix.samp.EAA, FUN=mean)
+sd.df.2source<-aggregate(Mean~ Source, data=Mix.samp.EAA, FUN=sd)
+colnames(sd.df.2source)<-c("Source", "sd")
+
+n.df.2source<-aggregate(Mean~ Source, data=Mix.samp.EAA, FUN=length)
+colnames(n.df.2source)<-c("Source", "n")
+
+sor2.sum.df<-cbind(mean.df.2source, sd.df.2source$sd/sqrt(n.df.2source$n))
+colnames(sor2.sum.df)<-c("Source", "mean", "se")
+
+##### energy channel range by sampleID: auto vs. allochth
+range(Mix.samp.EAA.auto$Mean, na.rm = TRUE) # 70 - 98% autochth range
+range(Mix.samp.EAA.alloch$Mean, na.rm = TRUE) # 2 - 30% allochth range
+
+# for each source and show range
+POM.mix<-Mix.samp.EAA.3[(Mix.samp.EAA.3$Source=="POM"),]
+Algae.mix<-Mix.samp.EAA.3[(Mix.samp.EAA.3$Source=="Algae"),]
+Plants.mix<-Mix.samp.EAA.3[(Mix.samp.EAA.3$Source=="Plants"),]
+
+range(POM.mix$Mean, na.rm = TRUE) # 12 - 95%
+range(Algae.mix$Mean, na.rm = TRUE) # 3 - 81%
+range(Plants.mix$Mean, na.rm = TRUE) # 2 - 30%
+
+######### by lake
+mean.alloch.lake<-aggregate(Mean~ Source:Lake, data=Plants.mix, FUN=mean)
 ```
 
 Clean Mixsiar model output for plotting using a posteriori aggregration
@@ -1840,24 +1832,13 @@ Mix.samp.EAA$Source <- factor(Mix.samp.EAA$Source, levels = c("Autochthonous", "
 
 # set structure and reorder lakes by elevation
 Mix.samp.EAA$Mean <- as.numeric(Mix.samp.EAA$Mean)
+Mix.samp.EAA$SD<-as.numeric(Mix.samp.EAA$SD)
+
 Mix.samp.EAA$elevation..m <- as.numeric(Mix.samp.EAA$elevation..m)
 Mix.samp.EAA$Lake <- as.factor(reorder(Mix.samp.EAA$Lake, Mix.samp.EAA$elevation..m))
 
 # drop levels and make a new factor
 Mix.samp.EAA$orig.class<-droplevels(Mix.samp.EAA$orig.class)
-
-########### plot as 3 group s########### plot as 3 groups
-Mix.samp.plot.EAA.grouped <- ggplot(data = Mix.samp.EAA, aes(x = phy.group, y = Mean, fill = Source)) +
-  geom_boxplot(alpha = 0.9, color = "black")+
-  geom_point(aes(fill = Source), pch = 21, alpha = 0.5, color = "black", position = position_dodge(0.75))+
-  scale_fill_manual(values = c("dodgerblue", "springgreen4")) +
-  #scale_color_manual(values = c("dodgerblue", "springgreen4")) +
-  ylab("Proportional Contribution") +
-  xlab(NULL) +
-  ylim(0,1) +
-  guides(fill = guide_legend(title = expression(paste(AA[ESS], " ", Source)))) +
-  theme_classic() + Fig.formatting + guides(color = "none")
-
 
 ############ parse apart the copepods to calanoids and pooled cal+cyclo
 Mix.samp.EAA$group4<-Mix.samp.EAA$orig.class
@@ -1870,33 +1851,7 @@ Mix.samp.EAA$group4<-recode_factor(Mix.samp.EAA$group4,
 Mix.samp.EAA$group4<-factor(Mix.samp.EAA$group4, 
                             levels=c(">350um", "Cladocera", "Calanoida", "Neocopepoda"))
 
-# plot it
-Mix.samp.plot.EAA.copep <- ggplot(data = Mix.samp.EAA, aes(x = group4, y = Mean, fill = Source)) +
-  geom_boxplot(alpha = 0.9, color = "black")+
-  geom_point(aes(fill = Source), pch = 21, alpha = 0.5, color = "black", 
-             position = position_dodge(0.75))+
-  scale_fill_manual(values = c("dodgerblue", "springgreen4")) +
-  #scale_color_manual(values = c("dodgerblue", "springgreen4")) +
-  ylab("Proportional Contribution") +
-  xlab(NULL) +
-  ylim(0,1) +
-  guides(fill = guide_legend(title = expression(paste(AA[ESS], " ", Source)))) +
-  theme_classic() + Fig.formatting + guides(color = "none") +
-  # add text for posthocs
-  annotate("text", x = 1.2, y = 0.2, label = "AB", size = 4) +
-  annotate("text", x = 2.2, y = 0.33, label = "BC", size = 4) +
-  annotate("text", x = 3.2, y = 0.1, label = "A", size = 4) +
-  annotate("text", x = 4.2, y = 0.31, label = "C", size = 4)
-
-#print and save
-Mix.samp.plot.EAA.copep
-dev.copy(pdf, "figures/Fig3.mixsiar.EAA.pdf", width = 7.5, height = 7)
-dev.off()
-```
-
-```{r, eval=FALSE}
-# test with 2 sources
-Mix.samp.EAA$SD<-as.numeric(Mix.samp.EAA$SD)
+# Plot it!
 
 Alloch.box.point.2source<-
   ggplot(data = Mix.samp.EAA, aes(x = group4, y = Mean)) +
@@ -1908,6 +1863,10 @@ Alloch.box.point.2source<-
   ylab("Proportional Contribution") +
   xlab(NULL) +
   ylim(0,1) +
+  scale_x_discrete(labels=c("", "> 350 \u03bcm",
+                   "", "Cladocera",
+                   "", "Calanoida",
+                   "", "Neocopepoda"))+
   guides(fill = guide_legend(title = expression(paste(AA[ESS], " ", Source)))) +
   theme_classic() + Fig.formatting + guides(fill = "none") +
   # add text for posthocs
@@ -1918,7 +1877,7 @@ Alloch.box.point.2source<-
 
 #print and save
 Alloch.box.point.2source
-dev.copy(pdf, "figures/Fig3.revx.mixsiar.EAA.pdf", width = 7.5, height = 7)
+dev.copy(pdf, "figures/Fig3.rev.mixsiar.EAA.pdf", width = 7.5, height = 7)
 dev.off()
 ```
 
@@ -1949,26 +1908,10 @@ multcomp::cld(posthoc.chan.auto.cope.sep, Letters = letters)
 # authochthony least in cal_cyclo (=Neocopepoda) (A) =76%, then >cladocera (AB), >350um (BC), calanoida (C) = 93%
 ```
  
-Plot Mixing model *for each lake*, using measured data % allochthony in zooplankton and 2 sources. This is *Figure S8*. 
-```{r SampleID EAA mixsiar plot by lake, fig.cap="**Figure S8.** Boxplots of proportional contributions of two AAESS sources (autochthonous in water production [POM + benthic algae] and allochthonous production [terrestrial plants]) to all zooplankton samples", fig.dim=c(7,5.5), results='hide'}
-#### plot by lake
-Mix.lake.plot.EAA <- ggplot(data = Mix.samp.EAA, aes(x = Lake, y = Mean, fill = Source)) +
-  geom_boxplot(alpha = 0.9, color = "black")+
-  geom_point(aes(fill = Source), pch = 21, alpha = 0.4, color = "black", position = position_dodge(0.75))+
-  scale_fill_manual(values = c("dodgerblue", "lightsalmon3")) +
-  ylab("Proportional Contribution") +
-  xlab(NULL) +
-  ylim(0,1) +
-  guides(fill = guide_legend(title = expression(paste(AA[ESS], " ", Source)))) +
-  theme_classic() + Fig.formatting + guides(color = "none") +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+Plot Mixing model *for each lake*, using measured data % allochthony in zooplankton and 2 sources. This is *Figure S12*. 
+```{r SampleID EAA mixsiar plot by lake, fig.cap="**Figure S12.** Boxplots of proportional contributions of two AAESS sources (autochthonous in water production [POM + benthic algae] and allochthonous production [terrestrial plants]) to all zooplankton samples", fig.dim=c(7,5.5), results='hide'}
+#### plot by lake with posterior
 
-Mix.lake.plot.EAA
-dev.copy(pdf, "figures/FigS8.mixsiar.lake.EAA.pdf", width = 10, height = 7)
-dev.off()
-
-
-##### alternative with posterior SD
 Alloch.box.point.2source.LAKE<-
   ggplot(data = Mix.samp.EAA, aes(x = Lake, y = Mean)) +
   geom_boxplot(aes(color=Source, fill=Source, x= Lake:Source), alpha = 0.2)+
@@ -1977,45 +1920,24 @@ Alloch.box.point.2source.LAKE<-
   scale_color_manual(values = c("dodgerblue", "lightsalmon3")) +
   scale_fill_manual(values = c("dodgerblue", "lightsalmon3")) +
   ylab("Proportional Contribution") +
+  scale_x_discrete(labels=c("", "Lukens",
+                   "", "MayPond",
+                   "", "Sunrise2",
+                   "", "Blue",
+                   "", "Greenstone",
+                   "", "Cascade",
+                   "", "EasternBrook",
+                   "", "Granite2"))+
   xlab(NULL) +
   ylim(0,1) +
   guides(fill = guide_legend(title = expression(paste(AA[ESS], " ", Source)))) +
-  theme_classic() + Fig.formatting + guides(fill = "none") 
+  theme_classic() + Fig.formatting + guides(fill = "none")  + 
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
 Alloch.box.point.2source.LAKE
-dev.copy(pdf, "figures/FigS8xrev.mixsiar.lake.EAA.pdf", width = 10, height = 7)
+dev.copy(pdf, "figures/FigS12.rev.mixsiar.lake.EAA.pdf", width = 10, height = 7)
 dev.off()
 ```
-
-```{r, eval=FALSE}
-############### plot as mean-SE
-Mix.samp.EAA.alloch<-Mix.samp.EAA[(Mix.samp.EAA$Source=="Allochthonous"),]
-
-alloch.mean.EAA <- aggregate(Mean ~ Source + group4, data = Mix.samp.EAA, FUN = mean)
-
-alloch.EAA <- aggregate(Mean ~ Source + group4, data = Mix.samp.EAA, FUN = length)
-colnames(alloch.EAA) <- c("Source", "group4", "n")
-
-alloch.SD.EAA <- aggregate(Mean ~ Source + group4, data = Mix.samp.EAA, FUN = sd)
-colnames(alloch.SD.EAA) <- c("Source", "group4", "SD")
-
-alloch.df.EAA <- cbind(alloch.mean.EAA, (alloch.SD.EAA$SD/sqrt(alloch.EAA$n)))
-colnames(alloch.df.EAA) <- c("Source", "group4", "mean", "SE")
-
-# plot it
-pd <- position_dodge(0.71) #offset for error bars and columns
-
-# probably won't use this fig anywhere
-alloch.mean.plot.EAA <- ggplot(alloch.df.EAA, aes(x = group4, y = mean, color = Source)) +
-  geom_point(position = pd, size=4) +
-  scale_color_manual(values = c("dodgerblue", "springgreen4")) +
-  geom_errorbar(aes(ymin = mean-SE, ymax = mean+SE), linewidth = 0.5, width = 0, position = pd) +
-  ylab("Proportional Contribution") +
-  ylim(0,1)+
-  xlab("") + theme_bw()
-
-```
-
 
 ### Multiple linear regressions 
 Use the proportion of AA~ESS~ from terrestrial plants/allochthony from the Mixsiar model with a multiple linear regressions analysis to find the environmental and geographic conditions that correlate with each other and exhibit a relationship with changes in allochthony for each zooplanton category.  

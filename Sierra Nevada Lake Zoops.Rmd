@@ -29,7 +29,7 @@ Compound specific isotope analysis of individual amino acids (CSIA-AA) is a new 
 
 Certain amino acids can only be synthesized *de novo* by primary producers (e.g., bacteria, algae, plants, fungi) and must be acquired by animals through feeding/dietary means. Thus, such amino acids are considered 'essential amino acids (AA~ESS~)' for animals. AA~ESS~ are passed from producers to consumers with limited carbon isotope fractionation, making the carbon isotope analysis of individual AA~ESS~ an ideal tool to examine the sources of carbon in consumers. Moreover, the AA~ESS~ carbon isotope values of different groups of primary producers (e.g., microalgae, macroalgae, C~3~/C~4~/CAM plants) vary due to unique biochemical pathways, pools, and fluxes, allowing primary producers AA~ESS~ carbon isotope patterns (i.e., fingerprints) to be separated with high resolution. AA~ESS~ carbon isotope fingerprints can be used to identify the sources of AA~ESS~ supporting consumers and the proportional contributions of different primary producers to consumer diets and/or food chains.
 
-Terrestrial energy channels (known as allochthonous energy channels in aquatic systems) are a resource of energy and nutrients for aquatic consumers and ecosystems, although their significance can vary greatly across space and time. Zooplankton prefer (and require) the high fatty acid content of microalgae, which are a vital nutritional source and considered the base of an important autochthonous energy channel in most aquatic systems.Terrestrial resources entering lakes can lead to browning through the leaching dissolved organic matter and subsequently, a decrease in microalgae productivity as light is attenuated. In such a case, allochthonous energy channels may limit primary production, decreasing the importance of autochthonous energy channels, and provide an important alternative resource for consumers that are able to utilize the abundant (although potentially low quality) terrestrial nutritional sources.
+Terrestrial energy channels (known as allochthonous energy channels in aquatic systems) are a resource of energy and nutrients for aquatic consumers and ecosystems, although their significance can vary greatly across space and time. Zooplankton prefer (and require) the high fatty acid content of microalgae, which are a vital nutritional source and considered the base of an important autochthonous energy channel in most aquatic systems.Terrestrial resources entering lakes can lead to browning through the leaching dissolved organic matter and subsequently, a decrease in microalgae productivity as light is attenuated. In such a case, allochthonous energy channels may limit primary production, decreasing the importance of autochthony, and provide an important alternative resource for consumers that are able to utilize the abundant (although potentially low quality) terrestrial nutritional sources.
 
 Here, we used CSIA-AA to ask whether zooplankton in high elevation alpine Lakes of the Sierra Nevada Mountains obtain their AA~ESS~ from in-water producers (particulate organic matter dominated by microalgae and benthic algae) or from terrestrial C~3~ plants (sedges, pines, and broadleaf deciduous trees). We sampled 7 Lakes and 1 pond across an elevation gradient (2500-3200m) and measured environmental conditions (temperature, pH, DOC, TDN, TDP, chlorophyll-*a*). We analyzed the AA~ESS~ carbon isotope values of three primary producer groups and zooplankton consumers as both a community size-fraction (>350um) and individual taxa. 
 
@@ -1150,7 +1150,7 @@ dev.off()
 
 
 Use data from present study with  δ^13^C values of five AA~EES~ in bacteria from Besser et al (2025) and Larsen et al. (2009). Are bacteria significantly contributing to zooplankton? If so, which?  
-- 1 zooplankton (Neocopepodan, Blue Lake) assigned as Bacteria. 
+- 0 zooplankton assigned as Bacteria. 
 - 4 zooplankton assigned as Benthic algae vs. 3 in training dataset without bacteria.  
 - This is *Figure S13*
 ```{r pooled bacteria, results='hide', fig.cap="**Figure S13**. Linear discriminant analysis on the δ^13^C values of five AA~EES~ (Ile, Leu, Phe, Thr, Val) for three AA~EES~ sources (particulate organic matter [POM], benthic algae,  terrestrial plants, bacteria) and four zooplankton consumer groups (>350 μm size fraction, Cladocera, Calanoida, and Neocopepoda).", fig.dim=c(12,5)}
@@ -1201,31 +1201,27 @@ prod.bact <- bact.source.df.meas[!(bact.source.df.meas$Group == "Zooplankton"),]
 prod.bact$Group<-droplevels(prod.bact$Group) # drop Zoop level
 
 #Run an LDA with a jackknifing model fit to look at error rate
-#'CV = TRUE' makes the LDA run a jackknifed - leave one out - model fit
 All.lda.bact <- lda(Group ~ Ile + Leu + Phe + Thr + Val, data = prod.bact, CV = TRUE)
 
 #Create a table which compares the classification from the LDA model to the actual classification
 All.reclass.bact <- table(prod.bact$Group, All.lda.bact$class)
 
-#Total percent of samples correctly classified is the sum of the diagonal of this table: 85%
+#Total percent of samples correctly classified is the sum of the diagonal of this table: 90%
 sum(diag(prop.table(All.reclass.bact)))
+mean(All.lda.bact$class == prod.bact$Group) # mean accuracy 90%
 
-mean(All.lda.bact$class == prod.bact$Group) # mean accuracy
-
-#Percent of each producer Group correctly reclassified: 75% POM, 78% benthic algae, 80% plants, 91% bacteria
+#Percent of each producer Group correctly reclassified: 88% POM, 78% benthic algae, 100% plants, 92% bacteria
 diag(prop.table(All.reclass.bact, 1))
 
 #Create a training LDA function from the library data
-#Note - you can't use the 'All.lda' object above because the 'CV = TRUE' command was used to create it, and for some reason this won't work with the predict() function
-
 All.train.bact <- lda(Group~ Ile + Leu + Phe + Thr + Val, data = prod.bact)
 All.train.bact
 
 #plot LD1 and LD2 to show the sources
-# Source.LDA.bact <- ggord(All.train.bact, prod.bact$Group, arrow=0,
-#                     txt = NULL, veclsz = 0, vectyp="blank",# remove vectors and arrows
-#                     cols = c("dodgerblue","springgreen4", "lightsalmon3", "goldenrod"), grp_title = "Producers",
-#                     ellipse_pro = 0.95, xlim = c(-8,6), ylim = c(-5,5)) + theme_classic() + theme(legend.position = 'top')
+plot.bac.LDA<-ggord(All.train.bact, prod.bact$Group, arrow=0,
+               txt = NULL, veclsz = 0, vectyp="blank",# remove vectors and arrows
+               cols = c("dodgerblue","springgreen4", "lightsalmon3", "goldenrod"), grp_title = "Producers",
+               ellipse_pro = 0.95, xlim = c(-8,6), ylim = c(-5,5)) + theme_classic() + theme(legend.position = 'top')
 
 
 #Create a data frame with these LDA coordinates

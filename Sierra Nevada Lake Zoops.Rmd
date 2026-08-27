@@ -136,7 +136,7 @@ Here is the map generated from `ggmap` (with user-defined API) along with images
 
 <center>  
   
-![**Figure 1**. Site map displaying the western United States with the Eastern Sierra Nevada Mountains**](output/photos/Fig1.sitemap_2.png){width=90%}
+![**Figure 1**. Site map displaying the western United States with the Eastern Sierra Nevada Mountains**](output/photos/Fig1.sitemap.png){width=90%}
  
 </center>  
 
@@ -198,10 +198,10 @@ colnames(SNL.ess) <- c("SampleID", "Ile", "Leu", "Phe", "Thr", "Val")
 SNL.ess$SampleID <- as.character(SNL.ess$SampleID)
 
 # read in metadata and merge with SNL.ess data frame
-meta <- read.csv("data/All_sample_meta.csv") ### SNL-ZOOP-GFF12A is in the metadata but not our actual data set
+meta <- read.csv("data/Sample_metadata.csv")
 
 SNL.ess.meta <- merge.data.frame(meta, SNL.ess, by.x = "SampleID", by.y = "SampleID")
-SNL.ess.meta <- SNL.ess.meta[!(SNL.ess.meta$Lake == "TB-tanks"),]
+SNL.ess.meta <- SNL.ess.meta[!(SNL.ess.meta$Lake == "TB-tanks"),] # samples not included in the manuscript
 
 # make a new level for "Elevation" (in m), "0" for ordering, but actually is "NA"
 SNL.ess.meta$elevation..m <- ifelse(SNL.ess.meta$Lake == "Lukens", "2513",
@@ -1770,7 +1770,7 @@ SNL.CSIA.fulldata <- merge.data.frame(SNL.env, MSiar.LD.meta.EAA, by.x = "Lake",
 duplicated(SNL.CSIA.fulldata$SampleID) # CONFIRM no duplicate sampleIDs
 
 #### export full data for project
-write.csv(SNL.CSIA.fulldata, "output/SNL.CSIA.fulldata.csv", row.names=FALSE)
+write.csv(SNL.CSIA.fulldata, "data/SNL.CSIA.fulldata.csv", row.names=FALSE)
 
 ```
 

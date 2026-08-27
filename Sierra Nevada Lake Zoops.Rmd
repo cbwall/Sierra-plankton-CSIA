@@ -1,7 +1,7 @@
 ---
 title: "Zooplankton reliance on autochthonous and allochthonous resources across alpine lakes revealed through essential amino acid δ^13^C analysis"
 author: "Wall and Besser et al (2026) *Limnology and Oceanography*"
-date: "10/5/2025"
+date: "8/28/2026"
 output:
   html_document:
     code_folding: hide
@@ -58,7 +58,6 @@ Fig.formatting <-
         axis.title.x = element_text(size = 14, color = "black"),
         axis.title.y = element_text(size = 14, color = "black"),
         legend.text = element_text(size = 10, color = "black"),
-        legend.title = element_blank(),
         axis.ticks = element_line(color = "black"),
         legend.key.size = unit(0.6, "cm"))
 
@@ -372,10 +371,10 @@ EAA.box <- ggplot(EAA.df.long, aes(x = EAA, y = d13C, fill = Group))+
   geom_boxplot(color = "black", alpha =0.8)+
   scale_fill_manual(values = colors2)+ 
   ylab(expression(paste(delta^{13}, C, " ("^o,"/"[o][o],")"),)) +
-  xlab(element_blank()) +
+  xlab("") +
   theme_classic() +
   Fig.formatting +
-  guides(fill = "none")
+  guides(fill = "none", legend.title = element_blank())
 
 # create boxplots of mean-normalized essential amino acid carbon isotope values (Fig. S3B)
 # check order if setting label names, levels(EAA.df.long$Group)
@@ -384,8 +383,8 @@ EAA.box.nrm <- ggplot(EAA.df.long, aes(x = EAA, y = d13C.n, fill = Group))+
   scale_fill_manual(values = colors2,
                     labels = c("POM", "Benthic Algae", "Terrestrial Plants", "Zooplankton")) + 
   ylab(expression(paste(delta^{13}, C[norm]," ("^o,"/"[o][o],")"),)) +
-  xlab(element_blank()) +
-  theme_classic() +
+  xlab("") +
+  theme_classic()
   Fig.formatting
 
 # combine the raw and mean-normalized essential amino acid carbon isotope value boxplots into one figure and export 
@@ -1469,7 +1468,8 @@ discr.EAA <- load_discr_data(filename = "output/MixSIAR_models/loaded data/MixSI
 
 ```{r run the JAGS model, echo=TRUE, collapse=TRUE, fig.keep='none',results='hide', eval=FALSE}
 ############# run the JAGS model 
-
+# don't evaluate this unless you have the time to run the full process.
+# load in the savedRDS below
 set.seed(12)
 zoop.jags.mod.EAA <- run_model(run = "normal", cons.EAA, source.EAA, discr.EAA, model_filename.EAA, alpha.prior = 1, resid_err, process_err)
   
@@ -1536,7 +1536,8 @@ summary_stat(zoop.auto.combined.EAA, toprint = "fac1", meanSD = TRUE, savetxt = 
 
 Plot of Mixsiar model using measured data - all three sources for SI figure. This is *Figure S7.*
 ```{r SampleID EAA mixsiar SI plot, fig.cap="**Figure S7.** Boxplots of proportional contributions of three AAESS sources (POM, benthic algae, and terrestrial plants) to zooplankton consumers estimated from MixSIAR.", fig.dim=c(6,5), results='hide'}
-### CLEAN MIXSIAR MODEL BY SAMPLEID RESULTS ###
+
+### CLEAN MIXSIAR MODEL BY SAMPLE-ID RESULTS ###
 
 SAMP.mixSIAR.EAA.output.3 <- read.table(
   "output/MixSIAR_models/EAA_SampleID_model/MixSIAR_SampleID_summary_stats.EAA.txt",
@@ -1546,11 +1547,10 @@ SAMP.mixSIAR.EAA.output.3 <- as.data.frame(SAMP.mixSIAR.EAA.output.3)
 colnames(SAMP.mixSIAR.EAA.output.3) <- "full.data"
 
 # remove all extra spaces using "squish", make them 1 space only
-library(stringr)
+# library(stringr)
 SAMP.mixSIAR.EAA.output.3$full.data <- str_squish(SAMP.mixSIAR.EAA.output.3$full.data)
 
 # rename columns
-library(plyr)
 samp.mix.EAA.out.3 <- separate(SAMP.mixSIAR.EAA.output.3, full.data,  
                          into = c("factor", "Mean", "SD", "2.5.perc", "5.perc", "25.perc", "50.perc",
                                   "75.perc", "95.perc", "97.5.perc"), sep=" ")
@@ -1645,7 +1645,7 @@ multcomp::cld(posthoc.terPl.chan, Letters = letters) # calan (A), >350um (AB), c
 ```
 
 
-```{r summaries for  3source contribution}
+```{r summaries for  3source contribution, results='hide'}
 ############## summary df for reporting % of sources
 mean.df.3source<-aggregate(Mean~ Source, data=Mix.samp.EAA.3, FUN=mean)
 sd.df.3source<-aggregate(Mean~ Source, data=Mix.samp.EAA.3, FUN=sd)
@@ -1657,22 +1657,12 @@ colnames(n.df.3source)<-c("Source", "n")
 sum.df<-cbind(mean.df.3source, sd.df.3source$sd/sqrt(n.df.3source$n))
 colnames(sum.df)<-c("Source", "mean", "se")
 
-############### summmary as mean-SE
-Mix.samp.EAA.auto<-Mix.samp.EAA[(Mix.samp.EAA$Source=="Autochthonous"),]
-Mix.samp.EAA.alloch<-Mix.samp.EAA[(Mix.samp.EAA$Source=="Allochthonous"),]
-
-mean.df.2source<-aggregate(Mean~ Source, data=Mix.samp.EAA, FUN=mean)
-sd.df.2source<-aggregate(Mean~ Source, data=Mix.samp.EAA, FUN=sd)
-colnames(sd.df.2source)<-c("Source", "sd")
-
-n.df.2source<-aggregate(Mean~ Source, data=Mix.samp.EAA, FUN=length)
-colnames(n.df.2source)<-c("Source", "n")
-
-sor2.sum.df<-cbind(mean.df.2source, sd.df.2source$sd/sqrt(n.df.2source$n))
-colnames(sor2.sum.df)<-c("Source", "mean", "se")
+############### summmary for all 3 end members
+Mix.samp.EAA.auto<-Mix.samp.EAA.3[(Mix.samp.EAA.3$Source=="Algae" | Mix.samp.EAA.3$Source=="POM"),]
+Mix.samp.EAA.alloch<-Mix.samp.EAA.3[(Mix.samp.EAA.3$Source=="Plants"),]
 
 ##### energy channel range by sampleID: auto vs. allochth
-range(Mix.samp.EAA.auto$Mean, na.rm = TRUE) # 70 - 98% autochth range
+range(Mix.samp.EAA.auto$Mean, na.rm = TRUE) # 2 - 95% autochth range
 range(Mix.samp.EAA.alloch$Mean, na.rm = TRUE) # 2 - 30% allochth range
 
 # for each source and show range

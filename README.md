@@ -1,5 +1,5 @@
 ## Zooplankton reliance on autochthonous and allochthonous resources across mountain lakes revealed through essential amino acid  δ<sup>13</sup>C analysis.  
-CB Wall<sup>1,2Δ</sup>, AC Besser<sup>3,4Δ</sup>, CC Symons<sup>5</sup>, S Newsome<sup>4</sup>, JB Shurin<sup>1</sup>. (2026) _Limnology and Oceanpgraphy_.  
+CB Wall<sup>1,2Δ</sup>, AC Besser<sup>3,4Δ</sup>, CC Symons<sup>5</sup>, S Newsome<sup>4</sup>, JB Shurin<sup>1</sup>. (2026) _Limnology and Oceanography_.  
 
 <sup>1</sup>University of California, San Diego  
 <sup>2</sup>University of Hawai'i at Mānoa

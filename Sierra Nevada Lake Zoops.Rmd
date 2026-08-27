@@ -152,7 +152,7 @@ In `Symons et al. (2019)`, they sampled fish, grass, pines, zooplankton, and POM
 ```{r Bulk SIA Symons, fig.dim= c(6,5), fig.cap="**Figure S1**. Biplot of bulk tissue stable isotope analysis for carbon (δ^13^C) and nitrogen (δ^15^N) in fish, grasses, pines, POM, and zooplankton from montane Lakes in the Eastern Sierra Nevada Mountains of California (data from Symons et al. 2019).", results='hide'}
 
 # read in the bulk tissue stable isotope data set from Symons et al. 2019
-bulk.iso <- read.csv("data/Symons iso data/Symons_Yos_bulkSIA.csv")
+bulk.iso <- read.csv("data/Symons_Yos_bulkSIA.csv")
 
 bulk.iso$Type<-factor(bulk.iso$Type, levels=c("fish", "zooplankton", "POM", "grass", "pine"))
 

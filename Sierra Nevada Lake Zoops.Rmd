@@ -1,6 +1,6 @@
 ---
 title: "Zooplankton reliance on autochthonous and allochthonous resources across alpine lakes revealed through essential amino acid δ^13^C analysis"
-author: "Wall and Besser et al in *review*"
+author: "Wall and Besser et al (2026) *Limnology and Oceanography*"
 date: "10/5/2025"
 output:
   html_document:
@@ -70,7 +70,7 @@ This map shows sampling locations in the Sierra Nevada Mountains. Note you must 
 
 # load data
 SNL.env <- read.csv("data/SNL.envdata.csv")
-API <- read.csv("data/API_key.csv") # can we put the API_key.csv in the data folder? I don't see it, if not, let's remove this chunk of code from our .Rmd file in GitHub because it's not reproducible?
+API <- read.csv("data/API_key.csv") # 1,1 df with column "API.key" and user API.
 API.key <- API[1,1]
 
 # quick map
@@ -97,7 +97,6 @@ CA.map_for_man <- ggmap::ggmap(CA.map) +
   xlab("longitude") + ylab("latitude") +
   theme(text = element_text(size = 6),
        plot.margin = unit(c(0.2, 0.5, 0.2, 0.2), "cm")) 
-  #ggsn::scalebar(x.min=-124, x.max=-123, y.min=32.5, y.max=33, dist=2000, dist_unit="km",transform=TRUE,st.bottom=FALSE, st.size=2, box.fill=c("gray50", "white"), model="WGS84",st.color="white", border.size=0.5)
 
 
 ############
@@ -132,9 +131,9 @@ site.plots <- plot_grid(CA.map_for_man, SNL.sites,
 pdf(file = "figures/Fig1.sites_AB.pdf", height = 4, width = 8)
 site.plots
 dev.off()
-
 ```
 
+Here is the map generated from `ggmap` (with user-defined API) along with images of sites compiled in Affinity.
 
 <center>  
   
@@ -149,7 +148,7 @@ Tissue carbon and nitrogen values from Symons et al. 2019.
 Data here is from:  
 **Symons, C. C., M. A. Schulhof, H. B. Cavalheri, and J. B. Shurin. 2019.** *Antagonistic effects of temperature and dissolved organic carbon on fish growth in California mountain Lakes. Oecologia 189: 231–241. doi:10.1007/s00442-018-4298-9*
 
-In this study, they sampled fish, grass, pines, zooplankton, and POM for bulk tissue carbon and nitrogen isotope analyses. The figure shows that there is considerable overlap and high variance in the isotopic composition of these groups, making it difficult to determine relative allochthonous and autochthonous contributions to consumers.
+In `Symons et al. (2019)`, they sampled fish, grass, pines, zooplankton, and POM for bulk tissue carbon and nitrogen isotope analyses. The figure shows that there is considerable overlap and high variance in the isotopic composition of these groups, making it difficult to determine relative allochthonous and autochthonous contributions to consumers.
 
 ```{r Bulk SIA Symons, fig.dim= c(6,5), fig.cap="**Figure S1**. Biplot of bulk tissue stable isotope analysis for carbon (δ^13^C) and nitrogen (δ^15^N) in fish, grasses, pines, POM, and zooplankton from montane Lakes in the Eastern Sierra Nevada Mountains of California (data from Symons et al. 2019).", results='hide'}
 
@@ -183,8 +182,9 @@ dev.off()
 
 ### AA~ESS~ Carbon Isotope Values
 Read in the full data set (corrected using the NMX in-house reference material; not to be confused with mean-normalized data) and pull out just the essential amino acid (AA~ESS~) data, then subset by sample **Type**.  
-
 - We will be excluding Lysine due to poor peak size and/or separation.
+- Continue to smith, rename, and sort the dataframe 
+- Perform AA~ESS~ mean-normalization
 ```{r essAA load}
 # read in the essential amino acid carbon isotope data set generated for this study
 SNL.d13C.aa <- read.csv("data/Sierra Nevada Lakes AA d13C Data NMX standard_update.csv")
@@ -239,8 +239,10 @@ SNL.ess.meta$group4<-factor(SNL.ess.meta$group4,
                                      ">350um", "Cladocera", "Calanoida", "Neocopepoda"))
 
 
-
+############################################################
+# mean-normalization of AA~ESS~
 # make an ID column and run the mean normalization procedure
+# normalized AA~ESS~ now have ".n" attached tho them
 SNL.ess.meta$ID <- 1:nrow(SNL.ess.meta)
 for(i in 1:length(SNL.ess.meta$ID)){
   SNL.ess.meta$Ile.n[i] <- (SNL.ess.meta$Ile[i]-mean(as.numeric(SNL.ess.meta[i,6:10])))
@@ -394,10 +396,6 @@ EAA.box.raw.nrm
 dev.copy(pdf, "figures/FigS4.SNL.EssAA.Boxplot_rev.pdf", width = 12, height = 6)
 dev.off()
 
-#if jpeg
-#jpeg("figures/FigS3.SNL.EssAA.Boxplot_rev.jpeg", width = 11, height = 5, units = "in", res = 300)
-#EAA.box.raw.nrm
-#dev.off()
 ```
 
 
@@ -744,10 +742,6 @@ PCA.norm.sorc.plot
 dev.copy(pdf, "figures/FigS5.PCA.Sources.pdf", height = 7, width = 6.5)
 dev.off()
 
-#if want jpeg
-#jpeg("figures/FigS5.PCA.Sources.jpeg", height = 7, width = 6.5, units = "in", res = 300)
-#PCA.norm.sorc.plot
-#dev.off()
 ```
 
 ### LDA 
@@ -766,9 +760,7 @@ We use cultured and commercially sourced microalgae found in the literature. The
 - POM classified as = 7 microalgae, 1 as benthic algae, 0 as plants
 ```{r LDA POM and microalgae comparison, results='hide', results='hide'}
 ############################################################################
-############################################################################
 # Pooled food sources: algae, plants, microbes, fungi
-############################################################################
 ############################################################################
 
 # this is all the food source data
@@ -794,7 +786,6 @@ micro.source.df.meas<- micro.source.df %>%
   dplyr::select(Source, Group, Ile, Leu, Phe, Thr, Val)
 
 
-#### #### #### #### #### #### #### #### #### 
 #### #### #### #### #### #### #### #### #### 
 #### lests check out the PCA first, ust to see waht this looks like
 # the response variables
@@ -895,7 +886,7 @@ POM.All.reclass <- table(POM.micro$Group, POM.predict.data$class)
 ```
 
 ```{r LDA POM and microalgae plot, fig.cap="**Figure S6**. Linear discriminant analysis on the δ^13^C values of five AA~EES~ (Ile, Leu, Phe, Thr, Val) for three AA~EES~ sources from the literature (microalgae) and within the present study (benthic algae, terrestrial plants). Particulate organic matter (POM) was assigned to producer groups to determine its AAEES source.", fig.dim=c(6,5), results='hide'}
-#### #### #### #### #### #### #### #### #### 
+
 ####### plot consumers
 # Producers == 'AllProdPredict.micro'
 # POM == `POM.predict.data`
@@ -1143,9 +1134,6 @@ LDA.scat.group4
 dev.copy(pdf, "figures/Fig2.LDA_biplot.pdf", height = 6, width = 7)
 dev.off()
 
-# if want jpeg
-#ggsave("figures/Fig2_LDA_biplot.jpeg", height = 6, width = 7)
-#LDA.scat.phygroup
 ```
 
 
@@ -1192,11 +1180,6 @@ bact.source.df.meas<- bact.source.df.meas %>%
 bact.source.df.meas$Group<-factor(bact.source.df.meas$Group,
                                    levels=c("POM", "Benthic algae", "Terrestrial plants", "Bacteria", "Zooplankton"))
 
-#bact.source.df.meas$pool.sourc<- ifelse(bact.source.df.meas$Group == "Terrestrial plants", "Terrestrial plants",
-#                                        ifelse(bact.source.df.meas$Group == "Bacteria", "Bacteria",
-#                                               ifelse(bact.source.df.meas$Group == "Zooplankton", "Zooplankton",
-#                                               "POM-Alg")))
-                                        
 prod.bact <- bact.source.df.meas[!(bact.source.df.meas$Group == "Zooplankton"),] # remove zooplankton
 prod.bact$Group<-droplevels(prod.bact$Group) # drop Zoop level
 
@@ -1262,7 +1245,6 @@ Zoop.group4.reclass <- table(Zoop.bact$group4, Zoop.predict.data$class)
 Bact.zoop.LDA.df <- rbind(AllZoopPredict.bact, Zoop.predict.data)
 write.csv(Bact.zoop.LDA.df, "output/Bact.zoop.LDA.df.csv")
 
-####### ####### ####### 
 ####### ####### 
 ####### plots for consumers
 # Producers == 'AllZoopPredict.bact'
@@ -1278,17 +1260,6 @@ Bact.zoop.LDA.df$group4 <- factor(Bact.zoop.LDA.df$group4,
 # colors for 5 groups
 lda.5.colors.bact <- c("dodgerblue","springgreen4", "lightsalmon3", "goldenrod", "coral")
 
-# version 1 with pooled plankton 
-# LDA.bact.Group <- ggplot(Bact.zoop.LDA.df, aes(x = LD1, y = LD2))+
-#   geom_point(size = 3.5, color="black",
-#              aes(fill = Group, color = Group, shape = Group), alpha = 0.9) +
-#   stat_ellipse(type = "norm", level = 0.95, linewidth = 0.5, aes(lty = Group, color = Group))+
-#   scale_color_manual(values = lda.5.colors.bact)+
-#   scale_fill_manual(values = lda.5.colors.bact)+
-#   scale_shape_manual(values = c(24, 24, 25, 23, 21))+
-#   scale_linetype_manual(values = c(2,2,2,2, 0), guide = NULL)+
-#   xlab("LD1 (60.0%)") + ylab("LD2 (26.0%)") +
-#   theme_classic()
 
 #################
 #################
@@ -1646,7 +1617,7 @@ Alloch.box.point.3source.GROUP<-
   theme_classic() + Fig.formatting + guides(fill = "none") 
 
 Alloch.box.point.3source.GROUP
-dev.copy(pdf, "figures/FigS7.rev.mixsiar.3sources.EAA.pdf", width = 8, height = 7)
+dev.copy(pdf, "figures/FigS7.mixsiar.3sources.EAA.pdf", width = 8, height = 7)
 dev.off()
 ```
 
@@ -1873,7 +1844,7 @@ Alloch.box.point.2source<-
 
 #print and save
 Alloch.box.point.2source
-dev.copy(pdf, "figures/Fig3.rev.mixsiar.EAA.pdf", width = 7.5, height = 7)
+dev.copy(pdf, "figures/Fig3.mixsiar.EAA.pdf", width = 7.5, height = 7)
 dev.off()
 ```
 
@@ -1931,7 +1902,7 @@ Alloch.box.point.2source.LAKE<-
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
 Alloch.box.point.2source.LAKE
-dev.copy(pdf, "figures/FigS12.rev.mixsiar.lake.EAA.pdf", width = 10, height = 7)
+dev.copy(pdf, "figures/FigS12.mixsiar.lake.EAA.pdf", width = 10, height = 7)
 dev.off()
 ```
 

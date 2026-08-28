@@ -3445,9 +3445,8 @@ colnames(sum.df)&lt;-c(&quot;Source&quot;, &quot;mean&quot;, &quot;se&quot;)
 Mix.samp.EAA.auto&lt;-Mix.samp.EAA.3[(Mix.samp.EAA.3$Source==&quot;Algae&quot; | Mix.samp.EAA.3$Source==&quot;POM&quot;),]
 Mix.samp.EAA.alloch&lt;-Mix.samp.EAA.3[(Mix.samp.EAA.3$Source==&quot;Plants&quot;),]
 
-##### energy channel range by sampleID: auto vs. allochth
-range(Mix.samp.EAA.auto$Mean, na.rm = TRUE) # 2 - 95% autochth range
-range(Mix.samp.EAA.alloch$Mean, na.rm = TRUE) # 2 - 30% allochth range
+##### energy channel range by sampleID: allochth
+range(Mix.samp.EAA.alloch$Mean, na.rm = TRUE) # 2 - 30% allochth range = 70-98% autochthony
 
 # for each source and show range
 POM.mix&lt;-Mix.samp.EAA.3[(Mix.samp.EAA.3$Source==&quot;POM&quot;),]
@@ -3519,6 +3518,7 @@ samp.mix.reduced &lt;- samp.mix.df %&gt;%
 Auto.mix &lt;- samp.mix.reduced[(samp.mix.reduced$Source == &quot;Autochthonous&quot;),]
 colnames(Auto.mix) &lt;- c(&quot;SampleID&quot;, &quot;Source&quot;, &quot;Auto.mean&quot;, &quot;Auto.SD&quot;)
 Auto.mix &lt;- Auto.mix %&gt;% dplyr::select(-Source) # remove this column for merge below
+range(Auto.mix$Auto.mean) # 70-98%
 
 Alloch.mix &lt;- samp.mix.reduced[(samp.mix.reduced$Source == &quot;Allochthonous&quot;),]
 colnames(Alloch.mix) &lt;- c(&quot;SampleID&quot;, &quot;Source&quot;, &quot;Alloch.mean&quot;, &quot;Alloch.SD&quot;)
@@ -3631,7 +3631,7 @@ Mix.samp.EAA.cope.sep.alloch&lt;-Mix.samp.EAA[(Mix.samp.EAA$Source==&quot;Alloch
 
 # using separated copepods with calanoids and Neocopepoda (= cal + cycl)
 channels.alloch.cope.sep&lt;-lm(Mean~ group4, data=Mix.samp.EAA.cope.sep.alloch)
-anova(channels.alloch.cope.sep) # significant p = 0.0015</code></pre>
+anova(channels.alloch.cope.sep) # significant p = 0.0013</code></pre>
 <pre><code>## Analysis of Variance Table
 ## 
 ## Response: Mean
@@ -3661,7 +3661,7 @@ Mix.samp.EAA.cope.sep.auto&lt;-Mix.samp.EAA[(Mix.samp.EAA$Source==&quot;Autochth
 
 # using separated copepods with calanoids and Neocopepoda (= cal + cycl)
 channels.auto.cope.sep&lt;-lm(Mean~ group4, data=Mix.samp.EAA.cope.sep.auto)
-anova(channels.auto.cope.sep) # significant p = 0.0013</code></pre>
+anova(channels.auto.cope.sep) # significant p = 0.0015</code></pre>
 <pre><code>## Analysis of Variance Table
 ## 
 ## Response: Mean

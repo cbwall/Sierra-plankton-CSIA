@@ -1659,9 +1659,8 @@ colnames(sum.df)<-c("Source", "mean", "se")
 Mix.samp.EAA.auto<-Mix.samp.EAA.3[(Mix.samp.EAA.3$Source=="Algae" | Mix.samp.EAA.3$Source=="POM"),]
 Mix.samp.EAA.alloch<-Mix.samp.EAA.3[(Mix.samp.EAA.3$Source=="Plants"),]
 
-##### energy channel range by sampleID: auto vs. allochth
-range(Mix.samp.EAA.auto$Mean, na.rm = TRUE) # 2 - 95% autochth range
-range(Mix.samp.EAA.alloch$Mean, na.rm = TRUE) # 2 - 30% allochth range
+##### energy channel range by sampleID: allochth
+range(Mix.samp.EAA.alloch$Mean, na.rm = TRUE) # 2 - 30% allochth range = 70-98% autochthony
 
 # for each source and show range
 POM.mix<-Mix.samp.EAA.3[(Mix.samp.EAA.3$Source=="POM"),]
@@ -1737,6 +1736,7 @@ samp.mix.reduced <- samp.mix.df %>%
 Auto.mix <- samp.mix.reduced[(samp.mix.reduced$Source == "Autochthonous"),]
 colnames(Auto.mix) <- c("SampleID", "Source", "Auto.mean", "Auto.SD")
 Auto.mix <- Auto.mix %>% dplyr::select(-Source) # remove this column for merge below
+range(Auto.mix$Auto.mean) # 70-98%
 
 Alloch.mix <- samp.mix.reduced[(samp.mix.reduced$Source == "Allochthonous"),]
 colnames(Alloch.mix) <- c("SampleID", "Source", "Alloch.mean", "Alloch.SD")
@@ -1843,7 +1843,7 @@ Mix.samp.EAA.cope.sep.alloch<-Mix.samp.EAA[(Mix.samp.EAA$Source=="Allochthonous"
 
 # using separated copepods with calanoids and Neocopepoda (= cal + cycl)
 channels.alloch.cope.sep<-lm(Mean~ group4, data=Mix.samp.EAA.cope.sep.alloch)
-anova(channels.alloch.cope.sep) # significant p = 0.0015
+anova(channels.alloch.cope.sep) # significant p = 0.0013
 
 posthoc.chan.alloch.cope.sep <- emmeans(channels.alloch.cope.sep, ~ group4)
 multcomp::cld(posthoc.chan.alloch.cope.sep, Letters = letters) 
@@ -1855,7 +1855,7 @@ Mix.samp.EAA.cope.sep.auto<-Mix.samp.EAA[(Mix.samp.EAA$Source=="Autochthonous"),
 
 # using separated copepods with calanoids and Neocopepoda (= cal + cycl)
 channels.auto.cope.sep<-lm(Mean~ group4, data=Mix.samp.EAA.cope.sep.auto)
-anova(channels.auto.cope.sep) # significant p = 0.0013
+anova(channels.auto.cope.sep) # significant p = 0.0015
 
 posthoc.chan.auto.cope.sep <- emmeans(channels.auto.cope.sep, ~ group4)
 multcomp::cld(posthoc.chan.auto.cope.sep, Letters = letters) 

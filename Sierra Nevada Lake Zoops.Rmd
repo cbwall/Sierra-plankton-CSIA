@@ -763,8 +763,7 @@ We use cultured and commercially sourced microalgae found in the literature. The
 ############################################################################
 
 # this is all the food source data
-# includes: Besser et al. 2022, Arsenault et al. 2022, Thorp & Bowes 2017,
-# code will add in the data from the present study 
+# includes: Larsen et al. 2013, Arsenault et al. 2022, Thorp & Bowes 2017,
 micro.source.df<-read.csv("data/producers lit/Producers_microalgae_lit.csv")
 micro.source.df<-na.omit(micro.source.df)
 
@@ -1143,7 +1142,6 @@ Use data from present study with  δ^13^C values of five AA~EES~ in bacteria fro
 ```{r pooled bacteria, results='hide', fig.cap="**Figure S13**. Linear discriminant analysis on the δ^13^C values of five AA~EES~ (Ile, Leu, Phe, Thr, Val) for three AA~EES~ sources (particulate organic matter [POM], benthic algae,  terrestrial plants, bacteria) and four zooplankton consumer groups (>350 μm size fraction, Cladocera, Calanoida, and Neocopepoda).", fig.dim=c(12,5)}
 ############################################################################
 # Pooled food sources: algae, plants, microbes, fungi
-############################################################################
 ############################################################################
 
 # data from present study + microbes from Larsen et al. (2009) Besser et al. (2025)

@@ -1,4 +1,6 @@
-## Zooplankton reliance on autochthonous and allochthonous resources across mountain lakes revealed through essential amino acid  δ<sup>13</sup>C analysis.  
+## Zooplankton reliance on autochthonous and allochthonous resources across mountain lakes revealed through essential amino acid  δ<sup>13</sup>C analysis.   
+<a href="https://doi.org/10.5281/zenodo.22135454"><img src="https://zenodo.org/badge/613978702.svg" alt="DOI"></a>
+
 CB Wall<sup>1,2Δ</sup>, AC Besser<sup>3,4Δ</sup>, CC Symons<sup>5</sup>, S Newsome<sup>4</sup>, JB Shurin<sup>1</sup>. (2026) _Limnology and Oceanography_.  
 
 <sup>1</sup>University of California, San Diego  

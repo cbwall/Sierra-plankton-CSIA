@@ -12,7 +12,7 @@ CB Wall<sup>1,2Δ</sup>, AC Besser<sup>3,4Δ</sup>, CC Symons<sup>5</sup>, S New
   <img align="center" src="https://github.com/cbwall/Sierra-plankton-CSIA/blob/main/output//photos/Fig1.sitemap_2.png" width="65%" height="60%">
 </p>
 
-*Overview*:  We used CSIA-AA to ask whether zooplankton in high-elevation alpine Lakes of the Sierra Nevada Mountains obtain their AA~ESS~ from in-water producers (particulate organic matter dominated by microalgae and benthic algae) or from terrestrial C~3~ plants (sedges, pines, and broadleaf deciduous trees). We sampled 7 Lakes and 1 pond across an elevation gradient (2500-3200m) and measured environmental conditions (temperature, pH, DOC, TDN, TDP, chlorophyll-*a*). We analyzed the AA~ESS~ carbon isotope values of three primary producer groups and zooplankton consumers as both a community size-fraction (>350um) and individual taxa.  
+*Overview*:  We used CSIA-AA to ask whether zooplankton in high-elevation alpine Lakes of the Sierra Nevada Mountains obtain their essential amino acids (AA<sub>ESS</sub>) from in-water producers (particulate organic matter dominated by microalgae and benthic algae) or from terrestrial C3 plants (sedges, pines, and broadleaf deciduous trees). We sampled 7 Lakes and 1 pond across an elevation gradient (2500-3200m) and measured environmental conditions (temperature, pH, DOC, TDN, TDP, chlorophyll-*a*). We analyzed the AA<sub>ESS</sub> carbon isotope values of three primary producer groups and zooplankton consumers as both a community size-fraction (>350um) and individual taxa.  
 
 # File Directory
 The file directory contains folders and scripts (Rmd) to be run in RStudio. The folders house data, output, and raw + polished figures.  
